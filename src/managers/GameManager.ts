@@ -11,8 +11,6 @@ export default class GameManager {
   private gameSettings: Settings = DEFAULT_SETTINGS;
 
   constructor() {
-    this.init();
-
     const storedSettings = localStorage.getItem(KEY_SETTINGS);
     if (storedSettings !== null) {
       const settings = JSON.parse(storedSettings);
@@ -21,7 +19,7 @@ export default class GameManager {
     }
   }
 
-  private async init(): Promise<void> {
+  public async init(): Promise<void> {
     this.stateSetLoading();
     await gameInstance.MANAGERS.AssetManager.preloadAssets();
     this.stateSetReady();

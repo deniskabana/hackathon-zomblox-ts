@@ -42,6 +42,4 @@ export class GameInstance {
 }
 
 export const gameInstance = new GameInstance();
-
-// document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
-// `;
+gameInstance.MANAGERS.GameManager.init();
