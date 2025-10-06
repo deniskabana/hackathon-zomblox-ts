@@ -1,10 +1,10 @@
-import AssetManager from "./game/managers/AssetManager";
-import CameraManager from "./game/managers/CameraManager";
-import DrawManager from "./game/managers/DrawManager";
-import GameManager from "./game/managers/GameManager";
-import InputManager from "./game/managers/InputManager";
-import LevelManager from "./game/managers/LevelManager";
-import UIManager from "./game/managers/UIManager";
+import AssetManager from "./managers/AssetManager";
+import CameraManager from "./managers/CameraManager";
+import DrawManager from "./managers/DrawManager";
+import GameManager from "./managers/GameManager";
+import InputManager from "./managers/InputManager";
+import LevelManager from "./managers/LevelManager";
+import UIManager from "./managers/UIManager";
 import "./style.css";
 
 export class GameInstance {
@@ -21,12 +21,12 @@ export class GameInstance {
   constructor() {
     this.MANAGERS = {
       AssetManager: new AssetManager(),
-      CameraManager: new CameraManager(this),
-      DrawManager: new DrawManager(this),
+      CameraManager: new CameraManager(),
+      DrawManager: new DrawManager(),
       GameManager: new GameManager(),
-      InputManager: new InputManager(this),
-      LevelManager: new LevelManager(this),
-      UIManager: new UIManager(this),
+      InputManager: new InputManager(),
+      LevelManager: new LevelManager(),
+      UIManager: new UIManager(),
     };
   }
 }

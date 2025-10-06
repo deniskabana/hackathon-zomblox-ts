@@ -3,7 +3,7 @@ import {
   DEF_ASSETS_IMAGE,
   type AssetAudioName,
   type AssetImageName,
-} from "../../config/assets";
+} from "../config/assets";
 
 export type AssetAudio = HTMLAudioElement;
 export type AssetImage = HTMLImageElement;

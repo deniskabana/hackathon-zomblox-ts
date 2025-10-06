@@ -8,9 +8,15 @@ export default class CameraManager {
   public viewportWidth: number;
   public viewportHeight: number;
 
-  constructor(viewportWidth: number, viewportHeight: number) {
-    this.viewportWidth = viewportWidth;
-    this.viewportHeight = viewportHeight;
+  constructor() {
+    this.viewportWidth = window.innerWidth
+    this.viewportHeight = window.innerHeight
+    window.addEventListener('resize', this.updateViewport);
+  }
+
+  private updateViewport(): void {
+    this.viewportWidth = window.innerWidth
+    this.viewportHeight = window.innerHeight
   }
 
   public followPlayer(playerPos: WorldPosition): void {
@@ -57,14 +63,5 @@ export default class CameraManager {
       screen.y >= -margin &&
       screen.y <= this.viewportHeight + margin
     );
-  }
-
-  public setViewportSize(width: number, height: number): void {
-    this.viewportWidth = width;
-    this.viewportHeight = height;
-  }
-
-  public getViewportSize(): { width: number; height: number } {
-    return { width: this.viewportWidth, height: this.viewportHeight }
   }
 }

@@ -1,18 +1,9 @@
-import { DEFAULT_SETTINGS, type Settings } from "../../config/settings";
-import { gameInstance } from "../../main";
-import type { DeepPartial } from "../../types/deepPartial";
+import { DEFAULT_SETTINGS, type Settings } from "../config/settings";
+import { gameInstance } from "../main";
+import type { DeepPartial } from "../types/DeepPartial";
+import { GameState } from "../types/GameState";
 
 const KEY_SETTINGS = "game-manager-key-settings";
-
-export enum GameState {
-  INITIALIZING,
-  LOADING,
-  READY,
-  PLAYING_NIGHT,
-  PLAYING_DAY,
-  PAUSED,
-  GAME_OVER,
-}
 
 export default class GameManager {
   private gameState: GameState = GameState.INITIALIZING;
