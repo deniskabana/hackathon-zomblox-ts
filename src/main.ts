@@ -1,24 +1,37 @@
+import AssetManager from "./game/managers/AssetManager";
+import CameraManager from "./game/managers/CameraManager";
+import DrawManager from "./game/managers/DrawManager";
+import GameManager from "./game/managers/GameManager";
+import InputManager from "./game/managers/InputManager";
+import LevelManager from "./game/managers/LevelManager";
+import UIManager from "./game/managers/UIManager";
 import "./style.css";
-import typescriptLogo from "./typescript.svg";
-import viteLogo from "/vite.svg";
-import { setupCounter } from "./counter.ts";
 
-document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://www.typescriptlang.org/" target="_blank">
-      <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
-    </a>
-    <h1>Vite + TypeScript</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite and TypeScript logos to learn more
-    </p>
-  </div>
-`;
+export class GameInstance {
+  MANAGERS: {
+    AssetManager: AssetManager;
+    CameraManager: CameraManager;
+    DrawManager: DrawManager;
+    GameManager: GameManager;
+    InputManager: InputManager;
+    LevelManager: LevelManager;
+    UIManager: UIManager;
+  };
 
-setupCounter(document.querySelector<HTMLButtonElement>("#counter")!);
+  constructor() {
+    this.MANAGERS = {
+      AssetManager: new AssetManager(this),
+      CameraManager: new CameraManager(this),
+      DrawManager: new DrawManager(this),
+      GameManager: new GameManager(this),
+      InputManager: new InputManager(this),
+      LevelManager: new LevelManager(this),
+      UIManager: new UIManager(this),
+    };
+  }
+}
+
+export const gameInstance = new GameInstance();
+
+// document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
+// `;
