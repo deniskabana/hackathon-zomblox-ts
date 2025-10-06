@@ -8,7 +8,7 @@ import UIManager from "./game/managers/UIManager";
 import "./style.css";
 
 export class GameInstance {
-  MANAGERS: {
+  public MANAGERS: {
     AssetManager: AssetManager;
     CameraManager: CameraManager;
     DrawManager: DrawManager;
