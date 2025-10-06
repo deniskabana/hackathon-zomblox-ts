@@ -17,6 +17,7 @@ export class GameInstance {
     LevelManager: LevelManager;
     UIManager: UIManager;
   };
+  public CANVAS: HTMLCanvasElement;
 
   constructor() {
     this.MANAGERS = {
@@ -28,6 +29,15 @@ export class GameInstance {
       LevelManager: new LevelManager(),
       UIManager: new UIManager(),
     };
+    this.CANVAS = this.createCanvas()
+  }
+
+  private createCanvas(): HTMLCanvasElement {
+    const canvas = document.createElement('canvas');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    document.body.appendChild(canvas);
+    return canvas;
   }
 }
 
