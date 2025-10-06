@@ -1,5 +1,7 @@
 interface AssetDefinition { [assetName: string]: string; }
 
+// TODO: Add asset urls lol
+
 export const DEF_ASSETS_AUDIO = {
   // Player
   APlayerGunPistol: '',

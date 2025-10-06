@@ -20,10 +20,10 @@ export class GameInstance {
 
   constructor() {
     this.MANAGERS = {
-      AssetManager: new AssetManager(this),
+      AssetManager: new AssetManager(),
       CameraManager: new CameraManager(this),
       DrawManager: new DrawManager(this),
-      GameManager: new GameManager(this),
+      GameManager: new GameManager(),
       InputManager: new InputManager(this),
       LevelManager: new LevelManager(this),
       UIManager: new UIManager(this),

@@ -1,26 +1,21 @@
 import { DEF_ASSETS_AUDIO, DEF_ASSETS_IMAGE, type AssetAudioName, type AssetImageName } from "../../config/assets";
-import type { GameInstance } from "../../main";
 
 export type AssetAudio = HTMLAudioElement
 export type AssetImage = HTMLImageElement
 
 export default class AssetManager {
-  instance: GameInstance;
-  assetsAudioMap: Map<AssetAudioName, AssetAudio>;
-  assetsImageMap: Map<AssetImageName, AssetImage>;
+  private assetsAudioMap: Map<AssetAudioName, AssetAudio>;
+  private assetsImageMap: Map<AssetImageName, AssetImage>;
 
-  isAssetsLoading: boolean = false;
-  isReady: boolean = false;
+  private isAssetsLoading: boolean = false;
+  private isReady: boolean = false;
 
-  constructor(instance: GameInstance) {
-    this.instance = instance;
+  constructor() {
     this.assetsAudioMap = new Map<AssetAudioName, AssetAudio>;
     this.assetsImageMap = new Map<AssetImageName, AssetImage>;
-
-    this.preloadAssets()
   }
 
-  private async preloadAssets(): Promise<void> {
+  public async preloadAssets(): Promise<void> {
     this.isAssetsLoading = true;
 
     const ERRORS: string[] = []
@@ -74,6 +69,6 @@ export default class AssetManager {
   }
 
   public getIsReady(): boolean {
-    return this.isReady
+    return this.isReady && !this.isAssetsLoading
   }
 }
