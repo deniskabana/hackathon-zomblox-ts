@@ -31,8 +31,7 @@ export class GameInstance {
       UIManager: new UIManager(),
     };
 
-    this.MANAGERS.AssetManager.preloadAssets().then(() => this.MANAGERS.GameManager.stateSetReady());
-    this.MANAGERS.DrawManager.drawRectOutline(100, 100, 200, 50, '#bada55', 2);
+    this.loadAndStartGame();
   }
 
   private createCanvas(): HTMLCanvasElement {
@@ -44,10 +43,18 @@ export class GameInstance {
   }
 
   public update(deltaTime: number): void {
-    const { GameManager, CameraManager } = this.MANAGERS;
-    if (!GameManager.isPlaying()) return;
+    const { GameManager, CameraManager, AssetManager } = this.MANAGERS;
+    if (!GameManager.isPlaying() && !AssetManager.getIsReady()) return;
     CameraManager.followPlayer({ x: 0, y: 0 });
-    // TODO: Perform actions on other managers
+
+    // TODO: Perform actions on other managers and remove rectangle, haha
+    this.MANAGERS.DrawManager.drawRectOutline(100, 100, 200, 50, '#bada55', 2);
+  }
+
+  private async loadAndStartGame(): Promise<void> {
+    await this.MANAGERS.AssetManager.preloadAssets();
+    this.MANAGERS.GameManager.stateSetReady();
+    this.MANAGERS.DrawManager.startRenderLoop();
   }
 }
 

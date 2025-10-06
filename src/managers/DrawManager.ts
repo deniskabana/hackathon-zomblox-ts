@@ -66,9 +66,8 @@ export default class DrawManager {
     this.lastFrameTime = currentTime;
     this.fps = 1 / deltaTime;
 
-    gameInstance.update(deltaTime);
-
     this.clearCanvas();
+    gameInstance.update(deltaTime);
     this.renderDrawQueue();
 
     this.rafId = requestAnimationFrame(this.renderLoop.bind(this));

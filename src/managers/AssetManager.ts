@@ -30,13 +30,14 @@ export default class AssetManager {
     for (imageName in DEF_ASSETS_IMAGE) {
       const promise = new Promise<void>((resolve) => {
         const img = new Image();
+        const name = imageName;
         img.onload = () => resolve();
         img.onerror = () => {
-          ERRORS.push(`Failed to load image: ${imageName}`);
+          ERRORS.push(`Failed to load image: ${name}`);
           resolve();
         };
-        img.src = DEF_ASSETS_IMAGE[imageName];
-        this.assetsImageMap.set(imageName, img);
+        img.src = DEF_ASSETS_IMAGE[name];
+        this.assetsImageMap.set(name, img);
       });
       imagePromises.push(promise);
     }
@@ -46,14 +47,15 @@ export default class AssetManager {
     for (audioName in DEF_ASSETS_AUDIO) {
       const promise = new Promise<void>((resolve) => {
         const audio = new Audio();
+        const name = audioName;
         audio.oncanplaythrough = () => resolve();
         audio.onerror = () => {
-          ERRORS.push(`Failed to load audio: ${audioName}`);
+          ERRORS.push(`Failed to load audio: ${name}`);
           resolve();
         };
-        audio.src = DEF_ASSETS_AUDIO[audioName];
+        audio.src = DEF_ASSETS_AUDIO[name];
         audio.load();
-        this.assetsAudioMap.set(audioName, audio);
+        this.assetsAudioMap.set(name, audio);
       });
       audioPromises.push(promise);
     }
