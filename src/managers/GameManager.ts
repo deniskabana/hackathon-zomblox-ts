@@ -1,5 +1,4 @@
 import { DEFAULT_SETTINGS, type Settings } from "../config/settings";
-import { gameInstance } from "../main";
 import type { DeepPartial } from "../types/DeepPartial";
 import { GameState } from "../types/GameState";
 
@@ -17,12 +16,7 @@ export default class GameManager {
       if (!settings) return;
       this.setSettings(settings);
     }
-  }
-
-  public async init(): Promise<void> {
     this.stateSetLoading();
-    await gameInstance.MANAGERS.AssetManager.preloadAssets();
-    this.stateSetReady();
   }
 
   private stateSetLoading(): void {

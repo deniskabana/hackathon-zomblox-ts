@@ -8,6 +8,7 @@ import UIManager from "./managers/UIManager";
 import "./style.css";
 
 export class GameInstance {
+  public canvas: HTMLCanvasElement;
   public MANAGERS: {
     AssetManager: AssetManager;
     CameraManager: CameraManager;
@@ -17,19 +18,21 @@ export class GameInstance {
     LevelManager: LevelManager;
     UIManager: UIManager;
   };
-  public CANVAS: HTMLCanvasElement;
 
   constructor() {
+    this.canvas = this.createCanvas()
     this.MANAGERS = {
       AssetManager: new AssetManager(),
       CameraManager: new CameraManager(),
-      DrawManager: new DrawManager(),
+      DrawManager: new DrawManager(this.canvas),
       GameManager: new GameManager(),
       InputManager: new InputManager(),
       LevelManager: new LevelManager(),
       UIManager: new UIManager(),
     };
-    this.CANVAS = this.createCanvas()
+
+    this.MANAGERS.AssetManager.preloadAssets().then(() => this.MANAGERS.GameManager.stateSetReady());
+    this.MANAGERS.DrawManager.drawRectOutline(100, 100, 200, 50, '#bada55', 2);
   }
 
   private createCanvas(): HTMLCanvasElement {
@@ -39,7 +42,13 @@ export class GameInstance {
     document.body.appendChild(canvas);
     return canvas;
   }
+
+  public update(deltaTime: number): void {
+    const { GameManager, CameraManager } = this.MANAGERS;
+    if (!GameManager.isPlaying()) return;
+    CameraManager.followPlayer({ x: 0, y: 0 });
+    // TODO: Perform actions on other managers
+  }
 }
 
 export const gameInstance = new GameInstance();
-gameInstance.MANAGERS.GameManager.init();

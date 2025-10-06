@@ -22,13 +22,12 @@ export default class DrawManager {
   private lastFrameTime: number = 0;
   private fps: number = 0;
 
-  constructor() {
-    this.canvas = gameInstance.CANVAS;
+  constructor(canvas: HTMLCanvasElement) {
+    this.canvas = canvas;
+
     const ctx = this.canvas.getContext('2d');
     if (!ctx) throw new Error('Failed to get 2D context from canvas');
-
     this.ctx = ctx;
-    this.updateCanvasSize();
 
     window.addEventListener('resize', this.updateCanvasSize.bind(this));
   }
@@ -67,7 +66,7 @@ export default class DrawManager {
     this.lastFrameTime = currentTime;
     this.fps = 1 / deltaTime;
 
-    // TODO: Call update function with deltaTime
+    gameInstance.update(deltaTime);
 
     this.clearCanvas();
     this.renderDrawQueue();
@@ -125,6 +124,22 @@ export default class DrawManager {
       rotation,
       alpha,
     });
+  }
+
+  public drawRect(x: number, y: number, width: number, height: number, color: string, alpha: number = 1): void {
+    this.ctx.save();
+    this.ctx.globalAlpha = alpha;
+    this.ctx.fillStyle = color;
+    this.ctx.fillRect(x, y, width, height);
+    this.ctx.restore();
+  }
+
+  public drawRectOutline(x: number, y: number, width: number, height: number, color: string, lineWidth: number = 1): void {
+    this.ctx.save();
+    this.ctx.strokeStyle = color;
+    this.ctx.lineWidth = lineWidth;
+    this.ctx.strokeRect(x, y, width, height);
+    this.ctx.restore();
   }
 
   public getFPS(): number {
