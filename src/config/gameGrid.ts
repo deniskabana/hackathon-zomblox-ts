@@ -1,6 +1,6 @@
 export const GRID_CONFIG = {
   /** px */
-  TILE_SIZE: 32, // px
+  TILE_SIZE: 32,
   /** tiles */
   GRID_WIDTH: 50,
   /** tiles */
