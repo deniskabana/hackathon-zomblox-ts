@@ -11,12 +11,6 @@ export default class CameraManager {
   constructor() {
     this.viewportWidth = window.innerWidth
     this.viewportHeight = window.innerHeight
-    window.addEventListener('resize', this.updateViewport);
-  }
-
-  private updateViewport(): void {
-    this.viewportWidth = window.innerWidth
-    this.viewportHeight = window.innerHeight
   }
 
   public followPlayer(playerPos: WorldPosition): void {
@@ -63,5 +57,10 @@ export default class CameraManager {
       screen.y >= -margin &&
       screen.y <= this.viewportHeight + margin
     );
+  }
+
+  public setViewportSize(width: number, height: number): void {
+    this.viewportWidth = width;
+    this.viewportHeight = height;
   }
 }
