@@ -1,7 +1,12 @@
-import { DEF_ASSETS_AUDIO, DEF_ASSETS_IMAGE, type AssetAudioName, type AssetImageName } from "../../config/assets";
+import {
+  DEF_ASSETS_AUDIO,
+  DEF_ASSETS_IMAGE,
+  type AssetAudioName,
+  type AssetImageName,
+} from "../../config/assets";
 
-export type AssetAudio = HTMLAudioElement
-export type AssetImage = HTMLImageElement
+export type AssetAudio = HTMLAudioElement;
+export type AssetImage = HTMLImageElement;
 
 export default class AssetManager {
   private assetsAudioMap: Map<AssetAudioName, AssetAudio>;
@@ -11,14 +16,14 @@ export default class AssetManager {
   private isReady: boolean = false;
 
   constructor() {
-    this.assetsAudioMap = new Map<AssetAudioName, AssetAudio>;
-    this.assetsImageMap = new Map<AssetImageName, AssetImage>;
+    this.assetsAudioMap = new Map<AssetAudioName, AssetAudio>();
+    this.assetsImageMap = new Map<AssetImageName, AssetImage>();
   }
 
   public async preloadAssets(): Promise<void> {
     this.isAssetsLoading = true;
 
-    const ERRORS: string[] = []
+    const ERRORS: string[] = [];
 
     const imagePromises: Promise<void>[] = [];
     let imageName: AssetImageName;
@@ -28,8 +33,8 @@ export default class AssetManager {
         img.onload = () => resolve();
         img.onerror = () => {
           ERRORS.push(`Failed to load image: ${imageName}`);
-          resolve()
-        }
+          resolve();
+        };
         img.src = DEF_ASSETS_IMAGE[imageName];
         this.assetsImageMap.set(imageName, img);
       });
@@ -44,8 +49,8 @@ export default class AssetManager {
         audio.oncanplaythrough = () => resolve();
         audio.onerror = () => {
           ERRORS.push(`Failed to load audio: ${audioName}`);
-          resolve()
-        }
+          resolve();
+        };
         audio.src = DEF_ASSETS_AUDIO[audioName];
         audio.load();
         this.assetsAudioMap.set(audioName, audio);
@@ -53,22 +58,22 @@ export default class AssetManager {
       audioPromises.push(promise);
     }
 
-    await Promise.all([...imagePromises, ...audioPromises]);
+    await Promise.allSettled([...imagePromises, ...audioPromises]);
     this.isAssetsLoading = false;
     this.isReady = true;
 
-    if (ERRORS.length) console.error(ERRORS)
+    if (ERRORS.length) console.error(ERRORS);
   }
 
   public getAudioAsset(assetName: AssetAudioName): AssetAudio | undefined {
-    return this.assetsAudioMap.get(assetName)
+    return this.assetsAudioMap.get(assetName);
   }
 
   public getImageAsset(assetName: AssetImageName): AssetImage | undefined {
-    return this.assetsImageMap.get(assetName)
+    return this.assetsImageMap.get(assetName);
   }
 
   public getIsReady(): boolean {
-    return this.isReady && !this.isAssetsLoading
+    return this.isReady && !this.isAssetsLoading;
   }
 }

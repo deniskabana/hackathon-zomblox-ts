@@ -1,4 +1,8 @@
+import { DEFAULT_SETTINGS, type Settings } from "../../config/settings";
 import { gameInstance } from "../../main";
+import type { DeepPartial } from "../../types/deepPartial";
+
+const KEY_SETTINGS = "game-manager-key-settings";
 
 export enum GameState {
   INITIALIZING,
@@ -13,9 +17,17 @@ export enum GameState {
 export default class GameManager {
   private gameState: GameState = GameState.INITIALIZING;
   private prePauseState: GameState | undefined = undefined;
+  private gameSettings: Settings = DEFAULT_SETTINGS;
 
   constructor() {
     this.init();
+
+    const storedSettings = localStorage.getItem(KEY_SETTINGS);
+    if (storedSettings !== null) {
+      const settings = JSON.parse(storedSettings);
+      if (!settings) return;
+      this.setSettings(settings);
+    }
   }
 
   private async init(): Promise<void> {
@@ -30,35 +42,38 @@ export default class GameManager {
 
   public stateSetReady(): void {
     if (this.gameState !== GameState.LOADING) {
-      console.warn('Cannot set READY from state:', this.gameState);
+      console.warn("Cannot set READY from state:", this.gameState);
       return;
     }
     this.gameState = GameState.READY;
   }
 
-  public stateSetPlaying(cycle: 'day' | 'night' = 'night'): boolean {
-    if (this.gameState === GameState.INITIALIZING || this.gameState === GameState.LOADING) {
+  public stateSetPlaying(cycle: "day" | "night" = "night"): boolean {
+    if (
+      this.gameState === GameState.INITIALIZING ||
+      this.gameState === GameState.LOADING
+    )
       return false;
-    }
-
-    this.gameState = cycle === 'night' ? GameState.PLAYING_NIGHT : GameState.PLAYING_DAY;
+    this.gameState =
+      cycle === "night" ? GameState.PLAYING_NIGHT : GameState.PLAYING_DAY;
     return true;
   }
 
   public stateSetPaused(pause: boolean): boolean {
     if (pause) {
-      if (this.gameState !== GameState.PLAYING_DAY && this.gameState !== GameState.PLAYING_NIGHT) {
+      if (
+        this.gameState !== GameState.PLAYING_DAY &&
+        this.gameState !== GameState.PLAYING_NIGHT
+      )
         return false;
-      }
       this.prePauseState = this.gameState;
       this.gameState = GameState.PAUSED;
       return true;
     } else {
-      if (this.gameState !== GameState.PAUSED || !this.prePauseState) {
+      if (this.gameState !== GameState.PAUSED || !this.prePauseState)
         return false;
-      }
       this.gameState = this.prePauseState;
-      this.prePauseState = undefined; // Clear it after unpausing
+      this.prePauseState = undefined;
       return true;
     }
   }
@@ -67,8 +82,25 @@ export default class GameManager {
     return this.gameState;
   }
 
+  public setSettings(settings: DeepPartial<Settings>): void {
+    const newSettings: typeof this.gameSettings = {
+      ...this.gameSettings,
+      ...settings,
+      volume: { ...this.gameSettings.volume, ...settings.volume },
+    };
+    this.gameSettings = newSettings;
+    localStorage.setItem(KEY_SETTINGS, JSON.stringify(this.gameSettings));
+  }
+
+  public getSettings(): Settings {
+    return this.gameSettings;
+  }
+
   public isPlaying(): boolean {
-    return this.gameState === GameState.PLAYING_DAY || this.gameState === GameState.PLAYING_NIGHT;
+    return (
+      this.gameState === GameState.PLAYING_DAY ||
+      this.gameState === GameState.PLAYING_NIGHT
+    );
   }
 
   public isNight(): boolean {
