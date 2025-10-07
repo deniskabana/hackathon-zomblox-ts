@@ -39,7 +39,7 @@ export const DEF_ASSETS_IMAGE = {
   // FX
   IFXBloodSplat: "/images/pi58p94iB.png", // https://www.clipartbest.com/clipart-pi58p94iB
   // Textures
-  ITextureGround: "/images/Texture_1_Diffuse3.png", // https://oleekconder.itch.io/stylized-nature-textures
+  ITextureGround: "/images/Texture_11_Diffuse.png", // https://oleekconder.itch.io/stylized-nature-textures
   // Shop
   IShopRevolver: "/images/Revolver - Colt 45 [64x32].png", // https://arcadeisland.itch.io/guns-asset-pack-v1
   IShopShotgun: "/images/[32x96]Shotgun_V1.00.png", // https://arcadeisland.itch.io/guns-asset-pack-v1

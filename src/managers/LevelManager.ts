@@ -1,5 +1,6 @@
 import { GRID_CONFIG, gridToWorld, WORLD_SIZE } from "../config/gameGrid";
 import Player from "../entities/Player";
+import Zombie from "../entities/Zombie";
 import { gameInstance } from "../main";
 import type { LevelState } from "../types/LevelState";
 import { ZIndex } from "./DrawManager";
@@ -17,6 +18,7 @@ export default class LevelManager {
   public levelGrid: GridType[][];
 
   public player: Player;
+  private zombie: Zombie;
 
   constructor() {
     this.levelState = {
@@ -35,10 +37,12 @@ export default class LevelManager {
     this.levelGrid = levelGrid;
 
     this.player = new Player({ x: 220, y: 160 });
+    this.zombie = new Zombie({ x: 220, y: 180 });
   }
 
   public drawEntities(_deltaTime: number): void {
     this.player.draw(_deltaTime);
+    this.zombie.draw(_deltaTime);
 
     this.levelGrid.forEach((gridRow, x) => {
       gridRow.forEach((_gridCol, y) => {
