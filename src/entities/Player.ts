@@ -14,8 +14,9 @@ export default class Player extends AEntity {
 
   public draw(_deltaTime: number) {
     const playerSprite =
-      gameInstance.MANAGERS.AssetManager.getImageAsset("IPlayerGunRevolver");
+      gameInstance.MANAGERS.AssetManager.getImageAsset("IPlayerGunShotgun");
     if (!playerSprite) return;
+
 
     gameInstance.MANAGERS.DrawManager.queueDraw(
       this.worldPos.x,
@@ -24,7 +25,15 @@ export default class Player extends AEntity {
       64,
       64,
       ZIndex.ENTITIES,
+      this.getAimAngle() + Math.PI / 2,
     );
+  }
+
+  private getAimAngle(): number {
+    const mousePos = gameInstance.MANAGERS.InputManager.mouseWorldPos;
+    const dx = mousePos.x - this.worldPos.x;
+    const dy = mousePos.y - this.worldPos.y;
+    return Math.atan2(dy, dx);
   }
 }
 

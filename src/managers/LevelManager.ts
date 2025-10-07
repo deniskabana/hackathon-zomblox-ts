@@ -30,7 +30,7 @@ export default class LevelManager {
     }
     this.levelGrid = levelGrid;
 
-    this.player = new Player({ x: 120, y: 60 });
+    this.player = new Player({ x: 220, y: 160 });
   }
 
   public drawEntities(_deltaTime: number): void {
