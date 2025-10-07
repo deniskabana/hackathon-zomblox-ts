@@ -7,7 +7,7 @@ export interface DrawCommand {
   width: number;
   height: number;
   /** radians */
-  rotation?: number; // radians
+  rotation?: number;
   alpha?: number;
 }
 
@@ -161,10 +161,6 @@ export default class DrawManager {
     this.ctx.lineWidth = lineWidth;
     this.ctx.strokeRect(x, y, width, height);
     this.ctx.restore();
-  }
-
-  public getFPS(): number {
-    return Math.round(this.fps);
   }
 
   public getSize(): { width: number; height: number } {
