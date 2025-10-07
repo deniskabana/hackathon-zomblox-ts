@@ -19,4 +19,7 @@ export default abstract class AEntity {
     this.worldPos = worldPos;
     this.gridPos = worldToGrid(worldPos);
   }
+
+  public abstract update(_deltaTime: number): void;
+  public abstract draw(_deltaTime: number): void;
 }

@@ -1,6 +1,7 @@
 import type { WorldPosition } from "../config/gameGrid";
 import { gameInstance } from "../main";
 
+// TODO: Zoom. Needed afterall, lol
 export default class CameraManager {
   public x: number = 0;
   public y: number = 0;
