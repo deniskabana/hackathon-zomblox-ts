@@ -2,9 +2,9 @@ export const GRID_CONFIG = {
   /** px */
   TILE_SIZE: 48,
   /** tiles */
-  GRID_WIDTH: 40,
+  GRID_WIDTH: 32,
   /** tiles */
-  GRID_HEIGHT: 40,
+  GRID_HEIGHT: 32,
 } as const;
 
 export const WORLD_SIZE = {
@@ -12,19 +12,9 @@ export const WORLD_SIZE = {
   HEIGHT: GRID_CONFIG.TILE_SIZE * GRID_CONFIG.GRID_HEIGHT,
 } as const;
 
-export interface GridPosition {
-  /** tiles */
-  x: number;
-  /** tiles */
-  y: number;
-}
+export interface GridPosition { x: number; y: number; };
 
-export interface WorldPosition {
-  /** px */
-  x: number;
-  /** px */
-  y: number;
-}
+export interface WorldPosition { x: number; y: number; };
 
 export function gridToWorld(gridPos: GridPosition): WorldPosition {
   return {

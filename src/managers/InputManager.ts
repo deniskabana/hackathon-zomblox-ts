@@ -1,8 +1,9 @@
-import type { WorldPosition } from "../config/gameGrid";
 import { gameInstance } from "../main";
 
+export interface ScreenPosition { x: number; y: number; };
+
 export default class InputManager {
-  public mouseWorldPos: WorldPosition = { x: 0, y: 0 };
+  public mouseScreenPos: ScreenPosition = { x: 0, y: 0 };
   private keysPressed: Set<string> = new Set();
 
   constructor() {
@@ -27,14 +28,8 @@ export default class InputManager {
     const rect = gameInstance.canvas.getBoundingClientRect();
     const screenX = event.clientX - rect.left;
     const screenY = event.clientY - rect.top;
-
-    const worldPos = gameInstance.MANAGERS.CameraManager.screenToWorld({
-      x: screenX,
-      y: screenY,
-    });
-
-    this.mouseWorldPos.x = worldPos.x;
-    this.mouseWorldPos.y = worldPos.y;
+    this.mouseScreenPos.x = screenX;
+    this.mouseScreenPos.y = screenY;
   }
 
   public isKeyDown(key: string): boolean {

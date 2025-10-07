@@ -4,8 +4,8 @@ import { ZIndex } from "../managers/DrawManager";
 import AEntity from "./AEntity";
 
 export enum PlayerSpeed {
-  WALK = 3,
-  RUN = 6,
+  WALK = 200,
+  RUN = 12,
 }
 
 export default class Player extends AEntity {
@@ -19,8 +19,8 @@ export default class Player extends AEntity {
   public update(_deltaTime: number) {
     this.moveDirection = this.getAimAngle();
     const movementVector = this.getMovementInput();
-    this.worldPos.x += movementVector.x;
-    this.worldPos.y += movementVector.y;
+    this.worldPos.x += movementVector.x * _deltaTime * this.moveSpeed;
+    this.worldPos.y += movementVector.y * _deltaTime * this.moveSpeed;
   }
 
   public draw(_deltaTime: number) {
@@ -40,9 +40,10 @@ export default class Player extends AEntity {
   }
 
   private getAimAngle(): number {
-    const mousePos = gameInstance.MANAGERS.InputManager.mouseWorldPos;
-    const dx = mousePos.x - this.worldPos.x;
-    const dy = mousePos.y - this.worldPos.y;
+    const mousePos = gameInstance.MANAGERS.InputManager.mouseScreenPos;
+    const mouseWorldPos = gameInstance.MANAGERS.CameraManager.screenToWorld(mousePos);
+    const dx = mouseWorldPos.x - this.worldPos.x;
+    const dy = mouseWorldPos.y - this.worldPos.y;
     return Math.atan2(dy, dx);
   }
 
@@ -63,6 +64,6 @@ export default class Player extends AEntity {
       y /= length;
     }
 
-    return { x: x * this.moveSpeed, y: y * this.moveSpeed };
+    return { x, y };
   }
 }
