@@ -9,8 +9,8 @@ export default class CameraManager {
   public viewportHeight: number;
 
   constructor() {
-    this.viewportWidth = window.innerWidth
-    this.viewportHeight = window.innerHeight
+    this.viewportWidth = window.innerWidth;
+    this.viewportHeight = window.innerHeight;
   }
 
   public followPlayer(playerPos: WorldPosition): void {

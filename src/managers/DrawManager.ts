@@ -25,11 +25,11 @@ export default class DrawManager {
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
 
-    const ctx = this.canvas.getContext('2d');
-    if (!ctx) throw new Error('Failed to get 2D context from canvas');
+    const ctx = this.canvas.getContext("2d");
+    if (!ctx) throw new Error("Failed to get 2D context from canvas");
     this.ctx = ctx;
 
-    window.addEventListener('resize', this.updateCanvasSize.bind(this));
+    window.addEventListener("resize", this.updateCanvasSize.bind(this));
   }
 
   private updateCanvasSize(): void {
@@ -98,7 +98,7 @@ export default class DrawManager {
         -cmd.width / 2,
         -cmd.height / 2,
         cmd.width,
-        cmd.height
+        cmd.height,
       );
     } else {
       this.ctx.drawImage(cmd.image, cmd.x, cmd.y, cmd.width, cmd.height);
@@ -107,11 +107,20 @@ export default class DrawManager {
     this.ctx.restore();
   }
 
-  public queueDraw(worldX: number, worldY: number, image: HTMLImageElement, width: number, height: number, rotation?: number, alpha?: number): void {
+  public queueDraw(
+    worldX: number,
+    worldY: number,
+    image: HTMLImageElement,
+    width: number,
+    height: number,
+    rotation?: number,
+    alpha?: number,
+  ): void {
     const camera = gameInstance.MANAGERS.CameraManager;
     const screenPos = camera.worldToScreen({ x: worldX, y: worldY });
 
-    if (!camera.isOnScreen({ x: worldX, y: worldY }, Math.max(width, height))) return;
+    if (!camera.isOnScreen({ x: worldX, y: worldY }, Math.max(width, height)))
+      return;
 
     this.drawQueue.push({
       image,
@@ -124,7 +133,14 @@ export default class DrawManager {
     });
   }
 
-  public drawRect(x: number, y: number, width: number, height: number, color: string, alpha: number = 1): void {
+  public drawRect(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    color: string,
+    alpha: number = 1,
+  ): void {
     this.ctx.save();
     this.ctx.globalAlpha = alpha;
     this.ctx.fillStyle = color;
@@ -132,7 +148,14 @@ export default class DrawManager {
     this.ctx.restore();
   }
 
-  public drawRectOutline(x: number, y: number, width: number, height: number, color: string, lineWidth: number = 1): void {
+  public drawRectOutline(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    color: string,
+    lineWidth: number = 1,
+  ): void {
     this.ctx.save();
     this.ctx.strokeStyle = color;
     this.ctx.lineWidth = lineWidth;
@@ -150,6 +173,6 @@ export default class DrawManager {
 
   public destroy(): void {
     this.stopRenderLoop();
-    window.removeEventListener('resize', this.updateCanvasSize);
+    window.removeEventListener("resize", this.updateCanvasSize);
   }
 }

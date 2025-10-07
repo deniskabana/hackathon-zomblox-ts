@@ -1,4 +1,4 @@
 export interface LevelState {
-  phase: 'day' | 'night';
+  phase: "day" | "night";
   daysCounter: number;
 }

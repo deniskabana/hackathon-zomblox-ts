@@ -11,13 +11,13 @@ export interface WeaponDefinition {
     ammoCost: number;
     ammoPurchaseAmount: number;
     maxDistance: number;
-  }
+  };
 }
 
 export const DEF_WEAPONS = {
   Revolver: {
     capacity: 6,
-    displayName: 'Revolver',
+    displayName: "Revolver",
     shots: 1,
     radius: 3,
     speed: 4,
@@ -30,7 +30,7 @@ export const DEF_WEAPONS = {
   },
   Shotgun: {
     capacity: 8,
-    displayName: 'Shotgun',
+    displayName: "Shotgun",
     shots: 3,
     radius: 12,
     speed: 4,
@@ -43,7 +43,7 @@ export const DEF_WEAPONS = {
   },
   Submachine: {
     capacity: 27,
-    displayName: 'SMG',
+    displayName: "SMG",
     shots: 1,
     radius: 4,
     speed: 1,
@@ -52,8 +52,8 @@ export const DEF_WEAPONS = {
     cost: 275,
     ammoCost: 90,
     ammoPurchaseAmount: 62,
-    maxDistance: 10
-  }
-} as const satisfies WeaponDefinition
+    maxDistance: 10,
+  },
+} as const satisfies WeaponDefinition;
 
-export type Weapon = keyof typeof DEF_WEAPONS
+export type Weapon = keyof typeof DEF_WEAPONS;

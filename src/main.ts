@@ -21,8 +21,10 @@ export class GameInstance {
   };
 
   constructor() {
-    this.isDev = import.meta.env.NODE_ENV === 'development' || !!location.hash.match('debug')
-    this.canvas = this.createCanvas()
+    this.isDev =
+      import.meta.env.NODE_ENV === "development" ||
+      !!location.hash.match("debug");
+    this.canvas = this.createCanvas();
     this.MANAGERS = {
       AssetManager: new AssetManager(),
       CameraManager: new CameraManager(),
@@ -37,9 +39,10 @@ export class GameInstance {
   }
 
   private createCanvas(): HTMLCanvasElement {
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement("canvas");
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    canvas.oncontextmenu = (e) => e.preventDefault();
     document.body.appendChild(canvas);
     return canvas;
   }
