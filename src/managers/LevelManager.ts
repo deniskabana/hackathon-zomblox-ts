@@ -1,18 +1,18 @@
 import { GRID_CONFIG, gridToWorld, WORLD_SIZE } from "../config/gameGrid";
+import Player from "../entities/Player";
 import { gameInstance } from "../main";
 import type { LevelState } from "../types/LevelState";
+import { ZIndex } from "./DrawManager";
 
-enum GridType {
-  Available,
-  Blocked,
-  Player,
-}
+enum GridType { AVAILABLE, BLOCKED, PLAYER }
 
 export default class LevelManager {
   public worldWidth = WORLD_SIZE.WIDTH;
   public worldHeight = WORLD_SIZE.HEIGHT;
   public levelState: LevelState;
   public levelGrid: GridType[][];
+
+  private player: Player;
 
   constructor() {
     this.levelState = {
@@ -24,14 +24,18 @@ export default class LevelManager {
     for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
       const columns: GridType[] = [];
       for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
-        columns.push(GridType.Available);
+        columns.push(GridType.AVAILABLE);
       }
       levelGrid.push(columns);
     }
     this.levelGrid = levelGrid;
+
+    this.player = new Player({ x: 120, y: 60 });
   }
 
   public drawEntities(_deltaTime: number): void {
+    this.player.draw(_deltaTime);
+
     this.levelGrid.forEach((gridRow, x) => {
       gridRow.forEach((_gridCol, y) => {
         const tileWorldPos = gridToWorld({ x, y });
@@ -45,6 +49,7 @@ export default class LevelManager {
           texture,
           GRID_CONFIG.TILE_SIZE,
           GRID_CONFIG.TILE_SIZE,
+          ZIndex.GROUND,
         );
       });
     });

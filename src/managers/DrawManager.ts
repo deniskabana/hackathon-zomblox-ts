@@ -1,5 +1,12 @@
 import { gameInstance } from "../main";
 
+export enum ZIndex {
+  GROUND = 0,
+  BLOCKS = 100,
+  ENTITIES = 200,
+  EFFECTS = 300,
+}
+
 export interface DrawCommand {
   image: HTMLImageElement;
   x: number;
@@ -9,13 +16,14 @@ export interface DrawCommand {
   /** radians */
   rotation?: number;
   alpha?: number;
+  zIndex: number;
 }
 
 export default class DrawManager {
-  canvas: HTMLCanvasElement;
-  ctx: CanvasRenderingContext2D;
+  private canvas: HTMLCanvasElement;
+  private ctx: CanvasRenderingContext2D;
 
-  private drawQueue: DrawCommand[] = [];
+  private drawQueue: Record<number, DrawCommand[]> = {};
   private rafId: number | null = null;
   private isRunning: boolean = false;
 
@@ -32,6 +40,8 @@ export default class DrawManager {
     window.addEventListener("resize", this.updateCanvasSize.bind(this));
   }
 
+  // Canvas
+
   private updateCanvasSize(): void {
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
@@ -41,6 +51,12 @@ export default class DrawManager {
       this.canvas.height,
     );
   }
+
+  private clearCanvas(): void {
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  }
+
+  // Render loop
 
   public startRenderLoop(): void {
     if (this.isRunning) return;
@@ -74,15 +90,16 @@ export default class DrawManager {
     this.rafId = requestAnimationFrame(this.renderLoop.bind(this));
   }
 
-  private clearCanvas(): void {
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-  }
+  // Draw queue
 
   private renderDrawQueue(): void {
-    for (const cmd of this.drawQueue) {
-      this.drawCommand(cmd);
-    }
-    this.drawQueue = [];
+    Object.entries(this.drawQueue).sort(([a], [b]) => Number(a) - Number(b)).forEach(([_zIndex, commands]) => {
+      for (const cmd of commands) {
+        this.drawCommand(cmd);
+      }
+    })
+
+    this.drawQueue = {}
   }
 
   private drawCommand(cmd: DrawCommand): void {
@@ -107,12 +124,15 @@ export default class DrawManager {
     this.ctx.restore();
   }
 
+  // Drawing methods
+
   public queueDraw(
     worldX: number,
     worldY: number,
     image: HTMLImageElement,
     width: number,
     height: number,
+    zIndex: number = ZIndex.ENTITIES,
     rotation?: number,
     alpha?: number,
   ): void {
@@ -122,7 +142,8 @@ export default class DrawManager {
     if (!camera.isOnScreen({ x: worldX, y: worldY }, Math.max(width, height)))
       return;
 
-    this.drawQueue.push({
+    const queue = this.drawQueue[zIndex] ?? [];
+    queue.push({
       image,
       x: screenPos.x - width / 2,
       y: screenPos.y - height / 2,
@@ -130,22 +151,9 @@ export default class DrawManager {
       height,
       rotation,
       alpha,
-    });
-  }
-
-  public drawRect(
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-    color: string,
-    alpha: number = 1,
-  ): void {
-    this.ctx.save();
-    this.ctx.globalAlpha = alpha;
-    this.ctx.fillStyle = color;
-    this.ctx.fillRect(x, y, width, height);
-    this.ctx.restore();
+      zIndex,
+    })
+    this.drawQueue[zIndex] = queue;
   }
 
   public drawRectOutline(
@@ -162,6 +170,8 @@ export default class DrawManager {
     this.ctx.strokeRect(x, y, width, height);
     this.ctx.restore();
   }
+
+  // Maintenance
 
   public getSize(): { width: number; height: number } {
     return { width: this.canvas.width, height: this.canvas.height };

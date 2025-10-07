@@ -47,7 +47,7 @@ export class GameInstance {
     return canvas;
   }
 
-  public update(deltaTime: number): void {
+  public update(_deltaTime: number): void {
     const { GameManager, CameraManager, AssetManager } = this.MANAGERS;
     if (!GameManager.isPlaying() && !AssetManager.getIsReady()) return;
     CameraManager.followPlayer({ x: 0, y: 0 });
@@ -55,7 +55,7 @@ export class GameInstance {
     // TODO: Perform actions on other managers and remove rectangle, haha
     // this.MANAGERS.DrawManager.drawRectOutline(100, 100, 200, 50, '#bada55', 2);
 
-    this.MANAGERS.LevelManager.drawEntities(deltaTime);
+    this.MANAGERS.LevelManager.drawEntities(_deltaTime);
   }
 
   private async loadAndStartGame(): Promise<void> {
