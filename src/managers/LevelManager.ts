@@ -1,4 +1,4 @@
-import { WORLD_SIZE } from "../config/gameGrid";
+import { GRID_CONFIG, gridToWorld, WORLD_SIZE } from "../config/gameGrid";
 import { gameInstance } from "../main";
 import type { LevelState } from "../types/LevelState";
 
@@ -29,6 +29,24 @@ export default class LevelManager {
       levelGrid.push(columns);
     }
     this.levelGrid = levelGrid;
+  }
+
+  public drawEntities(deltaTime: number): void {
+    this.levelGrid.forEach((gridRow, x) => {
+      gridRow.forEach((gridCol, y) => {
+        const tileWorldPos = gridToWorld({ x, y })
+        const texture = gameInstance.MANAGERS.AssetManager.getImageAsset('ITextureGround')
+        if (!texture) return;
+
+        gameInstance.MANAGERS.DrawManager.queueDraw(
+          tileWorldPos.x,
+          tileWorldPos.y,
+          texture,
+          GRID_CONFIG.TILE_SIZE,
+          GRID_CONFIG.TILE_SIZE,
+        )
+      })
+    })
   }
 
   public endNight() {

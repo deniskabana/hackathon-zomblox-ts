@@ -75,8 +75,6 @@ export default class DrawManager {
 
   private clearCanvas(): void {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.ctx.fillStyle = '#000000';
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
   private renderDrawQueue(): void {

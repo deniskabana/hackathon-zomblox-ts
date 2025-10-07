@@ -49,6 +49,8 @@ export class GameInstance {
 
     // TODO: Perform actions on other managers and remove rectangle, haha
     this.MANAGERS.DrawManager.drawRectOutline(100, 100, 200, 50, '#bada55', 2);
+
+    this.MANAGERS.LevelManager.drawEntities(deltaTime);
   }
 
   private async loadAndStartGame(): Promise<void> {

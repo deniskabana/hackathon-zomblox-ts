@@ -33,18 +33,17 @@ export const DEF_ASSETS_IMAGE = {
   IPlayerGunSmg: "/images/survivor_smg.png", // https://fightswithbears.itch.io/2d-topdown-survival-character
   IPlayerUnarmed: "/images/survivor_unarmed.png", // https://fightswithbears.itch.io/2d-topdown-survival-character
   // Blocks
-  IBlockWood: "",
+  IBlockWood: "/images/RTS_Crate.png", // https://opengameart.org/content/2d-wooden-box
   // Zombies
   IZombie1: "/images/zombie.png", // https://fightswithbears.itch.io/2d-topdown-survival-character
-  IZombie1Dead: "",
   // FX
-  IFXBloodSplat: "",
+  IFXBloodSplat: "/images/pi58p94iB.png", // https://www.clipartbest.com/clipart-pi58p94iB
   // Textures
-  ITextureGround: "",
+  ITextureGround: "/images/Texture_1_Diffuse3.png", // https://oleekconder.itch.io/stylized-nature-textures
   // Shop
-  IShopRevolver: "",
-  IShopShotgun: "",
-  IShopSmg: "",
+  IShopRevolver: "/images/Revolver - Colt 45 [64x32].png", // https://arcadeisland.itch.io/guns-asset-pack-v1
+  IShopShotgun: "/images/[32x96]Shotgun_V1.00.png", // https://arcadeisland.itch.io/guns-asset-pack-v1
+  IShopSmg: "/images/Submachine - MP5A3 [80x48].png", // https://arcadeisland.itch.io/guns-asset-pack-v1
 } as const satisfies AssetDefinition;
 
 export type AssetAudioName = keyof typeof DEF_ASSETS_AUDIO;
