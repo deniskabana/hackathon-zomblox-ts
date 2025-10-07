@@ -8,6 +8,7 @@ import UIManager from "./managers/UIManager";
 import "./style.css";
 
 export class GameInstance {
+  public isDev: boolean;
   public canvas: HTMLCanvasElement;
   public MANAGERS: {
     AssetManager: AssetManager;
@@ -20,6 +21,7 @@ export class GameInstance {
   };
 
   constructor() {
+    this.isDev = import.meta.env.NODE_ENV === 'development' || !!location.hash.match('debug')
     this.canvas = this.createCanvas()
     this.MANAGERS = {
       AssetManager: new AssetManager(),
@@ -57,6 +59,7 @@ export class GameInstance {
     await this.MANAGERS.AssetManager.preloadAssets();
     this.MANAGERS.GameManager.stateSetReady();
     this.MANAGERS.DrawManager.startRenderLoop();
+    this.MANAGERS.UIManager.init();
   }
 }
 

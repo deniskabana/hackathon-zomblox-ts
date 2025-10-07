@@ -64,11 +64,12 @@ export default class DrawManager {
 
     const deltaTime = (currentTime - this.lastFrameTime) / 1000;
     this.lastFrameTime = currentTime;
-    this.fps = 1 / deltaTime;
+    this.fps = Math.round(1 / deltaTime);
 
     this.clearCanvas();
     gameInstance.update(deltaTime);
     this.renderDrawQueue();
+    gameInstance.MANAGERS.UIManager.drawFps(this.fps);
 
     this.rafId = requestAnimationFrame(this.renderLoop.bind(this));
   }
