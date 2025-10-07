@@ -28,7 +28,6 @@ export default class Player extends AEntity {
       gameInstance.MANAGERS.AssetManager.getImageAsset("IPlayerGunShotgun");
     if (!playerSprite) return;
 
-
     gameInstance.MANAGERS.DrawManager.queueDraw(
       this.worldPos.x,
       this.worldPos.y,
@@ -52,10 +51,10 @@ export default class Player extends AEntity {
     let y = 0;
 
     const input = gameInstance.MANAGERS.InputManager;
-    if (input.isKeyDown('KeyW')) y -= 1;
-    if (input.isKeyDown('KeyS')) y += 1;
-    if (input.isKeyDown('KeyA')) x -= 1;
-    if (input.isKeyDown('KeyD')) x += 1;
+    if (input.isKeyDown("KeyW")) y -= 1;
+    if (input.isKeyDown("KeyS")) y += 1;
+    if (input.isKeyDown("KeyA")) x -= 1;
+    if (input.isKeyDown("KeyD")) x += 1;
 
     // Normalize diagonal movement so you don't move faster diagonally
     if (x !== 0 && y !== 0) {

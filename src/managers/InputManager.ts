@@ -6,9 +6,9 @@ export default class InputManager {
   private keysPressed: Set<string> = new Set();
 
   constructor() {
-    document.addEventListener('mousemove', this.onMouseMove.bind(this));
-    document.addEventListener('keydown', this.onKeyDown.bind(this));
-    document.addEventListener('keyup', this.onKeyUp.bind(this));
+    document.addEventListener("mousemove", this.onMouseMove.bind(this));
+    document.addEventListener("keydown", this.onKeyDown.bind(this));
+    document.addEventListener("keyup", this.onKeyUp.bind(this));
   }
 
   private onMouseMove(event: MouseEvent): void {
@@ -42,8 +42,8 @@ export default class InputManager {
   }
 
   public destroy(): void {
-    document.removeEventListener('mousemove', this.onMouseMove);
-    document.removeEventListener('keydown', this.onKeyDown);
-    document.removeEventListener('keyup', this.onKeyUp);
+    document.removeEventListener("mousemove", this.onMouseMove);
+    document.removeEventListener("keydown", this.onKeyDown);
+    document.removeEventListener("keyup", this.onKeyUp);
   }
 }

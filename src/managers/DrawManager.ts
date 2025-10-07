@@ -93,13 +93,15 @@ export default class DrawManager {
   // Draw queue
 
   private renderDrawQueue(): void {
-    Object.entries(this.drawQueue).sort(([a], [b]) => Number(a) - Number(b)).forEach(([_zIndex, commands]) => {
-      for (const cmd of commands) {
-        this.drawCommand(cmd);
-      }
-    })
+    Object.entries(this.drawQueue)
+      .sort(([a], [b]) => Number(a) - Number(b))
+      .forEach(([_zIndex, commands]) => {
+        for (const cmd of commands) {
+          this.drawCommand(cmd);
+        }
+      });
 
-    this.drawQueue = {}
+    this.drawQueue = {};
   }
 
   private drawCommand(cmd: DrawCommand): void {
@@ -152,7 +154,7 @@ export default class DrawManager {
       rotation,
       alpha,
       zIndex,
-    })
+    });
     this.drawQueue[zIndex] = queue;
   }
 
