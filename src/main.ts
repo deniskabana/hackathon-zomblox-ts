@@ -48,7 +48,7 @@ export class GameInstance {
     CameraManager.followPlayer({ x: 0, y: 0 });
 
     // TODO: Perform actions on other managers and remove rectangle, haha
-    this.MANAGERS.DrawManager.drawRectOutline(100, 100, 200, 50, '#bada55', 2);
+    // this.MANAGERS.DrawManager.drawRectOutline(100, 100, 200, 50, '#bada55', 2);
 
     this.MANAGERS.LevelManager.drawEntities(deltaTime);
   }

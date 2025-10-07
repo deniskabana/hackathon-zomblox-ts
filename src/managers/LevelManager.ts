@@ -21,9 +21,9 @@ export default class LevelManager {
     }
 
     const levelGrid: typeof this.levelGrid = [];
-    for (let x = 0; x < this.worldWidth; x++) {
+    for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
       const columns: GridType[] = []
-      for (let y = 0; y < this.worldHeight; y++) {
+      for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
         columns.push(GridType.Available);
       }
       levelGrid.push(columns);
@@ -38,6 +38,13 @@ export default class LevelManager {
         const texture = gameInstance.MANAGERS.AssetManager.getImageAsset('ITextureGround')
         if (!texture) return;
 
+        // gameInstance.MANAGERS.DrawManager.drawRectOutline(
+        //   tileWorldPos.x - GRID_CONFIG.TILE_SIZE / 2,
+        //   tileWorldPos.y - GRID_CONFIG.TILE_SIZE / 2,
+        //   GRID_CONFIG.TILE_SIZE,
+        //   GRID_CONFIG.TILE_SIZE,
+        //   '#ffffff'
+        // )
         gameInstance.MANAGERS.DrawManager.queueDraw(
           tileWorldPos.x,
           tileWorldPos.y,
