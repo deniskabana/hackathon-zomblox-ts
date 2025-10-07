@@ -12,7 +12,7 @@ export default class LevelManager {
   public levelState: LevelState;
   public levelGrid: GridType[][];
 
-  private player: Player;
+  public player: Player;
 
   constructor() {
     this.levelState = {

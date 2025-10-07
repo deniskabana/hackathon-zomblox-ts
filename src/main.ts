@@ -24,7 +24,9 @@ export class GameInstance {
     this.isDev =
       import.meta.env.NODE_ENV === "development" ||
       !!location.hash.match("debug");
+
     this.canvas = this.createCanvas();
+
     this.MANAGERS = {
       AssetManager: new AssetManager(),
       CameraManager: new CameraManager(),
@@ -43,6 +45,7 @@ export class GameInstance {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     canvas.oncontextmenu = (e) => e.preventDefault();
+
     document.body.appendChild(canvas);
     return canvas;
   }
@@ -50,12 +53,9 @@ export class GameInstance {
   public update(_deltaTime: number): void {
     const { GameManager, CameraManager, AssetManager } = this.MANAGERS;
     if (!GameManager.isPlaying() && !AssetManager.getIsReady()) return;
-    CameraManager.followPlayer({ x: 0, y: 0 });
-
-    // TODO: Perform actions on other managers and remove rectangle, haha
-    // this.MANAGERS.DrawManager.drawRectOutline(100, 100, 200, 50, '#bada55', 2);
-
+    CameraManager.followPlayer(this.MANAGERS.LevelManager.player.worldPos);
     this.MANAGERS.LevelManager.drawEntities(_deltaTime);
+    this.MANAGERS.LevelManager.player.update(_deltaTime);
   }
 
   private async loadAndStartGame(): Promise<void> {
