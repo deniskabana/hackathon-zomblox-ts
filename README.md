@@ -1,0 +1,19 @@
+## Zomblocks Hackathon
+
+A simple top-down shooter game made from ground-up by me as a hackathon and a challenge project. Drawing heavily from my Unity experience, implementing everything in OOP TS.
+
+The aim for MVP after 24hrs of work:
+1. Single-player, 3 weapons, day-night cycle, shop
+2. Zombies spawning during the night, flow field path finding
+3. Endless survival and menu with proper credits
+
+### Play now!
+
+[Click here to play right now in your browser!](https://deniskabana.github.io/hackathon-zomblox-ts/)
+
+### Screenshot
+
+<div align="center">
+  <img src="screenshot.jpg" alt="Screenshot" />
+</div>
+
