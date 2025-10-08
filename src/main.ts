@@ -55,7 +55,7 @@ export class GameInstance {
     if (!GameManager.isPlaying() && !AssetManager.getIsReady()) return;
     CameraManager.followPlayer(this.MANAGERS.LevelManager.player.worldPos);
     this.MANAGERS.LevelManager.drawEntities(_deltaTime);
-    this.MANAGERS.LevelManager.player.update(_deltaTime);
+    this.MANAGERS.LevelManager.update(_deltaTime);
   }
 
   private async loadAndStartGame(): Promise<void> {
