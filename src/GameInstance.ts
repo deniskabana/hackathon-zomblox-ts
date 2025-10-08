@@ -5,6 +5,7 @@ import GameManager from "./managers/GameManager";
 import InputManager from "./managers/InputManager";
 import LevelManager from "./managers/LevelManager";
 import UIManager from "./managers/UIManager";
+import VFXManager from "./managers/VFXManager";
 
 export default class GameInstance {
   public isDev: boolean;
@@ -17,6 +18,7 @@ export default class GameInstance {
     InputManager: InputManager;
     LevelManager: LevelManager;
     UIManager: UIManager;
+    VFXManager: VFXManager;
   };
 
   constructor() {
@@ -34,6 +36,7 @@ export default class GameInstance {
       InputManager: new InputManager(),
       LevelManager: new LevelManager(),
       UIManager: new UIManager(),
+      VFXManager: new VFXManager(),
     };
 
     document.addEventListener("click", this.startGame.bind(this));

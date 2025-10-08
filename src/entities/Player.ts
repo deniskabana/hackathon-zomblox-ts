@@ -100,6 +100,8 @@ export default class Player extends AEntity {
     if (weaponSound)
       gameInstance.MANAGERS.AssetManager.playAudioAsset(weaponSound, "sound");
     this.gunCooldown = DEF_WEAPONS[this.weapon].cooldown;
+
+    gameInstance.MANAGERS.VFXManager.drawShootLine(this.worldPos, this.moveDirection);
   }
 
   private getPlayerSprite(): AssetImage {

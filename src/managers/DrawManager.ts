@@ -87,6 +87,7 @@ export default class DrawManager {
     this.renderDrawQueue();
     gameInstance.MANAGERS.UIManager.drawFps(this.fps);
     gameInstance.MANAGERS.UIManager.drawDebug();
+    gameInstance.MANAGERS.VFXManager.draw();
 
     this.rafId = requestAnimationFrame(this.renderLoop.bind(this));
   }
@@ -171,6 +172,25 @@ export default class DrawManager {
     this.ctx.strokeStyle = color;
     this.ctx.lineWidth = lineWidth;
     this.ctx.strokeRect(x, y, width, height);
+    this.ctx.restore();
+  }
+
+  public drawLine(
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    color: string,
+    lineWidth: number = 1,
+  ): void {
+    this.ctx.save();
+    this.ctx.strokeStyle = color;
+    this.ctx.lineWidth = lineWidth;
+    this.ctx.beginPath();
+    this.ctx.moveTo(x1, y1);
+    this.ctx.lineTo(x2, y2);
+    this.ctx.closePath();
+    this.ctx.stroke();
     this.ctx.restore();
   }
 
