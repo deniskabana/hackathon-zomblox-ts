@@ -11,6 +11,7 @@ export interface WeaponDefinition {
     ammoCost: number;
     ammoPurchaseAmount: number;
     maxDistance: number;
+    spread: number;
   };
 }
 
@@ -27,6 +28,7 @@ export const DEF_WEAPONS = {
     ammoCost: 10,
     ammoPurchaseAmount: 46,
     maxDistance: 8,
+    spread: 6,
   },
   Shotgun: {
     capacity: 8,
@@ -40,6 +42,7 @@ export const DEF_WEAPONS = {
     ammoCost: 60,
     ammoPurchaseAmount: 24,
     maxDistance: 5,
+    spread: 12,
   },
   Submachine: {
     capacity: 27,
@@ -53,6 +56,7 @@ export const DEF_WEAPONS = {
     ammoCost: 90,
     ammoPurchaseAmount: 62,
     maxDistance: 10,
+    spread: 10,
   },
 } as const satisfies WeaponDefinition;
 

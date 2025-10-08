@@ -36,12 +36,13 @@ export default class VFXManager {
     })
   }
 
-  public drawShootLine(from: WorldPosition, direction: number, color: string = '#d0d000', duration: number = 0.2): void {
+  public drawShootLine(from: WorldPosition, direction: number, color: string = '#d0d000', duration: number = 0.15): void {
     this.startTimes.push(Date.now());
     const vectorFrom = gameInstance.MANAGERS.CameraManager.worldToScreen(from);
     const vectorTo = radiansToVector(direction);
-    vectorTo.x *= 800;
-    vectorTo.y *= 800;
+    const screenLen = 2000;
+    vectorTo.x *= screenLen;
+    vectorTo.y *= screenLen;
     vectorTo.x += vectorFrom.x;
     vectorTo.y += vectorFrom.y;
     this.effects.push({ from: vectorFrom, to: vectorTo, color, duration })

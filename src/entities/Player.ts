@@ -99,9 +99,15 @@ export default class Player extends AEntity {
     const weaponSound = this.getWeaponSound();
     if (weaponSound)
       gameInstance.MANAGERS.AssetManager.playAudioAsset(weaponSound, "sound");
-    this.gunCooldown = DEF_WEAPONS[this.weapon].cooldown;
 
-    gameInstance.MANAGERS.VFXManager.drawShootLine(this.worldPos, this.moveDirection);
+    const weaponDef = DEF_WEAPONS[this.weapon];
+    this.gunCooldown = weaponDef.cooldown;
+    const gunSpread = weaponDef.spread;
+
+    for (let i = 0; i < weaponDef.shots; i++) {
+      const spread = (Math.random() - 0.5) * 2 * (gunSpread * Math.PI / 180);
+      gameInstance.MANAGERS.VFXManager.drawShootLine(this.worldPos, this.moveDirection + spread);
+    }
   }
 
   private getPlayerSprite(): AssetImage {
