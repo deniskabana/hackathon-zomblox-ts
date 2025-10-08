@@ -5,11 +5,7 @@ import { gameInstance } from "../main";
 import type { LevelState } from "../types/LevelState";
 import { ZIndex } from "./DrawManager";
 
-enum GridTileState {
-  AVAILABLE,
-  BLOCKED,
-  PLAYER,
-}
+enum GridTileState { AVAILABLE, BLOCKED, PLAYER };
 
 export default class LevelManager {
   public worldWidth = WORLD_SIZE.WIDTH;

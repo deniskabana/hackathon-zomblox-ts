@@ -15,7 +15,7 @@ export default class AssetManager {
 
   public playingAudioTracks: AssetAudioName[] = [];
 
-  constructor() {}
+  constructor() { }
 
   public async preloadAssets(): Promise<void> {
     this.isAssetsLoading = true;
@@ -91,6 +91,7 @@ export default class AssetManager {
       case "sound":
         audio.volume = volumeSettings.effects * volumeSettings.master * volume;
         audio.loop = false;
+        audio.playbackRate = 1 + (Math.random() - 0.25) * 2 * 0.2;
         break;
 
       default:
