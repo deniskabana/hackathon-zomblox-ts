@@ -19,7 +19,7 @@ export default class AssetManager {
 
   public playingAudioTracks: AssetAudioName[] = [];
 
-  constructor() { }
+  constructor() {}
 
   public async preloadAssets(): Promise<void> {
     this.isAssetsLoading = true;
@@ -107,9 +107,11 @@ export default class AssetManager {
 
     this.playingAudioTracks.push(assetName);
     audio.onended = () => {
-      const index = this.playingAudioTracks.findIndex((name) => name === assetName);
+      const index = this.playingAudioTracks.findIndex(
+        (name) => name === assetName,
+      );
       if (index !== -1) this.playingAudioTracks.splice(index);
-    }
+    };
     audio.play();
   }
 
