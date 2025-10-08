@@ -64,10 +64,12 @@ export class GameInstance {
     await this.MANAGERS.AssetManager.preloadAssets();
     this.MANAGERS.GameManager.stateSetReady();
     this.MANAGERS.UIManager.init();
-    this.MANAGERS.DrawManager.startRenderLoop();
+    this.MANAGERS.UIManager.drawStartGameContainer();
   }
 
   private startGame(): void {
+    this.MANAGERS.DrawManager.startRenderLoop();
+    this.MANAGERS.UIManager.hideStartGameContainer();
     this.MANAGERS.GameManager.stateSetPlaying();
     this.MANAGERS.LevelManager.init();
 
@@ -79,7 +81,7 @@ export class GameInstance {
 
     const bgAmbience = this.MANAGERS.AssetManager.getAudioAsset('AFXZombieAmbience');
     if (bgAmbience) {
-      bgAmbience.volume = 0.5;
+      bgAmbience.volume = 0.35;
       bgAmbience.loop = true;
       bgAmbience.play();
     }

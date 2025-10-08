@@ -4,10 +4,15 @@ export default class UIManager {
   private fpsContainer: HTMLDivElement;
   private fpsText: HTMLParagraphElement;
 
+  private startGameContainer: HTMLDivElement;
+
   constructor() {
     this.fpsContainer = document.createElement("div");
     this.fpsText = document.createElement("p");
     this.fpsContainer.appendChild(this.fpsText);
+
+    this.startGameContainer = document.createElement('div');
+    document.body.appendChild(this.startGameContainer);
   }
 
   public init(): void {
@@ -24,5 +29,18 @@ export default class UIManager {
   public drawFps(fps: number): void {
     if (!gameInstance.isDev) return;
     this.fpsText.innerText = `${fps} FPS`;
+  }
+
+  public drawStartGameContainer(): void {
+    this.startGameContainer.style = `position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #2a2a2ab8; z-index: 10; display: flex; place-items: center;`
+    const text = document.createElement('p');
+    text.style = `display: block; text-align: center; font-weight: bold; width: 100%; font-size: 30px;`
+    text.innerText = "Click anywhere...";
+    this.startGameContainer.appendChild(text);
+  }
+
+  public hideStartGameContainer(): void {
+    this.startGameContainer.style = `display: none;`
+    this.startGameContainer.innerHTML = '';
   }
 }

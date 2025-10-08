@@ -94,11 +94,11 @@ export default class LevelManager {
     this.isSpawningZombies = true;
   }
 
-  private stopSpawningZombies(): void {
+  public stopSpawningZombies(): void {
     this.isSpawningZombies = false;
   }
 
-  private spawnZombie(): void {
+  public spawnZombie(): void {
     if (this.zombies.length > 20) return;
     this.zombies.push(new Zombie(this.getRandomZombieSpawnPosition()));
   }
