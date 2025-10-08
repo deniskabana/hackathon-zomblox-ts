@@ -8,16 +8,16 @@ export default class Zombie extends AEntity {
     super(worldPos, true);
   }
 
-  public update(_deltaTime: number) {
-  }
+  public update(_deltaTime: number) {}
 
   public draw(_deltaTime: number) {
-    const sprite =
-      gameInstance.MANAGERS.AssetManager.getImageAsset("IZombie1");
+    const sprite = gameInstance.MANAGERS.AssetManager.getImageAsset("IZombie1");
     if (!sprite) return;
 
-    const dx = gameInstance.MANAGERS.LevelManager.player.worldPos.x - this.worldPos.x;
-    const dy = gameInstance.MANAGERS.LevelManager.player.worldPos.y - this.worldPos.y;
+    const dx =
+      gameInstance.MANAGERS.LevelManager.player.worldPos.x - this.worldPos.x;
+    const dy =
+      gameInstance.MANAGERS.LevelManager.player.worldPos.y - this.worldPos.y;
     const angle = Math.atan2(dy, dx);
 
     gameInstance.MANAGERS.DrawManager.queueDraw(

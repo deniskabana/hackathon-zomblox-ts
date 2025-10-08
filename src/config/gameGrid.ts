@@ -12,9 +12,15 @@ export const WORLD_SIZE = {
   HEIGHT: GRID_CONFIG.TILE_SIZE * GRID_CONFIG.GRID_HEIGHT,
 } as const;
 
-export interface GridPosition { x: number; y: number; };
+export interface GridPosition {
+  x: number;
+  y: number;
+}
 
-export interface WorldPosition { x: number; y: number; };
+export interface WorldPosition {
+  x: number;
+  y: number;
+}
 
 export function gridToWorld(gridPos: GridPosition): WorldPosition {
   return {

@@ -31,24 +31,19 @@ export default class GameManager {
     this.gameState = GameState.READY;
   }
 
-  public stateSetPlaying(cycle: "day" | "night" = "night"): boolean {
+  public stateSetPlaying(): boolean {
     if (
       this.gameState === GameState.INITIALIZING ||
       this.gameState === GameState.LOADING
     )
       return false;
-    this.gameState =
-      cycle === "night" ? GameState.PLAYING_NIGHT : GameState.PLAYING_DAY;
+    this.gameState = GameState.PLAYING;
     return true;
   }
 
   public stateSetPaused(pause: boolean): boolean {
     if (pause) {
-      if (
-        this.gameState !== GameState.PLAYING_DAY &&
-        this.gameState !== GameState.PLAYING_NIGHT
-      )
-        return false;
+      if (this.gameState !== GameState.PLAYING) return false;
       this.prePauseState = this.gameState;
       this.gameState = GameState.PAUSED;
       return true;
@@ -80,18 +75,7 @@ export default class GameManager {
   }
 
   public isPlaying(): boolean {
-    return (
-      this.gameState === GameState.PLAYING_DAY ||
-      this.gameState === GameState.PLAYING_NIGHT
-    );
-  }
-
-  public isNight(): boolean {
-    return this.gameState === GameState.PLAYING_NIGHT;
-  }
-
-  public isDay(): boolean {
-    return this.gameState === GameState.PLAYING_DAY;
+    return this.gameState === GameState.PLAYING;
   }
 
   public isPaused(): boolean {

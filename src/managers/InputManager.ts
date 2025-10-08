@@ -1,6 +1,9 @@
 import { gameInstance } from "../main";
 
-export interface ScreenPosition { x: number; y: number; };
+export interface ScreenPosition {
+  x: number;
+  y: number;
+}
 
 export default class InputManager {
   public mouseScreenPos: ScreenPosition = { x: 0, y: 0 };

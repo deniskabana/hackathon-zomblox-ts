@@ -2,8 +2,7 @@ export enum GameState {
   INITIALIZING,
   LOADING,
   READY,
-  PLAYING_NIGHT,
-  PLAYING_DAY,
+  PLAYING,
   PAUSED,
   GAME_OVER,
 }

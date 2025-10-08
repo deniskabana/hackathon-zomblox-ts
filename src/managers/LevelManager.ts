@@ -67,14 +67,12 @@ export default class LevelManager {
     if (this.levelState.phase !== "night") return;
     this.levelState.phase = "day";
     this.levelState.daysCounter += 1;
-    gameInstance.MANAGERS.GameManager.stateSetPlaying("day");
     // TODO: UI and game changes
   }
 
   public endDay() {
     if (this.levelState.phase !== "day") return;
     this.levelState.phase = "night";
-    gameInstance.MANAGERS.GameManager.stateSetPlaying("night");
     // TODO: UI and game changes
   }
 }

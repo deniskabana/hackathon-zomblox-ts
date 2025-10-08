@@ -41,7 +41,8 @@ export default class Player extends AEntity {
 
   private getAimAngle(): number {
     const mousePos = gameInstance.MANAGERS.InputManager.mouseScreenPos;
-    const mouseWorldPos = gameInstance.MANAGERS.CameraManager.screenToWorld(mousePos);
+    const mouseWorldPos =
+      gameInstance.MANAGERS.CameraManager.screenToWorld(mousePos);
     const dx = mouseWorldPos.x - this.worldPos.x;
     const dy = mouseWorldPos.y - this.worldPos.y;
     return Math.atan2(dy, dx);
