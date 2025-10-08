@@ -16,9 +16,11 @@ export enum PlayerSpeed {
 export default class Player extends AEntity {
   private moveDirection: number = 0;
   private moveSpeed: number = PlayerSpeed.WALK;
-  private gunCooldown: number = 0;
+  private isMoving: boolean = false;
 
+  private gunCooldown: number = 0;
   private nextWeaponCooldown: number = 0;
+  private stepSoundCooldown: number = 0;
 
   public health: number = 100;
   public weapon: Weapon = "Revolver";
@@ -30,11 +32,23 @@ export default class Player extends AEntity {
   public update(_deltaTime: number) {
     this.moveDirection = this.getAimAngle();
     const movementVector = this.getMovementInput();
+    this.isMoving = !(movementVector.x === 0 && movementVector.y === 0);
+
     this.worldPos.x += movementVector.x * _deltaTime * this.moveSpeed;
     this.worldPos.y += movementVector.y * _deltaTime * this.moveSpeed;
 
     if (this.gunCooldown > 0) this.gunCooldown -= _deltaTime;
     if (this.nextWeaponCooldown > 0) this.nextWeaponCooldown -= _deltaTime;
+    if (this.stepSoundCooldown > 0) this.stepSoundCooldown -= _deltaTime;
+
+    if (this.isMoving && this.stepSoundCooldown <= 0) {
+      gameInstance.MANAGERS.AssetManager.playAudioAsset(
+        "APlayerStep",
+        "sound",
+        0.5,
+      );
+      this.stepSoundCooldown = 0.35;
+    }
 
     if (this.getCheckShootInput()) this.shoot();
     if (gameInstance.MANAGERS.InputManager.isKeyDown("Tab"))
