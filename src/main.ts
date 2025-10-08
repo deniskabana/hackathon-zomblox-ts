@@ -37,7 +37,9 @@ export class GameInstance {
       UIManager: new UIManager(),
     };
 
-    this.loadAndStartGame();
+    document.addEventListener('click', this.startGame.bind(this));
+
+    this.loadAndPrepareGame();
   }
 
   private createCanvas(): HTMLCanvasElement {
@@ -58,11 +60,29 @@ export class GameInstance {
     this.MANAGERS.LevelManager.update(_deltaTime);
   }
 
-  private async loadAndStartGame(): Promise<void> {
+  private async loadAndPrepareGame(): Promise<void> {
     await this.MANAGERS.AssetManager.preloadAssets();
     this.MANAGERS.GameManager.stateSetReady();
-    this.MANAGERS.DrawManager.startRenderLoop();
     this.MANAGERS.UIManager.init();
+    this.MANAGERS.DrawManager.startRenderLoop();
+  }
+
+  private startGame(): void {
+    this.MANAGERS.GameManager.stateSetPlaying();
+    this.MANAGERS.LevelManager.init();
+
+    const bgMusic = this.MANAGERS.AssetManager.getAudioAsset('AMusicBackground');
+    if (bgMusic) {
+      bgMusic.loop = true
+      bgMusic.play();
+    }
+
+    const bgAmbience = this.MANAGERS.AssetManager.getAudioAsset('AFXZombieAmbience');
+    if (bgAmbience) {
+      bgAmbience.volume = 0.5;
+      bgAmbience.loop = true;
+      bgAmbience.play();
+    }
   }
 }
 

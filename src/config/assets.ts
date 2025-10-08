@@ -4,25 +4,26 @@ interface AssetDefinition {
 
 export const DEF_ASSETS_AUDIO = {
   // Player
-  APlayerStep: "",
-  APlayerHurt: "",
-  APlayerDie: "",
+  APlayerStep: "/audio/st1-footstep-sfx-323053.mp3", // https://pixabay.com/users/data_pion-49620193/
+  APlayerHurt: "/audio/male_hurt7-48124.mp3", // https://pixabay.com/users/freesound_community-46691455/
+  APlayerDie: "/audio/man-death-scream-186763.mp3", // https://pixabay.com/users/u_r7cny11q7r-41888232/
   // Gun
-  AGunRevolver: "",
-  AGunShotgun: "",
-  AGunSMG: "",
-  AGunRevolverReload: "",
-
+  AGunRevolver: "/audio/gunfire-single-shot-colt-peacemaker-94951.mp3", // https://pixabay.com/users/freesound_community-46691455/
+  AGunShotgun: "/audio/shotgun-sound-effect-384451.mp3", // https://pixabay.com/users/ken_williams-32445584/
+  AGunSMG: "/audio/gunshot_001-82585.mp3", // https://pixabay.com/users/freesound_community-46691455/
+  AGunRevolverReload: "/audio/gun-full-reload-384507.mp3", // https://pixabay.com/users/melbeebelbee-51535441/
   // Blocks
-  ABlockWoodPlaced: "",
-  ABlockWoodDamaged: "",
-  ABlockWoodDestroyed: "",
+  ABlockWoodPlaced: "/audio/put_item-83043.mp3", // https://pixabay.com/users/freesound_community-46691455/
+  ABlockWoodDamaged: "/audio/wood-smash-1-170410.mp3", // https://pixabay.com/users/floraphonic-38928062/
+  ABlockWoodDestroyed: "/audio/wood-smash-3-170418.mp3", // https://pixabay.com/users/floraphonic-38928062/
   // Zombies
-  AZombieAttack: "",
-  AZombieDamage: "",
-  AZombieDeath: "",
+  AZombieAttack: "/audio/zombie-bite-96528.mp3", // https://pixabay.com/users/freesound_community-46691455/
+  AZombieDeath: "/audio/monster-death-grunt-131480.mp3", // https://pixabay.com/users/666herohero-25759907/
   // FX
-  AFXShopPurchase: "",
+  AFXShopPurchase: "/audio/coin-donation-2-180438.mp3", // https://pixabay.com/users/floraphonic-38928062/
+  AFXZombieAmbience: "/audio/zombie-sound-224167.mp3", // https://pixabay.com/users/alice_soundz-44907632/
+  // Music
+  AMusicBackground: "/audio/horror-scary-dark-music-413504.mp3", // https://pixabay.com/users/lnplusmusic-47631836/
 } as const satisfies AssetDefinition;
 
 export const DEF_ASSETS_IMAGE = {

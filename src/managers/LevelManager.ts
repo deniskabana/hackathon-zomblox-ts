@@ -43,8 +43,6 @@ export default class LevelManager {
     this.levelGrid = levelGrid;
 
     this.player = new Player({ x: 220, y: 160 });
-
-    this.startSpawningZombies();
   }
 
   public update(_deltaTime: number) {
@@ -60,6 +58,10 @@ export default class LevelManager {
       this.spawnZombie();
       this.spawnTimer = 0;
     }
+  }
+
+  public init(): void {
+    this.startSpawningZombies();
   }
 
   public drawEntities(_deltaTime: number): void {
