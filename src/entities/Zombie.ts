@@ -25,7 +25,10 @@ export default class Zombie extends AEntity {
 
     this.angle = Math.atan2(dy, dx);
 
-    const vector: WorldPosition = { x: Math.cos(this.angle), y: Math.sin(this.angle) };
+    const vector: WorldPosition = {
+      x: Math.cos(this.angle),
+      y: Math.sin(this.angle),
+    };
     this.worldPos.x += vector.x * this.speed * _deltaTime;
     this.worldPos.y += vector.y * this.speed * _deltaTime;
   }

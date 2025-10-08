@@ -1,11 +1,16 @@
-import { GRID_CONFIG, gridToWorld, WORLD_SIZE, type WorldPosition } from "../config/gameGrid";
+import {
+  GRID_CONFIG,
+  gridToWorld,
+  WORLD_SIZE,
+  type WorldPosition,
+} from "../config/gameGrid";
 import Player from "../entities/Player";
 import Zombie from "../entities/Zombie";
 import { gameInstance } from "../main";
 import type { LevelState } from "../types/LevelState";
 import { ZIndex } from "./DrawManager";
 
-enum GridType {
+enum GridTileState {
   AVAILABLE,
   BLOCKED,
   PLAYER,
@@ -15,7 +20,7 @@ export default class LevelManager {
   public worldWidth = WORLD_SIZE.WIDTH;
   public worldHeight = WORLD_SIZE.HEIGHT;
   public levelState: LevelState;
-  public levelGrid: GridType[][];
+  public levelGrid: GridTileState[][];
 
   // Entities
   public player: Player;
@@ -34,9 +39,9 @@ export default class LevelManager {
 
     const levelGrid: typeof this.levelGrid = [];
     for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
-      const columns: GridType[] = [];
+      const columns: GridTileState[] = [];
       for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
-        columns.push(GridType.AVAILABLE);
+        columns.push(GridTileState.AVAILABLE);
       }
       levelGrid.push(columns);
     }
@@ -111,26 +116,26 @@ export default class LevelManager {
       case 0:
         return {
           x: Math.random() * WORLD_SIZE.WIDTH,
-          y: -margin
+          y: -margin,
         };
 
       case 1:
         return {
           x: WORLD_SIZE.WIDTH + margin,
-          y: Math.random() * WORLD_SIZE.HEIGHT
+          y: Math.random() * WORLD_SIZE.HEIGHT,
         };
 
       case 2:
         return {
           x: Math.random() * WORLD_SIZE.WIDTH,
-          y: WORLD_SIZE.HEIGHT + margin
+          y: WORLD_SIZE.HEIGHT + margin,
         };
 
       case 3:
       default:
         return {
           x: -margin,
-          y: Math.random() * WORLD_SIZE.HEIGHT
+          y: Math.random() * WORLD_SIZE.HEIGHT,
         };
     }
   }

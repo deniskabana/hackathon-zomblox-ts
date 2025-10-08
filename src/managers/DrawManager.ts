@@ -86,6 +86,7 @@ export default class DrawManager {
     gameInstance.update(deltaTime);
     this.renderDrawQueue();
     gameInstance.MANAGERS.UIManager.drawFps(this.fps);
+    gameInstance.MANAGERS.UIManager.drawDebug();
 
     this.rafId = requestAnimationFrame(this.renderLoop.bind(this));
   }

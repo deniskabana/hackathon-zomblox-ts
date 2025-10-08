@@ -4,21 +4,22 @@ import {
   type AssetAudioName,
   type AssetImageName,
 } from "../config/assets";
+import { gameInstance } from "../main";
+import assertNever from "../utils/assertNever";
 
 export type AssetAudio = HTMLAudioElement;
 export type AssetImage = HTMLImageElement;
 
 export default class AssetManager {
-  private assetsAudioMap: Map<AssetAudioName, AssetAudio>;
-  private assetsImageMap: Map<AssetImageName, AssetImage>;
+  private assetsAudioMap: Map<AssetAudioName, AssetAudio> = new Map();
+  private assetsImageMap: Map<AssetImageName, AssetImage> = new Map();
 
   private isAssetsLoading: boolean = false;
   private isReady: boolean = false;
 
-  constructor() {
-    this.assetsAudioMap = new Map<AssetAudioName, AssetAudio>();
-    this.assetsImageMap = new Map<AssetImageName, AssetImage>();
-  }
+  public playingAudioTracks: Map<AssetAudioName, HTMLAudioElement> = new Map();
+
+  constructor() {}
 
   public async preloadAssets(): Promise<void> {
     this.isAssetsLoading = true;
@@ -73,6 +74,39 @@ export default class AssetManager {
 
   public getImageAsset(assetName: AssetImageName): AssetImage | undefined {
     return this.assetsImageMap.get(assetName);
+  }
+
+  public async playAudioAsset(
+    assetName: AssetAudioName,
+    type: "music" | "sound",
+    volume: number = 1,
+    loop?: boolean,
+  ): Promise<void> {
+    const audio = this.getAudioAsset(assetName);
+    if (!audio) return;
+
+    const volumeSettings =
+      gameInstance.MANAGERS.GameManager.getSettings().volume;
+
+    switch (type) {
+      case "music":
+        audio.volume = volumeSettings.music * volumeSettings.master * volume;
+        audio.loop = true;
+        break;
+      case "sound":
+        audio.volume = volumeSettings.effects * volumeSettings.master * volume;
+        audio.loop = false;
+        break;
+      default:
+        assertNever(type);
+    }
+
+    if (loop !== undefined) audio.loop = loop;
+
+    this.playingAudioTracks.set(assetName, audio);
+    await audio.play();
+    if (!audio.loop)
+      audio.onended = () => this.playingAudioTracks.delete(assetName);
   }
 
   public getIsReady(): boolean {

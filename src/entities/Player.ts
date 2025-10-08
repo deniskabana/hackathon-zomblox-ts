@@ -11,6 +11,7 @@ export enum PlayerSpeed {
 export default class Player extends AEntity {
   private moveDirection: number = 0;
   private moveSpeed: number = PlayerSpeed.WALK;
+  public health: number = 100;
 
   constructor(worldPos: WorldPosition) {
     super(worldPos, true);
