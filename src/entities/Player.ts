@@ -45,7 +45,6 @@ export default class Player extends AEntity {
       gameInstance.MANAGERS.AssetManager.playAudioAsset(
         "APlayerStep",
         "sound",
-        0.5,
       );
       this.stepSoundCooldown = 0.35;
     }
