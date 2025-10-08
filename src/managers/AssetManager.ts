@@ -27,7 +27,7 @@ export default class AssetManager {
 
     const ERRORS: string[] = [];
 
-    const base = window.location.href.match('localhost') ? viteConfig.base.slice(0, -1) : '';
+    const base = viteConfig.base.replace(/\/$/, '');
 
     const imagePromises: Promise<void>[] = [];
     let imageName: AssetImageName;
