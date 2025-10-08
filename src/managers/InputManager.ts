@@ -7,12 +7,24 @@ export interface ScreenPosition {
 
 export default class InputManager {
   public mouseScreenPos: ScreenPosition = { x: 0, y: 0 };
+  private isMousePressed: boolean = false;
   private keysPressed: Set<string> = new Set();
 
   constructor() {
+    document.addEventListener("mousedown", this.onMouseDown.bind(this));
+    document.addEventListener("mouseup", this.onMouseUp.bind(this));
     document.addEventListener("mousemove", this.onMouseMove.bind(this));
     document.addEventListener("keydown", this.onKeyDown.bind(this));
     document.addEventListener("keyup", this.onKeyUp.bind(this));
+    document.addEventListener("keypress", this.onKeyPress.bind(this));
+  }
+
+  private onMouseDown(): void {
+    this.isMousePressed = true;
+  }
+
+  private onMouseUp(): void {
+    this.isMousePressed = false;
   }
 
   private onMouseMove(event: MouseEvent): void {
@@ -20,11 +32,17 @@ export default class InputManager {
   }
 
   private onKeyDown(event: KeyboardEvent): void {
+    event.preventDefault();
     this.keysPressed.add(event.code);
   }
 
   private onKeyUp(event: KeyboardEvent): void {
+    event.preventDefault();
     this.keysPressed.delete(event.code);
+  }
+
+  private onKeyPress(event: KeyboardEvent): void {
+    event.preventDefault();
   }
 
   private updateMousePosition(event: MouseEvent): void {
@@ -39,7 +57,13 @@ export default class InputManager {
     return this.keysPressed.has(key);
   }
 
+  public isMouseDown(): boolean {
+    return this.isMousePressed;
+  }
+
   public destroy(): void {
+    document.removeEventListener("mousedown", this.onMouseDown);
+    document.removeEventListener("mouseup", this.onMouseUp);
     document.removeEventListener("mousemove", this.onMouseMove);
     document.removeEventListener("keydown", this.onKeyDown);
     document.removeEventListener("keyup", this.onKeyUp);

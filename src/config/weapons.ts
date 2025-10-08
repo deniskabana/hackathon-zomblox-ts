@@ -4,7 +4,7 @@ export interface WeaponDefinition {
     displayName: string;
     shots: number;
     radius: number;
-    speed: number;
+    cooldown: number;
     damage: number;
     reloadSpeed: number;
     cost: number;
@@ -20,7 +20,7 @@ export const DEF_WEAPONS = {
     displayName: "Revolver",
     shots: 1,
     radius: 3,
-    speed: 4,
+    cooldown: 0.5,
     damage: 15,
     reloadSpeed: 8,
     cost: 0,
@@ -33,7 +33,7 @@ export const DEF_WEAPONS = {
     displayName: "Shotgun",
     shots: 3,
     radius: 12,
-    speed: 4,
+    cooldown: 0.9,
     damage: 35,
     reloadSpeed: 8,
     cost: 160,
@@ -46,7 +46,7 @@ export const DEF_WEAPONS = {
     displayName: "SMG",
     shots: 1,
     radius: 4,
-    speed: 1,
+    cooldown: 0.18,
     damage: 10,
     reloadSpeed: 7,
     cost: 275,

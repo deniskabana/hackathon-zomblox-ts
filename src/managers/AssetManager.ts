@@ -17,9 +17,9 @@ export default class AssetManager {
   private isAssetsLoading: boolean = false;
   private isReady: boolean = false;
 
-  public playingAudioTracks: Map<AssetAudioName, HTMLAudioElement> = new Map();
+  public playingAudioTracks: AssetAudioName[] = [];
 
-  constructor() {}
+  constructor() { }
 
   public async preloadAssets(): Promise<void> {
     this.isAssetsLoading = true;
@@ -76,20 +76,22 @@ export default class AssetManager {
     return this.assetsImageMap.get(assetName);
   }
 
-  public async playAudioAsset(
+  public playAudioAsset(
     assetName: AssetAudioName,
     type: "music" | "sound",
     volume: number = 1,
     loop?: boolean,
-  ): Promise<void> {
-    const audio = this.getAudioAsset(assetName);
-    if (!audio) return;
+  ): void {
+    const asset = this.getAudioAsset(assetName);
+    const audio = type === "music" ? asset : new Audio(asset?.src);
+    if (!asset || !audio) return;
 
     const volumeSettings =
       gameInstance.MANAGERS.GameManager.getSettings().volume;
 
     switch (type) {
       case "music":
+        if (this.playingAudioTracks.includes(assetName)) return;
         audio.volume = volumeSettings.music * volumeSettings.master * volume;
         audio.loop = true;
         break;
@@ -103,10 +105,12 @@ export default class AssetManager {
 
     if (loop !== undefined) audio.loop = loop;
 
-    this.playingAudioTracks.set(assetName, audio);
-    await audio.play();
-    if (!audio.loop)
-      audio.onended = () => this.playingAudioTracks.delete(assetName);
+    this.playingAudioTracks.push(assetName);
+    audio.onended = () => {
+      const index = this.playingAudioTracks.findIndex((name) => name === assetName);
+      if (index !== -1) this.playingAudioTracks.splice(index);
+    }
+    audio.play();
   }
 
   public getIsReady(): boolean {
