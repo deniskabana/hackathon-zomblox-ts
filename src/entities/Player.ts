@@ -42,10 +42,7 @@ export default class Player extends AEntity {
     if (this.stepSoundCooldown > 0) this.stepSoundCooldown -= _deltaTime;
 
     if (this.isMoving && this.stepSoundCooldown <= 0) {
-      gameInstance.MANAGERS.AssetManager.playAudioAsset(
-        "APlayerStep",
-        "sound",
-      );
+      gameInstance.MANAGERS.AssetManager.playAudioAsset("APlayerStep", "sound");
       this.stepSoundCooldown = 0.35;
     }
 
@@ -104,8 +101,11 @@ export default class Player extends AEntity {
     const gunSpread = weaponDef.spread;
 
     for (let i = 0; i < weaponDef.shots; i++) {
-      const spread = (Math.random() - 0.5) * 2 * (gunSpread * Math.PI / 180);
-      gameInstance.MANAGERS.VFXManager.drawShootLine(this.worldPos, this.moveDirection + spread);
+      const spread = (Math.random() - 0.5) * 2 * ((gunSpread * Math.PI) / 180);
+      gameInstance.MANAGERS.VFXManager.drawShootLine(
+        this.worldPos,
+        this.moveDirection + spread,
+      );
     }
   }
 

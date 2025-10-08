@@ -14,7 +14,7 @@ export default class VFXManager {
   private startTimes: number[] = [];
   private effects: EffectShootLine[] = [];
 
-  constructor() { }
+  constructor() {}
 
   public draw(): void {
     for (const shootLine of this.effects) {
@@ -24,7 +24,7 @@ export default class VFXManager {
         shootLine.to.x,
         shootLine.to.y,
         shootLine.color,
-      )
+      );
     }
 
     const startTimes = this.startTimes;
@@ -33,10 +33,15 @@ export default class VFXManager {
         this.startTimes.splice(index);
         this.effects.splice(index);
       }
-    })
+    });
   }
 
-  public drawShootLine(from: WorldPosition, direction: number, color: string = '#d0d000', duration: number = 0.15): void {
+  public drawShootLine(
+    from: WorldPosition,
+    direction: number,
+    color: string = "#d0d000",
+    duration: number = 0.15,
+  ): void {
     this.startTimes.push(Date.now());
     const vectorFrom = gameInstance.MANAGERS.CameraManager.worldToScreen(from);
     const vectorTo = radiansToVector(direction);
@@ -45,6 +50,6 @@ export default class VFXManager {
     vectorTo.y *= screenLen;
     vectorTo.x += vectorFrom.x;
     vectorTo.y += vectorFrom.y;
-    this.effects.push({ from: vectorFrom, to: vectorTo, color, duration })
+    this.effects.push({ from: vectorFrom, to: vectorTo, color, duration });
   }
 }

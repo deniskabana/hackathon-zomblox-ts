@@ -33,9 +33,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22.20'
-          cache: 'yarn'
-          cache-dependency-path: 'yarn.lock'
+          node-version: "22.20"
+          cache: "yarn"
+          cache-dependency-path: "yarn.lock"
 
       - name: Enable corepack
         shell: bash
@@ -56,9 +56,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './dist'
+          path: "./dist"
 
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
