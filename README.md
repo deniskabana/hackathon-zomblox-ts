@@ -17,3 +17,13 @@ The aim for MVP after 24hrs of work:
   <img src="screenshot.jpg" alt="Screenshot" />
 </div>
 
+### Development
+
+Designed for `node@22.20.0` and `yarn@4.10.3`. Only using dependencies for development experience and automation.
+
+```bash
+$ yarn
+$ yarn dev
+```
+
+Open http://localhost:5173/ to start development.
