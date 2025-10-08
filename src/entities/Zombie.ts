@@ -10,6 +10,8 @@ export default class Zombie extends AEntity {
   private angle: number = 0;
   private speed: number = 60;
 
+  private health: number = 40;
+
   constructor(worldPos: WorldPosition) {
     super(worldPos, true);
 
@@ -21,10 +23,7 @@ export default class Zombie extends AEntity {
 
     // TODO: Replace with actual logic
 
-    this.angle = getDirectionalAngle(
-      gameInstance.MANAGERS.LevelManager.player.worldPos,
-      this.worldPos,
-    );
+    this.angle = getDirectionalAngle(gameInstance.MANAGERS.LevelManager.player.worldPos, this.worldPos);
     const vector = radiansToVector(this.angle);
 
     this.worldPos.x += vector.x * this.speed * _deltaTime;
@@ -44,5 +43,18 @@ export default class Zombie extends AEntity {
       ZIndex.ENTITIES,
       this.angle + Math.PI / 2,
     );
+  }
+
+  public getHealth(): number {
+    return this.health;
+  }
+
+  public damage(amount: number): void {
+    this.health -= amount;
+    if (this.health <= 0) this.killZombie();
+  }
+
+  public killZombie(): void {
+    // TODO: Death mechanic
   }
 }

@@ -1,9 +1,4 @@
-import {
-  GRID_CONFIG,
-  gridToWorld,
-  WORLD_SIZE,
-  type WorldPosition,
-} from "../config/gameGrid";
+import { GRID_CONFIG, gridToWorld, WORLD_SIZE, type WorldPosition } from "../config/gameGrid";
 import Player from "../entities/Player";
 import Zombie from "../entities/Zombie";
 import { gameInstance } from "../main";
@@ -79,8 +74,7 @@ export default class LevelManager {
     this.levelGrid.forEach((gridRow, x) => {
       gridRow.forEach((_gridCol, y) => {
         const tileWorldPos = gridToWorld({ x, y });
-        const texture =
-          gameInstance.MANAGERS.AssetManager.getImageAsset("ITextureGround");
+        const texture = gameInstance.MANAGERS.AssetManager.getImageAsset("ITextureGround");
         if (!texture) return;
 
         gameInstance.MANAGERS.DrawManager.queueDraw(

@@ -105,8 +105,7 @@ export default class UIManager {
 
   private styleDebugContainer(): void {
     if (!gameInstance.isDev) return;
-    this.debugContainer.style =
-      styles.devUiContainer + styles.devDebugContainer;
+    this.debugContainer.style = styles.devUiContainer + styles.devDebugContainer;
   }
 
   public drawFps(fps: number): void {
@@ -117,9 +116,7 @@ export default class UIManager {
   public drawDebug(): void {
     if (!gameInstance.isDev) return;
 
-    const playingTracks = [
-      ...gameInstance.MANAGERS.AssetManager.playingAudioTracks,
-    ];
+    const playingTracks = [...gameInstance.MANAGERS.AssetManager.playingAudioTracks];
     this.debugTextTracks.innerHTML = `
 <div style="${styles.contentContainer}">
   ${playingTracks.map((track) => `<div style="${styles.uiText}">${track}</div>`).join("")}

@@ -22,9 +22,7 @@ export default class GameInstance {
   };
 
   constructor() {
-    this.isDev =
-      import.meta.env.NODE_ENV === "development" ||
-      !!location.hash.match("debug");
+    this.isDev = import.meta.env.NODE_ENV === "development" || !!location.hash.match("debug");
 
     this.canvas = this.createCanvas();
 
@@ -76,10 +74,6 @@ export default class GameInstance {
     this.MANAGERS.LevelManager.init();
 
     this.MANAGERS.AssetManager.playAudioAsset("AMusicBackground", "music");
-    this.MANAGERS.AssetManager.playAudioAsset(
-      "AFXZombieAmbience",
-      "music",
-      0.75,
-    );
+    this.MANAGERS.AssetManager.playAudioAsset("AFXZombieAmbience", "music", 0.75);
   }
 }

@@ -46,10 +46,7 @@ export default class DrawManager {
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
 
-    gameInstance.MANAGERS.CameraManager.setViewportSize(
-      this.canvas.width,
-      this.canvas.height,
-    );
+    gameInstance.MANAGERS.CameraManager.setViewportSize(this.canvas.width, this.canvas.height);
   }
 
   private clearCanvas(): void {
@@ -114,13 +111,7 @@ export default class DrawManager {
     if (cmd.rotation !== undefined && cmd.rotation !== 0) {
       this.ctx.translate(cmd.x + cmd.width / 2, cmd.y + cmd.height / 2);
       this.ctx.rotate(cmd.rotation);
-      this.ctx.drawImage(
-        cmd.image,
-        -cmd.width / 2,
-        -cmd.height / 2,
-        cmd.width,
-        cmd.height,
-      );
+      this.ctx.drawImage(cmd.image, -cmd.width / 2, -cmd.height / 2, cmd.width, cmd.height);
     } else {
       this.ctx.drawImage(cmd.image, cmd.x, cmd.y, cmd.width, cmd.height);
     }
@@ -143,8 +134,7 @@ export default class DrawManager {
     const camera = gameInstance.MANAGERS.CameraManager;
     const screenPos = camera.worldToScreen({ x: worldX, y: worldY });
 
-    if (!camera.isOnScreen({ x: worldX, y: worldY }, Math.max(width, height)))
-      return;
+    if (!camera.isOnScreen({ x: worldX, y: worldY }, Math.max(width, height))) return;
 
     const queue = this.drawQueue[zIndex] ?? [];
     queue.push({
@@ -175,14 +165,7 @@ export default class DrawManager {
     this.ctx.restore();
   }
 
-  public drawLine(
-    x1: number,
-    y1: number,
-    x2: number,
-    y2: number,
-    color: string,
-    lineWidth: number = 1,
-  ): void {
+  public drawLine(x1: number, y1: number, x2: number, y2: number, color: string, lineWidth: number = 1): void {
     this.ctx.save();
     this.ctx.strokeStyle = color;
     this.ctx.lineWidth = lineWidth;

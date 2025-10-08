@@ -37,10 +37,5 @@ export function worldToGrid(worldPos: WorldPosition): GridPosition {
 }
 
 export function isValidGridPos(pos: GridPosition): boolean {
-  return (
-    pos.x >= 0 &&
-    pos.x < GRID_CONFIG.GRID_WIDTH &&
-    pos.y >= 0 &&
-    pos.y < GRID_CONFIG.GRID_HEIGHT
-  );
+  return pos.x >= 0 && pos.x < GRID_CONFIG.GRID_WIDTH && pos.y >= 0 && pos.y < GRID_CONFIG.GRID_HEIGHT;
 }

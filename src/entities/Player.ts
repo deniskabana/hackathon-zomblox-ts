@@ -47,8 +47,7 @@ export default class Player extends AEntity {
     }
 
     if (this.getCheckShootInput()) this.shoot();
-    if (gameInstance.MANAGERS.InputManager.isKeyDown("Tab"))
-      this.chooseNextWeapon();
+    if (gameInstance.MANAGERS.InputManager.isKeyDown("Tab")) this.chooseNextWeapon();
   }
 
   public draw(_deltaTime: number) {
@@ -68,8 +67,7 @@ export default class Player extends AEntity {
 
   private getAimAngle(): number {
     const mousePos = gameInstance.MANAGERS.InputManager.mouseScreenPos;
-    const mouseWorldPos =
-      gameInstance.MANAGERS.CameraManager.screenToWorld(mousePos);
+    const mouseWorldPos = gameInstance.MANAGERS.CameraManager.screenToWorld(mousePos);
     return getDirectionalAngle(mouseWorldPos, this.worldPos);
   }
 
@@ -93,8 +91,7 @@ export default class Player extends AEntity {
   public shoot(): void {
     if (this.gunCooldown > 0) return;
     const weaponSound = this.getWeaponSound();
-    if (weaponSound)
-      gameInstance.MANAGERS.AssetManager.playAudioAsset(weaponSound, "sound");
+    if (weaponSound) gameInstance.MANAGERS.AssetManager.playAudioAsset(weaponSound, "sound");
 
     const weaponDef = DEF_WEAPONS[this.weapon];
     this.gunCooldown = weaponDef.cooldown;
@@ -102,10 +99,7 @@ export default class Player extends AEntity {
 
     for (let i = 0; i < weaponDef.shots; i++) {
       const spread = (Math.random() - 0.5) * 2 * ((gunSpread * Math.PI) / 180);
-      gameInstance.MANAGERS.VFXManager.drawShootLine(
-        this.worldPos,
-        this.moveDirection + spread,
-      );
+      gameInstance.MANAGERS.VFXManager.drawShootLine(this.worldPos, this.moveDirection + spread);
     }
   }
 
@@ -114,25 +108,17 @@ export default class Player extends AEntity {
 
     switch (this.weapon) {
       case "Revolver":
-        sprite =
-          gameInstance.MANAGERS.AssetManager.getImageAsset(
-            "IPlayerGunRevolver",
-          );
+        sprite = gameInstance.MANAGERS.AssetManager.getImageAsset("IPlayerGunRevolver");
         break;
       case "Shotgun":
-        sprite =
-          gameInstance.MANAGERS.AssetManager.getImageAsset("IPlayerGunShotgun");
+        sprite = gameInstance.MANAGERS.AssetManager.getImageAsset("IPlayerGunShotgun");
         break;
       case "Submachine":
-        sprite =
-          gameInstance.MANAGERS.AssetManager.getImageAsset("IPlayerGunSmg");
+        sprite = gameInstance.MANAGERS.AssetManager.getImageAsset("IPlayerGunSmg");
         break;
     }
 
-    return (
-      sprite ??
-      gameInstance.MANAGERS.AssetManager.getImageAsset("IPlayerUnarmed")!
-    );
+    return sprite ?? gameInstance.MANAGERS.AssetManager.getImageAsset("IPlayerUnarmed")!;
   }
 
   private getWeaponSound(): AssetAudioName | undefined {

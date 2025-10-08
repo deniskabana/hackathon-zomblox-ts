@@ -1,12 +1,7 @@
-import {
-  DEF_ASSETS_AUDIO,
-  DEF_ASSETS_IMAGE,
-  type AssetAudioName,
-  type AssetImageName,
-} from "../config/assets";
+import { DEF_ASSETS_AUDIO, DEF_ASSETS_IMAGE, type AssetAudioName, type AssetImageName } from "../config/assets";
 import { gameInstance } from "../main";
 import assertNever from "../utils/assertNever";
-import viteConfig from '../../vite.config'
+import viteConfig from "../../vite.config";
 
 export type AssetAudio = HTMLAudioElement;
 export type AssetImage = HTMLImageElement;
@@ -20,14 +15,14 @@ export default class AssetManager {
 
   public playingAudioTracks: AssetAudioName[] = [];
 
-  constructor() { }
+  constructor() {}
 
   public async preloadAssets(): Promise<void> {
     this.isAssetsLoading = true;
 
     const ERRORS: string[] = [];
 
-    const base = viteConfig.base.replace(/\/$/, '');
+    const base = viteConfig.base.replace(/\/$/, "");
 
     const imagePromises: Promise<void>[] = [];
     let imageName: AssetImageName;
@@ -79,18 +74,12 @@ export default class AssetManager {
     return this.assetsImageMap.get(assetName);
   }
 
-  public playAudioAsset(
-    assetName: AssetAudioName,
-    type: "music" | "sound",
-    volume: number = 1,
-    loop?: boolean,
-  ): void {
+  public playAudioAsset(assetName: AssetAudioName, type: "music" | "sound", volume: number = 1, loop?: boolean): void {
     const asset = this.getAudioAsset(assetName);
     const audio = type === "music" ? asset : new Audio(asset?.src);
     if (!asset || !audio) return;
 
-    const volumeSettings =
-      gameInstance.MANAGERS.GameManager.getSettings().volume;
+    const volumeSettings = gameInstance.MANAGERS.GameManager.getSettings().volume;
 
     switch (type) {
       case "music":
@@ -98,10 +87,12 @@ export default class AssetManager {
         audio.volume = volumeSettings.music * volumeSettings.master * volume;
         audio.loop = true;
         break;
+
       case "sound":
         audio.volume = volumeSettings.effects * volumeSettings.master * volume;
         audio.loop = false;
         break;
+
       default:
         assertNever(type);
     }
@@ -110,9 +101,7 @@ export default class AssetManager {
 
     this.playingAudioTracks.push(assetName);
     audio.onended = () => {
-      const index = this.playingAudioTracks.findIndex(
-        (name) => name === assetName,
-      );
+      const index = this.playingAudioTracks.findIndex((name) => name === assetName);
       if (index !== -1) this.playingAudioTracks.splice(index);
     };
     audio.play();

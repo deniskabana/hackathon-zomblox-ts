@@ -32,11 +32,7 @@ export default class GameManager {
   }
 
   public stateSetPlaying(): boolean {
-    if (
-      this.gameState === GameState.INITIALIZING ||
-      this.gameState === GameState.LOADING
-    )
-      return false;
+    if (this.gameState === GameState.INITIALIZING || this.gameState === GameState.LOADING) return false;
     this.gameState = GameState.PLAYING;
     return true;
   }
@@ -48,8 +44,7 @@ export default class GameManager {
       this.gameState = GameState.PAUSED;
       return true;
     } else {
-      if (this.gameState !== GameState.PAUSED || !this.prePauseState)
-        return false;
+      if (this.gameState !== GameState.PAUSED || !this.prePauseState) return false;
       this.gameState = this.prePauseState;
       this.prePauseState = undefined;
       return true;
