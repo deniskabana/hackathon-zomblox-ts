@@ -6,6 +6,7 @@ import {
 } from "../config/assets";
 import { gameInstance } from "../main";
 import assertNever from "../utils/assertNever";
+import viteConfig from '../../vite.config'
 
 export type AssetAudio = HTMLAudioElement;
 export type AssetImage = HTMLImageElement;
@@ -19,12 +20,14 @@ export default class AssetManager {
 
   public playingAudioTracks: AssetAudioName[] = [];
 
-  constructor() {}
+  constructor() { }
 
   public async preloadAssets(): Promise<void> {
     this.isAssetsLoading = true;
 
     const ERRORS: string[] = [];
+
+    const base = window.location.href.match('localhost') ? viteConfig.base.slice(0, -1) : '';
 
     const imagePromises: Promise<void>[] = [];
     let imageName: AssetImageName;
@@ -37,7 +40,7 @@ export default class AssetManager {
           ERRORS.push(`Failed to load image: ${name}`);
           resolve();
         };
-        img.src = DEF_ASSETS_IMAGE[name];
+        img.src = base + DEF_ASSETS_IMAGE[name];
         this.assetsImageMap.set(name, img);
       });
       imagePromises.push(promise);
@@ -54,7 +57,7 @@ export default class AssetManager {
           ERRORS.push(`Failed to load audio: ${name}`);
           resolve();
         };
-        audio.src = DEF_ASSETS_AUDIO[name];
+        audio.src = base + DEF_ASSETS_AUDIO[name];
         audio.load();
         this.assetsAudioMap.set(name, audio);
       });

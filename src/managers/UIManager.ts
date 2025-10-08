@@ -149,7 +149,7 @@ export default class UIManager {
     const text = document.createElement("p");
     text.style = styles.startGameText;
     text.innerHTML =
-      "<p>Click anywhere...</p><br /><small>(or open with #debug in URL)</small>";
+      "<p>Click anywhere...</p><br /><br /><small>WASD - Move, Mouse - Aim, Tab - Cycle weapons</small><br /><br /><small>(open with #debug in URL)</small>";
     this.startGameContainer.appendChild(text);
   }
 
