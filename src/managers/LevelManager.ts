@@ -37,8 +37,9 @@ export default class LevelManager {
 
   // Entities
   public player: Player;
-  public zombies: Zombie[] = [];
-  public blocks: BlockWood[] = [];
+  public zombies: Map<number, Zombie> = new Map();
+  public blocks: Map<number, BlockWood> = new Map();
+  private entityIdCounter: number = 0;
 
   // Gameplay
   private isSpawningZombies: boolean = false;
@@ -46,8 +47,11 @@ export default class LevelManager {
   private spawnTimer: number = 0;
 
   constructor() {
-    this.player = new Player({ x: 6, y: 6 });
-    this.blocks.push(new BlockWood({ x: 8, y: 12 }));
+    this.player = new Player({ x: 6, y: 6 }, this.entityIdCounter++);
+
+    const blockId = this.entityIdCounter++;
+    this.blocks.set(blockId, new BlockWood({ x: 8, y: 12 }, blockId));
+
     this.levelState = {
       phase: "night",
       daysCounter: 0,
@@ -60,7 +64,7 @@ export default class LevelManager {
   public update(_deltaTime: number) {
     this.player.update(_deltaTime);
 
-    for (const zombie of this.zombies) {
+    for (const zombie of this.zombies.values()) {
       zombie.update(_deltaTime);
     }
 
@@ -79,11 +83,11 @@ export default class LevelManager {
   public drawEntities(_deltaTime: number): void {
     this.player.draw(_deltaTime);
 
-    for (const zombie of this.zombies) {
+    for (const zombie of this.zombies.values()) {
       zombie.draw(_deltaTime);
     }
 
-    for (const block of this.blocks) {
+    for (const block of this.blocks.values()) {
       block.draw();
     }
 
@@ -114,8 +118,9 @@ export default class LevelManager {
   }
 
   public spawnZombie(): void {
-    if (this.zombies.length >= 20) return;
-    this.zombies.push(new Zombie(this.getRandomZombieSpawnPosition()));
+    if (this.zombies.size >= 20) return;
+    const entityId = this.entityIdCounter++;
+    this.zombies.set(entityId, new Zombie(this.getRandomZombieSpawnPosition(), entityId));
   }
 
   private getRandomZombieSpawnPosition(margin: number = 2): WorldPosition {
@@ -234,11 +239,11 @@ export default class LevelManager {
     const playerGridPos = this.player.gridPos;
     grid[playerGridPos.x][playerGridPos.y] = { state: GridTileState.PLAYER, ref: this.player };
 
-    for (const zombie of this.zombies) {
+    for (const zombie of this.zombies.values()) {
       grid[zombie.gridPos.x][zombie.gridPos.y] = { state: GridTileState.BLOCKED, ref: zombie };
     }
 
-    for (const block of this.blocks) {
+    for (const block of this.blocks.values()) {
       grid[block.gridPos.x][block.gridPos.y] = { state: GridTileState.BLOCKED, ref: block };
     }
 
@@ -247,14 +252,10 @@ export default class LevelManager {
     return grid;
   }
 
-  public destroyEntity(ref: AEntity, type: "block" | "zombie"): void {
-    let entityList: Zombie[] | BlockWood[] | undefined = undefined;
+  public destroyEntity(entityId: number, type: "block" | "zombie"): void {
+    let entityList: typeof this.blocks | typeof this.zombies | undefined = undefined;
     if (type === "block") entityList = this.blocks;
     if (type === "zombie") entityList = this.zombies;
-    if (!entityList) return;
-
-    const index = entityList.findIndex((entityRef) => entityRef === ref);
-    if (index === -1) return;
-    entityList.splice(index);
+    entityList?.delete(entityId);
   }
 }

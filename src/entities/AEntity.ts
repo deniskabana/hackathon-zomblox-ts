@@ -4,13 +4,15 @@ export default abstract class AEntity {
   public worldPos: WorldPosition;
   public gridPos: GridPosition;
   public isStaticObject: boolean;
+  public entityId: number;
 
   public abstract health: number;
 
-  constructor(worldPos: WorldPosition, isStaticObject?: boolean) {
+  constructor(worldPos: WorldPosition, entityId: number, isStaticObject?: boolean) {
     this.worldPos = worldPos;
     this.gridPos = worldToGrid(worldPos);
     this.isStaticObject = isStaticObject ?? true;
+    this.entityId = entityId;
   }
 
   public setWorldPosition(worldPos: WorldPosition): void {

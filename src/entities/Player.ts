@@ -26,8 +26,8 @@ export default class Player extends AEntity {
   public health: number = 100;
   public weapon: Weapon = "Revolver";
 
-  constructor(gridPos: GridPosition) {
-    super(gridToWorld(gridPos), true);
+  constructor(gridPos: GridPosition, entityId: number) {
+    super(gridToWorld(gridPos), entityId, true);
   }
 
   public update(_deltaTime: number) {

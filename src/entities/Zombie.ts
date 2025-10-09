@@ -11,13 +11,13 @@ export default class Zombie extends AEntity {
   private angle: number = 0;
   private speed: number = 60 + (Math.random() - 0.5) * 20;
 
-  public health: number = 140 + (Math.random() - 0.5) * 50;
+  public health: number = 100 + (Math.random() - 0.5) * 50;
 
   private distanceFromPlayer: number = -1;
   private lastDistanceInterval: number = 0;
 
-  constructor(gridPos: GridPosition) {
-    super(gridToWorld(gridPos), true);
+  constructor(gridPos: GridPosition, entityId: number) {
+    super(gridToWorld(gridPos), entityId, true);
     this.isWalking = true;
   }
 
@@ -67,7 +67,7 @@ export default class Zombie extends AEntity {
     this.health -= amount;
     if (this.health <= 0) {
       gameInstance.MANAGERS.AssetManager.playAudioAsset("AZombieDeath", "sound");
-      gameInstance.MANAGERS.LevelManager.destroyEntity(this, "zombie");
+      gameInstance.MANAGERS.LevelManager.destroyEntity(this.entityId, "zombie");
     }
   }
 }

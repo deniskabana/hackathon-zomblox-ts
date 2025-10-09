@@ -6,8 +6,8 @@ import AEntity from "./AEntity";
 export default class BlockWood extends AEntity {
   public health: number = 100;
 
-  constructor(gridPos: GridPosition) {
-    super(gridToWorld(gridPos), false);
+  constructor(gridPos: GridPosition, entityId: number) {
+    super(gridToWorld(gridPos), entityId, false);
   }
 
   update(_deltaTime: number) {}
@@ -23,7 +23,7 @@ export default class BlockWood extends AEntity {
     this.health -= amount;
     if (this.health <= 0) {
       gameInstance.MANAGERS.AssetManager.playAudioAsset("ABlockWoodDestroyed", "sound");
-      gameInstance.MANAGERS.LevelManager.destroyEntity(this, "block");
+      gameInstance.MANAGERS.LevelManager.destroyEntity(this.entityId, "block");
     } else {
       gameInstance.MANAGERS.AssetManager.playAudioAsset("ABlockWoodDamaged", "sound", 0.7);
     }
