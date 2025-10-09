@@ -1,10 +1,11 @@
 import type { AssetAudioName } from "../config/assets";
-import type { WorldPosition } from "../config/gameGrid";
+import { GRID_CONFIG, gridToWorld, type GridPosition, type WorldPosition } from "../config/gameGrid";
 import { DEF_WEAPONS, type Weapon } from "../config/weapons";
 import { gameInstance } from "../main";
 import type { AssetImage } from "../managers/AssetManager";
 import { ZIndex } from "../managers/DrawManager";
 import getDirectionalAngle from "../utils/getDirectionalAngle";
+import getVectorDistance from "../utils/getVectorDistance";
 import normalizeVector from "../utils/normalizeVector";
 import AEntity from "./AEntity";
 
@@ -25,8 +26,8 @@ export default class Player extends AEntity {
   public health: number = 100;
   public weapon: Weapon = "Revolver";
 
-  constructor(worldPos: WorldPosition) {
-    super(worldPos, true);
+  constructor(gridPos: GridPosition) {
+    super(gridToWorld(gridPos), true);
   }
 
   public update(_deltaTime: number) {
@@ -34,8 +35,10 @@ export default class Player extends AEntity {
     const movementVector = this.getMovementInput();
     this.isMoving = !(movementVector.x === 0 && movementVector.y === 0);
 
-    this.worldPos.x += movementVector.x * _deltaTime * this.moveSpeed;
-    this.worldPos.y += movementVector.y * _deltaTime * this.moveSpeed;
+    this.setWorldPosition({
+      x: this.worldPos.x + movementVector.x * _deltaTime * this.moveSpeed,
+      y: this.worldPos.y + movementVector.y * _deltaTime * this.moveSpeed,
+    });
 
     if (this.gunCooldown > 0) this.gunCooldown -= _deltaTime;
     if (this.nextWeaponCooldown > 0) this.nextWeaponCooldown -= _deltaTime;
@@ -99,10 +102,17 @@ export default class Player extends AEntity {
 
     for (let i = 0; i < weaponDef.shots; i++) {
       const spread = (Math.random() - 0.5) * 2 * ((gunSpread * Math.PI) / 180);
-      gameInstance.MANAGERS.VFXManager.drawShootLine(this.worldPos, this.moveDirection + spread);
-      gameInstance.MANAGERS.LevelManager.raycastShot(this.worldPos, this.moveDirection + spread, weaponDef.damage);
-    }
+      const angle = this.moveDirection + spread;
+      const maxDistance = weaponDef.maxDistance * GRID_CONFIG.TILE_SIZE;
 
+      const raycastHit = gameInstance.MANAGERS.LevelManager.raycastShot(this.worldPos, angle, maxDistance);
+      if (raycastHit) raycastHit.damage(weaponDef.damage);
+      gameInstance.MANAGERS.VFXManager.drawShootLine(
+        this.worldPos,
+        angle,
+        raycastHit ? getVectorDistance(this.worldPos, raycastHit.worldPos) : maxDistance,
+      );
+    }
   }
 
   private getPlayerSprite(): AssetImage {
@@ -142,5 +152,16 @@ export default class Player extends AEntity {
     const newIndex = (currentIndex + 1) % weapons.length;
     this.weapon = weapons[newIndex];
     this.nextWeaponCooldown = 0.25;
+  }
+
+  public damage(amount: number): void {
+    this.health -= amount;
+    if (this.health <= 0) {
+      gameInstance.MANAGERS.AssetManager.playAudioAsset("APlayerDie", "sound");
+      // TODO: DIE
+    } else {
+      gameInstance.MANAGERS.AssetManager.playAudioAsset("APlayerHurt", "sound");
+    }
+    console.warn("PLAYER HEALTH: ", this.health);
   }
 }

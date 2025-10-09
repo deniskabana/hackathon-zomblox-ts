@@ -1,3 +1,5 @@
+import { clamp } from "../utils/clamp";
+
 export const GRID_CONFIG = {
   /** px */
   TILE_SIZE: 48,
@@ -31,8 +33,8 @@ export function gridToWorld(gridPos: GridPosition): WorldPosition {
 
 export function worldToGrid(worldPos: WorldPosition): GridPosition {
   return {
-    x: Math.floor(worldPos.x / GRID_CONFIG.TILE_SIZE),
-    y: Math.floor(worldPos.y / GRID_CONFIG.TILE_SIZE),
+    x: clamp(0, Math.floor(worldPos.x / GRID_CONFIG.TILE_SIZE), GRID_CONFIG.GRID_WIDTH - 1),
+    y: clamp(0, Math.floor(worldPos.y / GRID_CONFIG.TILE_SIZE), GRID_CONFIG.GRID_HEIGHT - 1),
   };
 }
 

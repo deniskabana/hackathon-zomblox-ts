@@ -18,7 +18,7 @@ export const DEF_ASSETS_AUDIO = {
   ABlockWoodDestroyed: "/audio/wood-smash-3-170418.mp3", // https://pixabay.com/users/floraphonic-38928062/
   // Zombies
   AZombieAttack: "/audio/zombie-bite-96528.mp3", // https://pixabay.com/users/freesound_community-46691455/
-  AZombieDeath: "/audio/monster-death-grunt-131480.mp3", // https://pixabay.com/users/666herohero-25759907/
+  AZombieDeath: "/audio/zombie-death-2-95167.mp3", // https://pixabay.com/users/freesound_community-46691455/
   // FX
   AFXShopPurchase: "/audio/coin-donation-2-180438.mp3", // https://pixabay.com/users/floraphonic-38928062/
   AFXZombieAmbience: "/audio/zombie-sound-224167.mp3", // https://pixabay.com/users/alice_soundz-44907632/

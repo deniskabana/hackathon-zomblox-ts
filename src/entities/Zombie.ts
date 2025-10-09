@@ -1,4 +1,4 @@
-import type { WorldPosition } from "../config/gameGrid";
+import { gridToWorld, type GridPosition } from "../config/gameGrid";
 import { gameInstance } from "../main";
 import { ZIndex } from "../managers/DrawManager";
 import getDirectionalAngle from "../utils/getDirectionalAngle";
@@ -9,15 +9,15 @@ import AEntity from "./AEntity";
 export default class Zombie extends AEntity {
   private isWalking: boolean;
   private angle: number = 0;
-  private speed: number = 60;
+  private speed: number = 60 + (Math.random() - 0.5) * 20;
 
-  private health: number = 40;
+  public health: number = 140 + (Math.random() - 0.5) * 50;
 
   private distanceFromPlayer: number = -1;
   private lastDistanceInterval: number = 0;
 
-  constructor(worldPos: WorldPosition) {
-    super(worldPos, true);
+  constructor(gridPos: GridPosition) {
+    super(gridToWorld(gridPos), true);
     this.isWalking = true;
   }
 
@@ -38,8 +38,10 @@ export default class Zombie extends AEntity {
 
     this.angle = getDirectionalAngle(playerPos, this.worldPos);
     const vector = radiansToVector(this.angle);
-    this.worldPos.x += vector.x * this.speed * _deltaTime;
-    this.worldPos.y += vector.y * this.speed * _deltaTime;
+    this.setWorldPosition({
+      x: this.worldPos.x + vector.x * this.speed * _deltaTime,
+      y: this.worldPos.y + vector.y * this.speed * _deltaTime,
+    });
   }
 
   public draw(_deltaTime: number) {
@@ -64,13 +66,8 @@ export default class Zombie extends AEntity {
   public damage(amount: number): void {
     this.health -= amount;
     if (this.health <= 0) {
-      gameInstance.MANAGERS.AssetManager.playAudioAsset('AZombieDeath', 'sound');
-      this.killZombie();
+      gameInstance.MANAGERS.AssetManager.playAudioAsset("AZombieDeath", "sound");
+      gameInstance.MANAGERS.LevelManager.destroyEntity(this, "zombie");
     }
-    console.log('ZOMBIE HEALTH: ', this.health);
-  }
-
-  public killZombie(): void {
-    // TODO: Death mechanic ???
   }
 }

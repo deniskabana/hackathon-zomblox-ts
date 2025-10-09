@@ -5,6 +5,8 @@ export default abstract class AEntity {
   public gridPos: GridPosition;
   public isStaticObject: boolean;
 
+  public abstract health: number;
+
   constructor(worldPos: WorldPosition, isStaticObject?: boolean) {
     this.worldPos = worldPos;
     this.gridPos = worldToGrid(worldPos);
@@ -18,4 +20,6 @@ export default abstract class AEntity {
 
   public abstract update(_deltaTime: number): void;
   public abstract draw(_deltaTime: number): void;
+
+  public abstract damage(amount: number): void;
 }

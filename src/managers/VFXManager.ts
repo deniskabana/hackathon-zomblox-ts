@@ -39,15 +39,15 @@ export default class VFXManager {
   public drawShootLine(
     from: WorldPosition,
     direction: number,
+    length: number = 2000,
     color: string = "#d0d000",
-    duration: number = 0.15,
+    duration: number = 0.33, // BUG: This does not work! It only draws to a single frame and gets overwritten the next
   ): void {
     this.startTimes.push(Date.now());
     const vectorFrom = gameInstance.MANAGERS.CameraManager.worldToScreen(from);
     const vectorTo = radiansToVector(direction);
-    const screenLen = 2000;
-    vectorTo.x *= screenLen;
-    vectorTo.y *= screenLen;
+    vectorTo.x *= length;
+    vectorTo.y *= length;
     vectorTo.x += vectorFrom.x;
     vectorTo.y += vectorFrom.y;
     this.effects.push({ from: vectorFrom, to: vectorTo, color, duration });

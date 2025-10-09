@@ -15,7 +15,7 @@ export default class AssetManager {
 
   public playingAudioTracks: AssetAudioName[] = [];
 
-  constructor() { }
+  constructor() {}
 
   public async preloadAssets(): Promise<void> {
     this.isAssetsLoading = true;

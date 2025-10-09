@@ -74,6 +74,6 @@ export default class GameInstance {
     this.MANAGERS.LevelManager.init();
 
     this.MANAGERS.AssetManager.playAudioAsset("AMusicBackground", "music");
-    this.MANAGERS.AssetManager.playAudioAsset("AFXZombieAmbience", "music", 0.75);
+    // this.MANAGERS.AssetManager.playAudioAsset("AFXZombieAmbience", "music", 0.75);
   }
 }
