@@ -2,6 +2,7 @@ import type { WorldPosition } from "../config/gameGrid";
 import { gameInstance } from "../main";
 import { ZIndex } from "../managers/DrawManager";
 import getDirectionalAngle from "../utils/getDirectionalAngle";
+import getVectorDistance from "../utils/getVectorDistance";
 import radiansToVector from "../utils/radiansToVector";
 import AEntity from "./AEntity";
 
@@ -12,20 +13,31 @@ export default class Zombie extends AEntity {
 
   private health: number = 40;
 
+  private distanceFromPlayer: number = -1;
+  private lastDistanceInterval: number = 0;
+
   constructor(worldPos: WorldPosition) {
     super(worldPos, true);
-
     this.isWalking = true;
   }
 
   public update(_deltaTime: number) {
     if (!this.isWalking) return;
 
-    // TODO: Replace with actual logic
+    const playerPos = gameInstance.MANAGERS.LevelManager.player.worldPos;
 
-    this.angle = getDirectionalAngle(gameInstance.MANAGERS.LevelManager.player.worldPos, this.worldPos);
+    if (this.lastDistanceInterval > 0) {
+      this.lastDistanceInterval -= _deltaTime;
+    } else {
+      // Keep this throttled! It's a zombie, it can be stupid
+      this.distanceFromPlayer = getVectorDistance(this.worldPos, playerPos);
+      this.lastDistanceInterval = 0.5;
+    }
+
+    if (this.distanceFromPlayer < 70) return;
+
+    this.angle = getDirectionalAngle(playerPos, this.worldPos);
     const vector = radiansToVector(this.angle);
-
     this.worldPos.x += vector.x * this.speed * _deltaTime;
     this.worldPos.y += vector.y * this.speed * _deltaTime;
   }
