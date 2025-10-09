@@ -51,10 +51,14 @@ export default class Zombie extends AEntity {
 
   public damage(amount: number): void {
     this.health -= amount;
-    if (this.health <= 0) this.killZombie();
+    if (this.health <= 0) {
+      gameInstance.MANAGERS.AssetManager.playAudioAsset('AZombieDeath', 'sound');
+      this.killZombie();
+    }
+    console.log('ZOMBIE HEALTH: ', this.health);
   }
 
   public killZombie(): void {
-    // TODO: Death mechanic
+    // TODO: Death mechanic ???
   }
 }

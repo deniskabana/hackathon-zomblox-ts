@@ -100,7 +100,9 @@ export default class Player extends AEntity {
     for (let i = 0; i < weaponDef.shots; i++) {
       const spread = (Math.random() - 0.5) * 2 * ((gunSpread * Math.PI) / 180);
       gameInstance.MANAGERS.VFXManager.drawShootLine(this.worldPos, this.moveDirection + spread);
+      gameInstance.MANAGERS.LevelManager.raycastShot(this.worldPos, this.moveDirection + spread, weaponDef.damage);
     }
+
   }
 
   private getPlayerSprite(): AssetImage {

@@ -1,8 +1,11 @@
-import { GRID_CONFIG, gridToWorld, WORLD_SIZE, type WorldPosition } from "../config/gameGrid";
+import { GRID_CONFIG, gridToWorld, WORLD_SIZE, worldToGrid, type GridPosition, type WorldPosition } from "../config/gameGrid";
 import Player from "../entities/Player";
 import Zombie from "../entities/Zombie";
 import { gameInstance } from "../main";
 import type { LevelState } from "../types/LevelState";
+import getDirectionalAngle from "../utils/getDirectionalAngle";
+import getVectorDistance from "../utils/getVectorDistance";
+import radiansToVector from "../utils/radiansToVector";
 import { ZIndex } from "./DrawManager";
 
 enum GridTileState { AVAILABLE, BLOCKED, PLAYER };
@@ -141,5 +144,45 @@ export default class LevelManager {
     if (this.levelState.phase !== "day") return;
     this.levelState.phase = "night";
     // TODO: UI and game changes
+  }
+
+  // Shamelessly put together from pieces, apparently this is called DDA (Digital Differential Analyzer)
+  public raycastShot(from: WorldPosition, angleRad: number, _damage: number): void {
+    const MAX_RANGE = 100;
+
+    const direction = radiansToVector(angleRad);
+    const startGrid = worldToGrid({ x: from.x, y: from.y });
+
+    const stepX = direction.x > 0 ? 1 : -1;
+    const stepY = direction.y > 0 ? 1 : -1;
+
+    const deltaDistX = Math.abs(1 / direction.x);
+    const deltaDistY = Math.abs(1 / direction.y);
+
+    let tMaxX = Math.abs((startGrid.x + (stepX > 0 ? 1 : 0) - from.x / GRID_CONFIG.TILE_SIZE) / direction.x);
+    let tMaxY = Math.abs((startGrid.y + (stepY > 0 ? 1 : 0) - from.y / GRID_CONFIG.TILE_SIZE) / direction.y);
+
+    let currentX = startGrid.x;
+    let currentY = startGrid.y;
+
+    for (let i = 0; i < MAX_RANGE; i++) {
+      console.log('Checking tile:', currentX, currentY);
+      if (!this.isInsideGrid({ x: currentX, y: currentY })) break;
+
+      // TODO: Check and damage entities that occupy the tile
+
+      // Next tile
+      if (tMaxX < tMaxY) {
+        tMaxX += deltaDistX;
+        currentX += stepX;
+      } else {
+        tMaxY += deltaDistY;
+        currentY += stepY;
+      }
+    }
+  }
+
+  private isInsideGrid(gridPos: GridPosition): boolean {
+    return (gridPos.x >= 0 && gridPos.x <= GRID_CONFIG.GRID_WIDTH) && (gridPos.y >= 0 && gridPos.y <= GRID_CONFIG.GRID_HEIGHT);
   }
 }
