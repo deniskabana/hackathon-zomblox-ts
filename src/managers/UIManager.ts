@@ -1,3 +1,4 @@
+import { GRID_CONFIG } from "../config/gameGrid";
 import { gameInstance } from "../main";
 
 const styles = {

@@ -1,4 +1,7 @@
 import GameInstance from "./GameInstance";
 import "./style.css";
 
-export const gameInstance = new GameInstance();
+const game = new GameInstance();
+game.init();
+
+export const gameInstance = game;

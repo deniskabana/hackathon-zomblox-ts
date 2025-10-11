@@ -23,9 +23,12 @@ export default class GameInstance {
 
   constructor() {
     this.isDev = import.meta.env.NODE_ENV === "development" || !!location.hash.match("debug");
+    this.canvas = document.createElement('canvas'); // Fake in constructor
+    this.MANAGERS = undefined as unknown as typeof this.MANAGERS; // Fake in constructor
+  }
 
+  init() {
     this.canvas = this.createCanvas();
-
     this.MANAGERS = {
       AssetManager: new AssetManager(),
       CameraManager: new CameraManager(),

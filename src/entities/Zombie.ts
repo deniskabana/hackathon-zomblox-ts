@@ -1,4 +1,4 @@
-import { gridToWorld, type GridPosition } from "../config/gameGrid";
+import { GRID_CONFIG, gridToWorld, type GridPosition } from "../config/gameGrid";
 import { gameInstance } from "../main";
 import { ZIndex } from "../managers/DrawManager";
 import getDirectionalAngle from "../utils/getDirectionalAngle";
@@ -52,8 +52,8 @@ export default class Zombie extends AEntity {
       this.worldPos.x,
       this.worldPos.y,
       sprite,
-      64,
-      64,
+      GRID_CONFIG.TILE_SIZE,
+      GRID_CONFIG.TILE_SIZE,
       ZIndex.ENTITIES,
       this.angle + Math.PI / 2,
     );

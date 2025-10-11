@@ -6,37 +6,28 @@ import {
   type GridPosition,
   type WorldPosition,
 } from "../config/gameGrid";
-import type AEntity from "../entities/AEntity";
 import BlockWood from "../entities/BlockWood";
 import Player from "../entities/Player";
 import Zombie from "../entities/Zombie";
 import { gameInstance } from "../main";
+import { type LevelGrid, GridTileState, type GridTileRef } from "../types/Grid";
 import type { LevelState } from "../types/LevelState";
+import type { FlowFieldDistanceMap, VectorId } from "../utils/generateFlowFieldMap";
+import generateFlowField, { vectorIdToVector, vectorToVectorId } from "../utils/generateFlowFieldMap";
 import getVectorDistance from "../utils/getVectorDistance";
 import radiansToVector from "../utils/radiansToVector";
 import { ZIndex } from "./DrawManager";
-
-enum GridTileState {
-  AVAILABLE,
-  BLOCKED,
-  PLAYER,
-}
-type GridTileRef = AEntity; // TODO: Also add static map parts later!
-
-export interface GridTile {
-  state: GridTileState;
-  ref: GridTileRef | null;
-}
-export type LevelGrid = GridTile[][];
 
 export default class LevelManager {
   public worldWidth = WORLD_SIZE.WIDTH;
   public worldHeight = WORLD_SIZE.HEIGHT;
   public levelState: LevelState;
   public levelGrid: LevelGrid;
+  public pathFindingGrid?: FlowFieldDistanceMap;
 
   // Entities
   public player: Player;
+  private lastPlayerGridPos: GridPosition = { x: -99, y: -99 };
   public zombies: Map<number, Zombie> = new Map();
   public blocks: Map<number, BlockWood> = new Map();
   private entityIdCounter: number = 0;
@@ -48,17 +39,24 @@ export default class LevelManager {
 
   constructor() {
     this.player = new Player({ x: 6, y: 6 }, this.entityIdCounter++);
+    this.lastPlayerGridPos = this.player.gridPos;
 
-    const blockId = this.entityIdCounter++;
+    let blockId = this.entityIdCounter++;
     this.blocks.set(blockId, new BlockWood({ x: 8, y: 12 }, blockId));
+    blockId = this.entityIdCounter++;
+    this.blocks.set(blockId, new BlockWood({ x: 7, y: 12 }, blockId));
+    blockId = this.entityIdCounter++;
+    this.blocks.set(blockId, new BlockWood({ x: 6, y: 12 }, blockId));
+    blockId = this.entityIdCounter++;
+    this.blocks.set(blockId, new BlockWood({ x: 6, y: 13 }, blockId));
+    blockId = this.entityIdCounter++;
+    this.blocks.set(blockId, new BlockWood({ x: 6, y: 14 }, blockId));
+    blockId = this.entityIdCounter++;
+    this.blocks.set(blockId, new BlockWood({ x: 6, y: 15 }, blockId));
 
-    this.levelState = {
-      phase: "night",
-      daysCounter: 0,
-    };
+    this.levelState = { phase: "night", daysCounter: 0 };
 
-    const levelGrid = this.generateEmptyLevelGrid();
-    this.levelGrid = levelGrid;
+    this.levelGrid = this.generateEmptyLevelGrid();
   }
 
   public update(_deltaTime: number) {
@@ -73,6 +71,31 @@ export default class LevelManager {
     if (this.spawnTimer > this.zombieSpawnInterval / 1000) {
       this.spawnZombie();
       this.spawnTimer = 0;
+    }
+
+    if (!(this.lastPlayerGridPos.x === this.player.gridPos.x && this.lastPlayerGridPos.y === this.player.gridPos.y) || !this.pathFindingGrid) {
+      const levelGrid = this.fillLevelGrid();
+      this.lastPlayerGridPos = this.player.gridPos;
+      this.pathFindingGrid = generateFlowField(levelGrid, this.player.gridPos);
+
+      // WARN: Debug only code! REMOVE
+      const visualRepresentation: number[][] = [];
+      for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
+        const columns: number[] = [];
+        for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
+          columns.push('<>');
+        }
+        visualRepresentation.push(columns);
+      }
+
+      for (const [vectorId, distance] of Object.entries(this.pathFindingGrid)) {
+        const vector = vectorIdToVector(vectorId as VectorId);
+        visualRepresentation[vector.x][vector.y] = distance;
+      }
+
+      for (const row of visualRepresentation) {
+        console.log(row.map(n => `0${n}`.slice(-2)).join('  '))
+      }
     }
   }
 
@@ -108,6 +131,16 @@ export default class LevelManager {
       });
     });
   }
+
+  public destroyEntity(entityId: number, type: "block" | "zombie"): void {
+    let entityList: typeof this.blocks | typeof this.zombies | undefined = undefined;
+    if (type === "block") entityList = this.blocks;
+    if (type === "zombie") entityList = this.zombies;
+    entityList?.delete(entityId);
+  }
+
+  // Zombies
+  // ==================================================
 
   private startSpawningZombies(): void {
     this.isSpawningZombies = true;
@@ -155,6 +188,9 @@ export default class LevelManager {
     }
   }
 
+  // Day and night
+  // ==================================================
+
   public endNight() {
     if (this.levelState.phase !== "night") return;
     this.levelState.phase = "day";
@@ -167,6 +203,51 @@ export default class LevelManager {
     this.levelState.phase = "night";
     // TODO: UI and game changes
   }
+
+  // Grid :: Utils
+  // ==================================================
+
+  private generateEmptyLevelGrid(): LevelGrid {
+    const levelGrid: LevelGrid = [];
+    for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
+      const columns: LevelGrid[number] = [];
+      for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
+        columns.push({ state: GridTileState.AVAILABLE, ref: null, pos: { x, y } });
+      }
+      levelGrid.push(columns);
+    }
+    return levelGrid;
+  }
+
+  // WARN: THIS IS MOST PROBABLY NOT A GOOD IDEA LONG-TERM
+  // Entities could call grid update by reference and perform calculations only if needed
+  private fillLevelGrid(): LevelGrid {
+    const grid = this.generateEmptyLevelGrid();
+
+    const playerGridPos = this.player.gridPos;
+    grid[playerGridPos.x][playerGridPos.y] = { state: GridTileState.PLAYER, ref: this.player, pos: this.player.gridPos };
+
+    for (const zombie of this.zombies.values()) {
+      grid[zombie.gridPos.x][zombie.gridPos.y] = { state: GridTileState.BLOCKED, ref: zombie, pos: zombie.gridPos };
+    }
+
+    for (const block of this.blocks.values()) {
+      grid[block.gridPos.x][block.gridPos.y] = { state: GridTileState.BLOCKED, ref: block, pos: block.gridPos };
+    }
+
+    // TODO: Blocks, map tiles
+
+    return grid;
+  }
+
+  private isInsideGrid(gridPos: GridPosition): boolean {
+    return (
+      gridPos.x >= 0 && gridPos.x <= GRID_CONFIG.GRID_WIDTH && gridPos.y >= 0 && gridPos.y <= GRID_CONFIG.GRID_HEIGHT
+    );
+  }
+
+  // Grid :: Raycasting
+  // ==================================================
 
   // Shamelessly put together from pieces, apparently this is called DDA (Digital Differential Analyzer)
   public raycastShot(from: WorldPosition, angleRad: number, maxDistance: number): null | GridTileRef {
@@ -213,49 +294,7 @@ export default class LevelManager {
     return raycastHit;
   }
 
-  private isInsideGrid(gridPos: GridPosition): boolean {
-    return (
-      gridPos.x >= 0 && gridPos.x <= GRID_CONFIG.GRID_WIDTH && gridPos.y >= 0 && gridPos.y <= GRID_CONFIG.GRID_HEIGHT
-    );
-  }
+  // Grid :: Path-finding
+  // ==================================================
 
-  private generateEmptyLevelGrid(): LevelGrid {
-    const levelGrid: LevelGrid = [];
-    for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
-      const columns: LevelGrid[number] = [];
-      for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
-        columns.push({ state: GridTileState.AVAILABLE, ref: null });
-      }
-      levelGrid.push(columns);
-    }
-    return levelGrid;
-  }
-
-  // WARN: THIS IS MOST PROBABLY NOT A GOOD IDEA LONG-TERM
-  // Entities could call grid update by reference and perform calculations only if needed
-  private fillLevelGrid(): LevelGrid {
-    const grid = this.generateEmptyLevelGrid();
-
-    const playerGridPos = this.player.gridPos;
-    grid[playerGridPos.x][playerGridPos.y] = { state: GridTileState.PLAYER, ref: this.player };
-
-    for (const zombie of this.zombies.values()) {
-      grid[zombie.gridPos.x][zombie.gridPos.y] = { state: GridTileState.BLOCKED, ref: zombie };
-    }
-
-    for (const block of this.blocks.values()) {
-      grid[block.gridPos.x][block.gridPos.y] = { state: GridTileState.BLOCKED, ref: block };
-    }
-
-    // TODO: Blocks, map tiles
-
-    return grid;
-  }
-
-  public destroyEntity(entityId: number, type: "block" | "zombie"): void {
-    let entityList: typeof this.blocks | typeof this.zombies | undefined = undefined;
-    if (type === "block") entityList = this.blocks;
-    if (type === "zombie") entityList = this.zombies;
-    entityList?.delete(entityId);
-  }
 }

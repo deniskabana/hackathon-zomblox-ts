@@ -1,4 +1,4 @@
-import { gridToWorld, type GridPosition } from "../config/gameGrid";
+import { GRID_CONFIG, gridToWorld, type GridPosition } from "../config/gameGrid";
 import { gameInstance } from "../main";
 import { ZIndex } from "../managers/DrawManager";
 import AEntity from "./AEntity";
@@ -10,13 +10,13 @@ export default class BlockWood extends AEntity {
     super(gridToWorld(gridPos), entityId, false);
   }
 
-  update(_deltaTime: number) {}
+  update(_deltaTime: number) { }
 
   draw() {
     const sprite = gameInstance.MANAGERS.AssetManager.getImageAsset("IBlockWood");
     if (!sprite) return;
 
-    gameInstance.MANAGERS.DrawManager.queueDraw(this.worldPos.x, this.worldPos.y, sprite, 64, 64, ZIndex.ENTITIES, 0);
+    gameInstance.MANAGERS.DrawManager.queueDraw(this.worldPos.x, this.worldPos.y, sprite, GRID_CONFIG.TILE_SIZE, GRID_CONFIG.TILE_SIZE, ZIndex.ENTITIES, 0);
   }
 
   damage(amount: number) {

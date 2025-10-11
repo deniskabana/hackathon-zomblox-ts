@@ -61,8 +61,8 @@ export default class Player extends AEntity {
       this.worldPos.x,
       this.worldPos.y,
       playerSprite,
-      64,
-      64,
+      GRID_CONFIG.TILE_SIZE,
+      GRID_CONFIG.TILE_SIZE,
       ZIndex.ENTITIES,
       this.moveDirection + Math.PI / 2,
     );
