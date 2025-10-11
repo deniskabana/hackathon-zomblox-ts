@@ -1,7 +1,6 @@
-export default function normalizeVector(vector: { x: number; y: number }): {
-  x: number;
-  y: number;
-} {
+import type { WorldPosition, GridPosition } from "../config/gameGrid";
+
+export default function normalizeVector<T extends WorldPosition | GridPosition>(vector: T): T {
   let x = vector.x;
   let y = vector.y;
 
@@ -11,5 +10,5 @@ export default function normalizeVector(vector: { x: number; y: number }): {
     y /= length;
   }
 
-  return { x, y };
+  return { ...vector, x, y };
 }
