@@ -26,6 +26,7 @@ export default class Zombie extends AEntity {
   public update(_deltaTime: number) {
     if (!this.isWalking) return;
 
+    // TODO: Replace with private walkTowardsPlayer(): void that also checks pathfinding grid and uses that for navigation
     const playerPos = this.gameInstance.MANAGERS.LevelManager.player.worldPos;
 
     if (this.lastDistanceInterval > 0) {

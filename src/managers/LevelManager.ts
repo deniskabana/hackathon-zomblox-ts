@@ -12,8 +12,8 @@ import Zombie from "../entities/Zombie";
 import type GameInstance from "../GameInstance";
 import { type LevelGrid, GridTileState, type GridTileRef } from "../types/Grid";
 import type { LevelState } from "../types/LevelState";
-import type { FlowFieldDistanceMap, VectorId } from "../utils/generateFlowFieldMap";
-import generateFlowField, { vectorIdToVector } from "../utils/generateFlowFieldMap";
+import type { FlowFieldDistanceMap } from "../utils/generateFlowFieldMap";
+import generateFlowField from "../utils/generateFlowFieldMap";
 import getVectorDistance from "../utils/getVectorDistance";
 import radiansToVector from "../utils/radiansToVector";
 import { ZIndex } from "./DrawManager";
@@ -40,7 +40,7 @@ export default class LevelManager {
 
   constructor(gameInstance: GameInstance) {
     this.gameInstance = gameInstance;
-    this.player = new Player({ x: 6, y: 6 }, this.entityIdCounter++, this.gameInstance);
+    this.player = new Player({ x: 2, y: 2 }, this.entityIdCounter++, this.gameInstance);
     this.lastPlayerGridPos = this.player.gridPos;
 
     let blockId = this.entityIdCounter++;
@@ -55,6 +55,23 @@ export default class LevelManager {
     this.blocks.set(blockId, new BlockWood({ x: 6, y: 14 }, blockId, this.gameInstance));
     blockId = this.entityIdCounter++;
     this.blocks.set(blockId, new BlockWood({ x: 6, y: 15 }, blockId, this.gameInstance));
+
+    blockId = this.entityIdCounter++;
+    this.blocks.set(blockId, new BlockWood({ x: 3, y: 4 }, blockId, this.gameInstance));
+    blockId = this.entityIdCounter++;
+    this.blocks.set(blockId, new BlockWood({ x: 4, y: 4 }, blockId, this.gameInstance));
+    blockId = this.entityIdCounter++;
+    this.blocks.set(blockId, new BlockWood({ x: 4, y: 4 }, blockId, this.gameInstance));
+    blockId = this.entityIdCounter++;
+    this.blocks.set(blockId, new BlockWood({ x: 5, y: 4 }, blockId, this.gameInstance));
+    blockId = this.entityIdCounter++;
+    this.blocks.set(blockId, new BlockWood({ x: 6, y: 4 }, blockId, this.gameInstance));
+    blockId = this.entityIdCounter++;
+    this.blocks.set(blockId, new BlockWood({ x: 6, y: 5 }, blockId, this.gameInstance));
+    blockId = this.entityIdCounter++;
+    this.blocks.set(blockId, new BlockWood({ x: 6, y: 6 }, blockId, this.gameInstance));
+    blockId = this.entityIdCounter++;
+    this.blocks.set(blockId, new BlockWood({ x: 6, y: 7 }, blockId, this.gameInstance));
 
     this.levelState = { phase: "night", daysCounter: 0 };
 
@@ -82,25 +99,6 @@ export default class LevelManager {
       const levelGrid = this.fillLevelGrid();
       this.lastPlayerGridPos = this.player.gridPos;
       this.pathFindingGrid = generateFlowField(levelGrid, this.player.gridPos);
-
-      // WARN: Debug only code! REMOVE
-      const visualRepresentation: number[][] = [];
-      for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
-        const columns: number[] = [];
-        for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
-          columns.push("--");
-        }
-        visualRepresentation.push(columns);
-      }
-
-      for (const [vectorId, distance] of Object.entries(this.pathFindingGrid)) {
-        const vector = vectorIdToVector(vectorId as VectorId);
-        visualRepresentation[vector.x][vector.y] = distance;
-      }
-
-      for (const row of visualRepresentation) {
-        console.log(row.map((n) => `0${n}`.slice(-2)).join("  "));
-      }
     }
   }
 
@@ -156,7 +154,7 @@ export default class LevelManager {
   }
 
   public spawnZombie(): void {
-    if (this.zombies.size >= 20) return;
+    if (this.zombies.size >= 90) return;
     const entityId = this.entityIdCounter++;
     this.zombies.set(entityId, new Zombie(this.getRandomZombieSpawnPosition(), entityId, this.gameInstance));
   }
@@ -237,7 +235,9 @@ export default class LevelManager {
     };
 
     for (const zombie of this.zombies.values()) {
-      grid[zombie.gridPos.x][zombie.gridPos.y] = { state: GridTileState.BLOCKED, ref: zombie, pos: zombie.gridPos };
+      // TODO: This assumes zombies will never overlap which is not true!
+      // FIXME: Refactor!
+      grid[zombie.gridPos.x][zombie.gridPos.y] = { state: GridTileState.AVAILABLE, ref: zombie, pos: zombie.gridPos };
     }
 
     for (const block of this.blocks.values()) {
@@ -302,7 +302,4 @@ export default class LevelManager {
     if (raycastHit && getVectorDistance(from, raycastHit.worldPos) > maxDistance) return null;
     return raycastHit;
   }
-
-  // Grid :: Path-finding
-  // ==================================================
 }
