@@ -12,13 +12,21 @@ export default class BlockWood extends AEntity {
     this.gameInstance = gameInstance;
   }
 
-  update(_deltaTime: number) { }
+  update(_deltaTime: number) {}
 
   draw() {
     const sprite = this.gameInstance.MANAGERS.AssetManager.getImageAsset("IBlockWood");
     if (!sprite) return;
 
-    this.gameInstance.MANAGERS.DrawManager.queueDraw(this.worldPos.x, this.worldPos.y, sprite, GRID_CONFIG.TILE_SIZE, GRID_CONFIG.TILE_SIZE, ZIndex.ENTITIES, 0);
+    this.gameInstance.MANAGERS.DrawManager.queueDraw(
+      this.worldPos.x,
+      this.worldPos.y,
+      sprite,
+      GRID_CONFIG.TILE_SIZE,
+      GRID_CONFIG.TILE_SIZE,
+      ZIndex.ENTITIES,
+      0,
+    );
   }
 
   damage(amount: number) {

@@ -14,4 +14,3 @@ export interface GridTile {
   pos: Vector;
 }
 export type LevelGrid = GridTile[][];
-

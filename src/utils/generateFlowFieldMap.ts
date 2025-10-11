@@ -12,11 +12,11 @@ export default function generateFlowField(levelGrid: LevelGrid, from: GridPositi
   const distanceMap: FlowFieldDistanceMap = { [vectorToVectorId(from)]: 0 };
 
   while (queue.length > 0) {
-    const currentTile = queue.shift()
-    if (!currentTile) throw new Error('Grid pathfinding critical error.');
-    const currentId = vectorToVectorId(currentTile.pos)
+    const currentTile = queue.shift();
+    if (!currentTile) throw new Error("Grid pathfinding critical error.");
+    const currentId = vectorToVectorId(currentTile.pos);
 
-    const neighbors = getTileNeighbors(levelGrid, currentTile.pos, distanceMap)
+    const neighbors = getTileNeighbors(levelGrid, currentTile.pos, distanceMap);
     for (const neighborVector of neighbors) {
       const neighborId = vectorToVectorId(neighborVector);
 
@@ -30,19 +30,23 @@ export default function generateFlowField(levelGrid: LevelGrid, from: GridPositi
   return distanceMap;
 }
 
-export type FlowFieldDistanceMap = Record<VectorId, number>
+export type FlowFieldDistanceMap = Record<VectorId, number>;
 
-export type VectorId = `${number};${number}`
+export type VectorId = `${number};${number}`;
 
 export function vectorToVectorId({ x, y }: Vector): VectorId {
-  return `${x};${y}`
+  return `${x};${y}`;
 }
 export function vectorIdToVector(id: VectorId): Vector {
-  const [x, y] = id.split(';');
+  const [x, y] = id.split(";");
   return { x: Number(x), y: Number(y) };
 }
 
-export function getTileNeighbors(levelGrid: LevelGrid, { x, y }: GridPosition, distanceMap: FlowFieldDistanceMap): GridPosition[] {
+export function getTileNeighbors(
+  levelGrid: LevelGrid,
+  { x, y }: GridPosition,
+  distanceMap: FlowFieldDistanceMap,
+): GridPosition[] {
   const neighbors: GridPosition[] = [];
 
   const saveNeighbor = (pos: Vector) => {
@@ -50,7 +54,7 @@ export function getTileNeighbors(levelGrid: LevelGrid, { x, y }: GridPosition, d
     if (levelGrid[pos.x][pos.y].state !== GridTileState.AVAILABLE) return;
     if (distanceMap[vectorToVectorId(pos)]) return;
     neighbors.push(pos);
-  }
+  };
 
   // Horizontal and vertical
   if (y > 0) saveNeighbor({ x, y: y - 1 });

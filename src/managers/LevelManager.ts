@@ -75,7 +75,10 @@ export default class LevelManager {
       this.spawnTimer = 0;
     }
 
-    if (!(this.lastPlayerGridPos.x === this.player.gridPos.x && this.lastPlayerGridPos.y === this.player.gridPos.y) || !this.pathFindingGrid) {
+    if (
+      !(this.lastPlayerGridPos.x === this.player.gridPos.x && this.lastPlayerGridPos.y === this.player.gridPos.y) ||
+      !this.pathFindingGrid
+    ) {
       const levelGrid = this.fillLevelGrid();
       this.lastPlayerGridPos = this.player.gridPos;
       this.pathFindingGrid = generateFlowField(levelGrid, this.player.gridPos);
@@ -85,7 +88,7 @@ export default class LevelManager {
       for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
         const columns: number[] = [];
         for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
-          columns.push('..');
+          columns.push("--");
         }
         visualRepresentation.push(columns);
       }
@@ -96,7 +99,7 @@ export default class LevelManager {
       }
 
       for (const row of visualRepresentation) {
-        console.log(row.map(n => `0${n}`.slice(-2)).join('  '))
+        console.log(row.map((n) => `0${n}`.slice(-2)).join("  "));
       }
     }
   }
@@ -227,7 +230,11 @@ export default class LevelManager {
     const grid = this.generateEmptyLevelGrid();
 
     const playerGridPos = this.player.gridPos;
-    grid[playerGridPos.x][playerGridPos.y] = { state: GridTileState.PLAYER, ref: this.player, pos: this.player.gridPos };
+    grid[playerGridPos.x][playerGridPos.y] = {
+      state: GridTileState.PLAYER,
+      ref: this.player,
+      pos: this.player.gridPos,
+    };
 
     for (const zombie of this.zombies.values()) {
       grid[zombie.gridPos.x][zombie.gridPos.y] = { state: GridTileState.BLOCKED, ref: zombie, pos: zombie.gridPos };
@@ -298,5 +305,4 @@ export default class LevelManager {
 
   // Grid :: Path-finding
   // ==================================================
-
 }
