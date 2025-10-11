@@ -110,7 +110,7 @@ export default class LevelManager {
     this.player.draw(_deltaTime);
 
     for (const zombie of this.zombies.values()) {
-      zombie.draw(_deltaTime);
+      zombie.draw();
     }
 
     for (const block of this.blocks.values()) {
@@ -154,7 +154,8 @@ export default class LevelManager {
   }
 
   public spawnZombie(): void {
-    if (this.zombies.size >= 90) return;
+    if (this.zombies.size >= 1) return;
+    // if (this.zombies.size >= 90) return;
     const entityId = this.entityIdCounter++;
     this.zombies.set(entityId, new Zombie(this.getRandomZombieSpawnPosition(), entityId, this.gameInstance));
   }
@@ -172,7 +173,7 @@ export default class LevelManager {
 
       case 1:
         return {
-          x: WORLD_SIZE.WIDTH + margin,
+          x: GRID_CONFIG.GRID_WIDTH + margin,
           y: Math.random() * GRID_CONFIG.GRID_HEIGHT,
         };
 
@@ -249,9 +250,9 @@ export default class LevelManager {
     return grid;
   }
 
-  private isInsideGrid(gridPos: GridPosition): boolean {
+  public isInsideGrid(gridPos: GridPosition): boolean {
     return (
-      gridPos.x >= 0 && gridPos.x <= GRID_CONFIG.GRID_WIDTH && gridPos.y >= 0 && gridPos.y <= GRID_CONFIG.GRID_HEIGHT
+      gridPos.x >= 0 && gridPos.x < GRID_CONFIG.GRID_WIDTH && gridPos.y >= 0 && gridPos.y < GRID_CONFIG.GRID_HEIGHT
     );
   }
 
