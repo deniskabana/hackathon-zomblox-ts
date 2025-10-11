@@ -1,12 +1,13 @@
 import { DEF_ASSETS_AUDIO, DEF_ASSETS_IMAGE, type AssetAudioName, type AssetImageName } from "../config/assets";
-import { gameInstance } from "../main";
 import assertNever from "../utils/assertNever";
 import viteConfig from "../../vite.config";
+import type GameInstance from "../GameInstance";
 
 export type AssetAudio = HTMLAudioElement;
 export type AssetImage = HTMLImageElement;
 
 export default class AssetManager {
+  private gameInstance: GameInstance;
   private assetsAudioMap: Map<AssetAudioName, AssetAudio> = new Map();
   private assetsImageMap: Map<AssetImageName, AssetImage> = new Map();
 
@@ -15,7 +16,9 @@ export default class AssetManager {
 
   public playingAudioTracks: AssetAudioName[] = [];
 
-  constructor() {}
+  constructor(gameInstance: GameInstance) {
+    this.gameInstance = gameInstance;
+  }
 
   public async preloadAssets(): Promise<void> {
     this.isAssetsLoading = true;
@@ -79,7 +82,7 @@ export default class AssetManager {
     const audio = type === "music" ? asset : new Audio(asset?.src);
     if (!asset || !audio) return;
 
-    const volumeSettings = gameInstance.MANAGERS.GameManager.getSettings().volume;
+    const volumeSettings = this.gameInstance.MANAGERS.GameManager.getSettings().volume;
 
     switch (type) {
       case "music":

@@ -30,14 +30,14 @@ export default class GameInstance {
   init() {
     this.canvas = this.createCanvas();
     this.MANAGERS = {
-      AssetManager: new AssetManager(),
-      CameraManager: new CameraManager(),
-      DrawManager: new DrawManager(this.canvas),
-      GameManager: new GameManager(),
-      InputManager: new InputManager(),
-      LevelManager: new LevelManager(),
-      UIManager: new UIManager(),
-      VFXManager: new VFXManager(),
+      AssetManager: new AssetManager(this),
+      CameraManager: new CameraManager(this),
+      DrawManager: new DrawManager(this, this.canvas),
+      GameManager: new GameManager(this),
+      InputManager: new InputManager(this),
+      LevelManager: new LevelManager(this),
+      UIManager: new UIManager(this),
+      VFXManager: new VFXManager(this),
     };
 
     document.addEventListener("click", this.startGame.bind(this));

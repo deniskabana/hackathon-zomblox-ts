@@ -9,16 +9,17 @@ import {
 import BlockWood from "../entities/BlockWood";
 import Player from "../entities/Player";
 import Zombie from "../entities/Zombie";
-import { gameInstance } from "../main";
+import type GameInstance from "../GameInstance";
 import { type LevelGrid, GridTileState, type GridTileRef } from "../types/Grid";
 import type { LevelState } from "../types/LevelState";
 import type { FlowFieldDistanceMap, VectorId } from "../utils/generateFlowFieldMap";
-import generateFlowField, { vectorIdToVector, vectorToVectorId } from "../utils/generateFlowFieldMap";
+import generateFlowField, { vectorIdToVector } from "../utils/generateFlowFieldMap";
 import getVectorDistance from "../utils/getVectorDistance";
 import radiansToVector from "../utils/radiansToVector";
 import { ZIndex } from "./DrawManager";
 
 export default class LevelManager {
+  private gameInstance: GameInstance;
   public worldWidth = WORLD_SIZE.WIDTH;
   public worldHeight = WORLD_SIZE.HEIGHT;
   public levelState: LevelState;
@@ -37,22 +38,23 @@ export default class LevelManager {
   private zombieSpawnInterval: number = 1000;
   private spawnTimer: number = 0;
 
-  constructor() {
-    this.player = new Player({ x: 6, y: 6 }, this.entityIdCounter++);
+  constructor(gameInstance: GameInstance) {
+    this.gameInstance = gameInstance;
+    this.player = new Player({ x: 6, y: 6 }, this.entityIdCounter++, this.gameInstance);
     this.lastPlayerGridPos = this.player.gridPos;
 
     let blockId = this.entityIdCounter++;
-    this.blocks.set(blockId, new BlockWood({ x: 8, y: 12 }, blockId));
+    this.blocks.set(blockId, new BlockWood({ x: 8, y: 12 }, blockId, this.gameInstance));
     blockId = this.entityIdCounter++;
-    this.blocks.set(blockId, new BlockWood({ x: 7, y: 12 }, blockId));
+    this.blocks.set(blockId, new BlockWood({ x: 7, y: 12 }, blockId, this.gameInstance));
     blockId = this.entityIdCounter++;
-    this.blocks.set(blockId, new BlockWood({ x: 6, y: 12 }, blockId));
+    this.blocks.set(blockId, new BlockWood({ x: 6, y: 12 }, blockId, this.gameInstance));
     blockId = this.entityIdCounter++;
-    this.blocks.set(blockId, new BlockWood({ x: 6, y: 13 }, blockId));
+    this.blocks.set(blockId, new BlockWood({ x: 6, y: 13 }, blockId, this.gameInstance));
     blockId = this.entityIdCounter++;
-    this.blocks.set(blockId, new BlockWood({ x: 6, y: 14 }, blockId));
+    this.blocks.set(blockId, new BlockWood({ x: 6, y: 14 }, blockId, this.gameInstance));
     blockId = this.entityIdCounter++;
-    this.blocks.set(blockId, new BlockWood({ x: 6, y: 15 }, blockId));
+    this.blocks.set(blockId, new BlockWood({ x: 6, y: 15 }, blockId, this.gameInstance));
 
     this.levelState = { phase: "night", daysCounter: 0 };
 
@@ -83,7 +85,7 @@ export default class LevelManager {
       for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
         const columns: number[] = [];
         for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
-          columns.push('<>');
+          columns.push('..');
         }
         visualRepresentation.push(columns);
       }
@@ -117,10 +119,10 @@ export default class LevelManager {
     this.levelGrid.forEach((gridRow, x) => {
       gridRow.forEach((_gridCol, y) => {
         const tileWorldPos = gridToWorld({ x, y });
-        const texture = gameInstance.MANAGERS.AssetManager.getImageAsset("ITextureGround");
+        const texture = this.gameInstance.MANAGERS.AssetManager.getImageAsset("ITextureGround");
         if (!texture) return;
 
-        gameInstance.MANAGERS.DrawManager.queueDraw(
+        this.gameInstance.MANAGERS.DrawManager.queueDraw(
           tileWorldPos.x,
           tileWorldPos.y,
           texture,
@@ -153,7 +155,7 @@ export default class LevelManager {
   public spawnZombie(): void {
     if (this.zombies.size >= 20) return;
     const entityId = this.entityIdCounter++;
-    this.zombies.set(entityId, new Zombie(this.getRandomZombieSpawnPosition(), entityId));
+    this.zombies.set(entityId, new Zombie(this.getRandomZombieSpawnPosition(), entityId, this.gameInstance));
   }
 
   private getRandomZombieSpawnPosition(margin: number = 2): WorldPosition {

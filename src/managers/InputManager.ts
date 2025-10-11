@@ -1,4 +1,4 @@
-import { gameInstance } from "../main";
+import type GameInstance from "../GameInstance";
 
 export interface ScreenPosition {
   x: number;
@@ -6,11 +6,13 @@ export interface ScreenPosition {
 }
 
 export default class InputManager {
+  private gameInstance: GameInstance;
   public mouseScreenPos: ScreenPosition = { x: 0, y: 0 };
   private isMousePressed: boolean = false;
   private keysPressed: Set<string> = new Set();
 
-  constructor() {
+  constructor(gameInstance: GameInstance) {
+    this.gameInstance = gameInstance;
     document.addEventListener("mousedown", this.onMouseDown.bind(this));
     document.addEventListener("mouseup", this.onMouseUp.bind(this));
     document.addEventListener("mousemove", this.onMouseMove.bind(this));
@@ -46,7 +48,7 @@ export default class InputManager {
   }
 
   private updateMousePosition(event: MouseEvent): void {
-    const rect = gameInstance.canvas.getBoundingClientRect();
+    const rect = this.gameInstance.canvas.getBoundingClientRect();
     const screenX = event.clientX - rect.left;
     const screenY = event.clientY - rect.top;
     this.mouseScreenPos.x = screenX;

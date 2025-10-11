@@ -1,21 +1,24 @@
 import type { WorldPosition } from "../config/gameGrid";
-import { gameInstance } from "../main";
+import type GameInstance from "../GameInstance";
 
 // TODO: Zoom. Needed afterall, lol
 export default class CameraManager {
+  private gameInstance: GameInstance;
+
   public x: number = 0;
   public y: number = 0;
 
   public viewportWidth: number;
   public viewportHeight: number;
 
-  constructor() {
+  constructor(gameInstance: GameInstance) {
+    this.gameInstance = gameInstance;
     this.viewportWidth = window.innerWidth;
     this.viewportHeight = window.innerHeight;
   }
 
   public followPlayer(playerPos: WorldPosition): void {
-    const levelManager = gameInstance.MANAGERS.LevelManager;
+    const levelManager = this.gameInstance.MANAGERS.LevelManager;
 
     this.x = playerPos.x;
     this.y = playerPos.y;

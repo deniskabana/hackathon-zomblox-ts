@@ -1,4 +1,4 @@
-import { gameInstance } from "../main";
+import type GameInstance from "../GameInstance";
 
 export enum ZIndex {
   GROUND = 0,
@@ -20,6 +20,7 @@ export interface DrawCommand {
 }
 
 export default class DrawManager {
+  private gameInstance: GameInstance;
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
 
@@ -30,7 +31,8 @@ export default class DrawManager {
   private lastFrameTime: number = 0;
   private fps: number = 0;
 
-  constructor(canvas: HTMLCanvasElement) {
+  constructor(gameInstance: GameInstance, canvas: HTMLCanvasElement) {
+    this.gameInstance = gameInstance;
     this.canvas = canvas;
 
     const ctx = this.canvas.getContext("2d");
@@ -46,7 +48,7 @@ export default class DrawManager {
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
 
-    gameInstance.MANAGERS.CameraManager.setViewportSize(this.canvas.width, this.canvas.height);
+    this.gameInstance.MANAGERS.CameraManager.setViewportSize(this.canvas.width, this.canvas.height);
   }
 
   private clearCanvas(): void {
@@ -80,11 +82,11 @@ export default class DrawManager {
     this.fps = Math.round(1 / deltaTime);
 
     this.clearCanvas();
-    gameInstance.update(deltaTime);
+    this.gameInstance.update(deltaTime);
     this.renderDrawQueue();
-    gameInstance.MANAGERS.UIManager.drawFps(this.fps);
-    gameInstance.MANAGERS.UIManager.drawDebug();
-    gameInstance.MANAGERS.VFXManager.draw();
+    this.gameInstance.MANAGERS.UIManager.drawFps(this.fps);
+    this.gameInstance.MANAGERS.UIManager.drawDebug();
+    this.gameInstance.MANAGERS.VFXManager.draw();
 
     this.rafId = requestAnimationFrame(this.renderLoop.bind(this));
   }
@@ -131,7 +133,7 @@ export default class DrawManager {
     rotation?: number,
     alpha?: number,
   ): void {
-    const camera = gameInstance.MANAGERS.CameraManager;
+    const camera = this.gameInstance.MANAGERS.CameraManager;
     const screenPos = camera.worldToScreen({ x: worldX, y: worldY });
 
     if (!camera.isOnScreen({ x: worldX, y: worldY }, Math.max(width, height))) return;

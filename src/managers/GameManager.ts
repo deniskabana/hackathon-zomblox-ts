@@ -1,15 +1,19 @@
 import { DEFAULT_SETTINGS, type Settings } from "../config/settings";
+import type GameInstance from "../GameInstance";
 import type { DeepPartial } from "../types/DeepPartial";
 import { GameState } from "../types/GameState";
 
 const KEY_SETTINGS = "game-manager-key-settings";
 
 export default class GameManager {
+  private gameInstance: GameInstance;
   private gameState: GameState = GameState.INITIALIZING;
   private prePauseState: GameState | undefined = undefined;
   private gameSettings: Settings = DEFAULT_SETTINGS;
 
-  constructor() {
+  constructor(gameInstance: GameInstance) {
+    this.gameInstance = gameInstance;
+
     const storedSettings = localStorage.getItem(KEY_SETTINGS);
     if (storedSettings !== null) {
       const settings = JSON.parse(storedSettings);

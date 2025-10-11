@@ -1,5 +1,5 @@
 import { GRID_CONFIG, gridToWorld, type GridPosition } from "../config/gameGrid";
-import { gameInstance } from "../main";
+import type GameInstance from "../GameInstance";
 import { ZIndex } from "../managers/DrawManager";
 import getDirectionalAngle from "../utils/getDirectionalAngle";
 import getVectorDistance from "../utils/getVectorDistance";
@@ -7,6 +7,7 @@ import radiansToVector from "../utils/radiansToVector";
 import AEntity from "./AEntity";
 
 export default class Zombie extends AEntity {
+  private gameInstance: GameInstance;
   private isWalking: boolean;
   private angle: number = 0;
   private speed: number = 60 + (Math.random() - 0.5) * 20;
@@ -16,15 +17,16 @@ export default class Zombie extends AEntity {
   private distanceFromPlayer: number = -1;
   private lastDistanceInterval: number = 0;
 
-  constructor(gridPos: GridPosition, entityId: number) {
+  constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     super(gridToWorld(gridPos), entityId, true);
+    this.gameInstance = gameInstance;
     this.isWalking = true;
   }
 
   public update(_deltaTime: number) {
     if (!this.isWalking) return;
 
-    const playerPos = gameInstance.MANAGERS.LevelManager.player.worldPos;
+    const playerPos = this.gameInstance.MANAGERS.LevelManager.player.worldPos;
 
     if (this.lastDistanceInterval > 0) {
       this.lastDistanceInterval -= _deltaTime;
@@ -45,10 +47,10 @@ export default class Zombie extends AEntity {
   }
 
   public draw(_deltaTime: number) {
-    const sprite = gameInstance.MANAGERS.AssetManager.getImageAsset("IZombie1");
+    const sprite = this.gameInstance.MANAGERS.AssetManager.getImageAsset("IZombie1");
     if (!sprite) return;
 
-    gameInstance.MANAGERS.DrawManager.queueDraw(
+    this.gameInstance.MANAGERS.DrawManager.queueDraw(
       this.worldPos.x,
       this.worldPos.y,
       sprite,
@@ -66,8 +68,8 @@ export default class Zombie extends AEntity {
   public damage(amount: number): void {
     this.health -= amount;
     if (this.health <= 0) {
-      gameInstance.MANAGERS.AssetManager.playAudioAsset("AZombieDeath", "sound");
-      gameInstance.MANAGERS.LevelManager.destroyEntity(this.entityId, "zombie");
+      this.gameInstance.MANAGERS.AssetManager.playAudioAsset("AZombieDeath", "sound");
+      this.gameInstance.MANAGERS.LevelManager.destroyEntity(this.entityId, "zombie");
     }
   }
 }

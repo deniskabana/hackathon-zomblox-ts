@@ -1,5 +1,5 @@
 import type { WorldPosition } from "../config/gameGrid";
-import { gameInstance } from "../main";
+import type GameInstance from "../GameInstance";
 import radiansToVector from "../utils/radiansToVector";
 
 export interface EffectShootLine {
@@ -11,14 +11,17 @@ export interface EffectShootLine {
 }
 
 export default class VFXManager {
+  private gameInstance: GameInstance;
   private startTimes: number[] = [];
   private effects: EffectShootLine[] = [];
 
-  constructor() {}
+  constructor(gameInstance: GameInstance) {
+    this.gameInstance = gameInstance;
+  }
 
   public draw(): void {
     for (const shootLine of this.effects) {
-      gameInstance.MANAGERS.DrawManager.drawLine(
+      this.gameInstance.MANAGERS.DrawManager.drawLine(
         shootLine.from.x,
         shootLine.from.y,
         shootLine.to.x,
@@ -44,7 +47,7 @@ export default class VFXManager {
     duration: number = 0.33, // BUG: This does not work! It only draws to a single frame and gets overwritten the next
   ): void {
     this.startTimes.push(Date.now());
-    const vectorFrom = gameInstance.MANAGERS.CameraManager.worldToScreen(from);
+    const vectorFrom = this.gameInstance.MANAGERS.CameraManager.worldToScreen(from);
     const vectorTo = radiansToVector(direction);
     vectorTo.x *= length;
     vectorTo.y *= length;

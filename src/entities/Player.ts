@@ -1,7 +1,7 @@
 import type { AssetAudioName } from "../config/assets";
 import { GRID_CONFIG, gridToWorld, type GridPosition, type WorldPosition } from "../config/gameGrid";
 import { DEF_WEAPONS, type Weapon } from "../config/weapons";
-import { gameInstance } from "../main";
+import type GameInstance from "../GameInstance";
 import type { AssetImage } from "../managers/AssetManager";
 import { ZIndex } from "../managers/DrawManager";
 import getDirectionalAngle from "../utils/getDirectionalAngle";
@@ -15,6 +15,7 @@ export enum PlayerSpeed {
 }
 
 export default class Player extends AEntity {
+  private gameInstance: GameInstance;
   private moveDirection: number = 0;
   private moveSpeed: number = PlayerSpeed.WALK;
   private isMoving: boolean = false;
@@ -26,8 +27,9 @@ export default class Player extends AEntity {
   public health: number = 100;
   public weapon: Weapon = "Revolver";
 
-  constructor(gridPos: GridPosition, entityId: number) {
+  constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     super(gridToWorld(gridPos), entityId, true);
+    this.gameInstance = gameInstance;
   }
 
   public update(_deltaTime: number) {
@@ -45,19 +47,19 @@ export default class Player extends AEntity {
     if (this.stepSoundCooldown > 0) this.stepSoundCooldown -= _deltaTime;
 
     if (this.isMoving && this.stepSoundCooldown <= 0) {
-      gameInstance.MANAGERS.AssetManager.playAudioAsset("APlayerStep", "sound");
+      this.gameInstance.MANAGERS.AssetManager.playAudioAsset("APlayerStep", "sound");
       this.stepSoundCooldown = 0.35;
     }
 
     if (this.getCheckShootInput()) this.shoot();
-    if (gameInstance.MANAGERS.InputManager.isKeyDown("Tab")) this.chooseNextWeapon();
+    if (this.gameInstance.MANAGERS.InputManager.isKeyDown("Tab")) this.chooseNextWeapon();
   }
 
   public draw(_deltaTime: number) {
     const playerSprite = this.getPlayerSprite();
     if (!playerSprite) return;
 
-    gameInstance.MANAGERS.DrawManager.queueDraw(
+    this.gameInstance.MANAGERS.DrawManager.queueDraw(
       this.worldPos.x,
       this.worldPos.y,
       playerSprite,
@@ -69,8 +71,8 @@ export default class Player extends AEntity {
   }
 
   private getAimAngle(): number {
-    const mousePos = gameInstance.MANAGERS.InputManager.mouseScreenPos;
-    const mouseWorldPos = gameInstance.MANAGERS.CameraManager.screenToWorld(mousePos);
+    const mousePos = this.gameInstance.MANAGERS.InputManager.mouseScreenPos;
+    const mouseWorldPos = this.gameInstance.MANAGERS.CameraManager.screenToWorld(mousePos);
     return getDirectionalAngle(mouseWorldPos, this.worldPos);
   }
 
@@ -78,7 +80,7 @@ export default class Player extends AEntity {
     let x = 0;
     let y = 0;
 
-    const input = gameInstance.MANAGERS.InputManager;
+    const input = this.gameInstance.MANAGERS.InputManager;
     if (input.isKeyDown("KeyW")) y -= 1;
     if (input.isKeyDown("KeyS")) y += 1;
     if (input.isKeyDown("KeyA")) x -= 1;
@@ -88,13 +90,13 @@ export default class Player extends AEntity {
   }
 
   private getCheckShootInput(): boolean {
-    return gameInstance.MANAGERS.InputManager.isMouseDown();
+    return this.gameInstance.MANAGERS.InputManager.isMouseDown();
   }
 
   public shoot(): void {
     if (this.gunCooldown > 0) return;
     const weaponSound = this.getWeaponSound();
-    if (weaponSound) gameInstance.MANAGERS.AssetManager.playAudioAsset(weaponSound, "sound");
+    if (weaponSound) this.gameInstance.MANAGERS.AssetManager.playAudioAsset(weaponSound, "sound");
 
     const weaponDef = DEF_WEAPONS[this.weapon];
     this.gunCooldown = weaponDef.cooldown;
@@ -105,9 +107,9 @@ export default class Player extends AEntity {
       const angle = this.moveDirection + spread;
       const maxDistance = weaponDef.maxDistance * GRID_CONFIG.TILE_SIZE;
 
-      const raycastHit = gameInstance.MANAGERS.LevelManager.raycastShot(this.worldPos, angle, maxDistance);
+      const raycastHit = this.gameInstance.MANAGERS.LevelManager.raycastShot(this.worldPos, angle, maxDistance);
       if (raycastHit) raycastHit.damage(weaponDef.damage);
-      gameInstance.MANAGERS.VFXManager.drawShootLine(
+      this.gameInstance.MANAGERS.VFXManager.drawShootLine(
         this.worldPos,
         angle,
         raycastHit ? getVectorDistance(this.worldPos, raycastHit.worldPos) : maxDistance,
@@ -120,17 +122,17 @@ export default class Player extends AEntity {
 
     switch (this.weapon) {
       case "Revolver":
-        sprite = gameInstance.MANAGERS.AssetManager.getImageAsset("IPlayerGunRevolver");
+        sprite = this.gameInstance.MANAGERS.AssetManager.getImageAsset("IPlayerGunRevolver");
         break;
       case "Shotgun":
-        sprite = gameInstance.MANAGERS.AssetManager.getImageAsset("IPlayerGunShotgun");
+        sprite = this.gameInstance.MANAGERS.AssetManager.getImageAsset("IPlayerGunShotgun");
         break;
       case "Submachine":
-        sprite = gameInstance.MANAGERS.AssetManager.getImageAsset("IPlayerGunSmg");
+        sprite = this.gameInstance.MANAGERS.AssetManager.getImageAsset("IPlayerGunSmg");
         break;
     }
 
-    return sprite ?? gameInstance.MANAGERS.AssetManager.getImageAsset("IPlayerUnarmed")!;
+    return sprite ?? this.gameInstance.MANAGERS.AssetManager.getImageAsset("IPlayerUnarmed")!;
   }
 
   private getWeaponSound(): AssetAudioName | undefined {
@@ -157,10 +159,10 @@ export default class Player extends AEntity {
   public damage(amount: number): void {
     this.health -= amount;
     if (this.health <= 0) {
-      gameInstance.MANAGERS.AssetManager.playAudioAsset("APlayerDie", "sound");
+      this.gameInstance.MANAGERS.AssetManager.playAudioAsset("APlayerDie", "sound");
       // TODO: DIE
     } else {
-      gameInstance.MANAGERS.AssetManager.playAudioAsset("APlayerHurt", "sound");
+      this.gameInstance.MANAGERS.AssetManager.playAudioAsset("APlayerHurt", "sound");
     }
     console.warn("PLAYER HEALTH: ", this.health);
   }

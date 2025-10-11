@@ -1,6 +1,6 @@
-import { GRID_CONFIG } from "../config/gameGrid";
-import { gameInstance } from "../main";
+import type GameInstance from "../GameInstance";
 
+// TODO: Refactor this into style.css and stop over-engineering shit
 const styles = {
   startGameContainer: `
 position: fixed;
@@ -64,6 +64,7 @@ pointer-events: none;
 };
 
 export default class UIManager {
+  private gameInstance: GameInstance;
   private fpsContainer: HTMLDivElement;
   private fpsText: HTMLParagraphElement;
 
@@ -74,7 +75,8 @@ export default class UIManager {
   private debugTextZombies: HTMLDivElement;
   private debugTextHealth: HTMLDivElement;
 
-  constructor() {
+  constructor(gameInstance: GameInstance) {
+    this.gameInstance = gameInstance;
     this.startGameContainer = document.createElement("div");
     document.body.appendChild(this.startGameContainer);
 
@@ -99,25 +101,25 @@ export default class UIManager {
   }
 
   private styleFps(): void {
-    if (!gameInstance.isDev) return;
+    if (!this.gameInstance.isDev) return;
     this.fpsContainer.style = styles.devUiContainer + styles.contentContainer;
     this.fpsText.style = styles.uiText;
   }
 
   private styleDebugContainer(): void {
-    if (!gameInstance.isDev) return;
+    if (!this.gameInstance.isDev) return;
     this.debugContainer.style = styles.devUiContainer + styles.devDebugContainer;
   }
 
   public drawFps(fps: number): void {
-    if (!gameInstance.isDev) return;
+    if (!this.gameInstance.isDev) return;
     this.fpsText.innerText = `${fps} FPS`;
   }
 
   public drawDebug(): void {
-    if (!gameInstance.isDev) return;
+    if (!this.gameInstance.isDev) return;
 
-    const playingTracks = [...gameInstance.MANAGERS.AssetManager.playingAudioTracks];
+    const playingTracks = [...this.gameInstance.MANAGERS.AssetManager.playingAudioTracks];
     this.debugTextTracks.innerHTML = `
 <div style="${styles.contentContainer}">
   ${playingTracks.map((track) => `<div style="${styles.uiText}">${track}</div>`).join("")}
@@ -125,7 +127,7 @@ export default class UIManager {
 </div>
     `;
 
-    const zombiesAmount = gameInstance.MANAGERS.LevelManager.zombies.size;
+    const zombiesAmount = this.gameInstance.MANAGERS.LevelManager.zombies.size;
     this.debugTextZombies.innerHTML = `
 <div style="${styles.contentContainer}">
   <div style="${styles.uiText}">${zombiesAmount}</div>
@@ -133,7 +135,7 @@ export default class UIManager {
 </div>
 `;
 
-    const health = gameInstance.MANAGERS.LevelManager.player.health;
+    const health = this.gameInstance.MANAGERS.LevelManager.player.health;
     this.debugTextHealth.innerHTML = `
 <div style="${styles.contentContainer}">
   <div style="${styles.uiText}">${(100 / health) * 100}%</div>
