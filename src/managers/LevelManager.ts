@@ -12,8 +12,7 @@ import Zombie from "../entities/Zombie";
 import type GameInstance from "../GameInstance";
 import { type LevelGrid, GridTileState, type GridTileRef } from "../types/Grid";
 import type { LevelState } from "../types/LevelState";
-import type { FlowFieldDistanceMap, VectorId } from "../utils/generateFlowFieldMap";
-import generateFlowField, { vectorIdToVector, vectorToVectorId } from "../utils/generateFlowFieldMap";
+import generateFlowField, { type FlowField } from "../utils/generateFlowFieldMap";
 import getVectorDistance from "../utils/getVectorDistance";
 import radiansToVector from "../utils/radiansToVector";
 import { ZIndex } from "./DrawManager";
@@ -24,7 +23,7 @@ export default class LevelManager {
   public worldHeight = WORLD_SIZE.HEIGHT;
   public levelState: LevelState;
   public levelGrid: LevelGrid;
-  public pathFindingGrid?: FlowFieldDistanceMap;
+  public flowField?: FlowField;
 
   // Entities
   public player: Player;
@@ -112,7 +111,7 @@ export default class LevelManager {
 
     if (
       !(this.lastPlayerGridPos.x === this.player.gridPos.x && this.lastPlayerGridPos.y === this.player.gridPos.y) ||
-      !this.pathFindingGrid
+      !this.flowField
     ) {
       this.updatePathFindingGrid();
     }
@@ -138,36 +137,6 @@ export default class LevelManager {
         const tileWorldPos = gridToWorld({ x, y });
         const texture = this.gameInstance.MANAGERS.AssetManager.getImageAsset("ITextureGround");
         if (!texture) return;
-
-
-        if (this.pathFindingGrid) {
-          let vectorId: VectorId;
-          for (vectorId in this.pathFindingGrid) {
-            const vector = gridToWorld(vectorIdToVector(vectorId));
-
-            // this.gameInstance.MANAGERS.DrawManager.drawRectOutline(
-            //   vector.x + 1 - GRID_CONFIG.TILE_SIZE / 2,
-            //   vector.y + 1 - GRID_CONFIG.TILE_SIZE / 2,
-            //   GRID_CONFIG.TILE_SIZE - 1,
-            //   GRID_CONFIG.TILE_SIZE - 1,
-            //   '#666',
-            //   1,
-            // );
-
-            const distance = this.pathFindingGrid[vectorId].distance;
-            this.gameInstance.MANAGERS.DrawManager.drawText(
-              String(distance),
-              vector.x,
-              vector.y,
-              `#ccc`,
-              14,
-              'Arial',
-              'center'
-            )
-          }
-        }
-
-        return
 
         this.gameInstance.MANAGERS.DrawManager.queueDraw(
           tileWorldPos.x,
@@ -368,6 +337,6 @@ export default class LevelManager {
   private updatePathFindingGrid(): void {
     this.levelGrid = this.fillLevelGrid();
     this.lastPlayerGridPos = this.player.gridPos;
-    this.pathFindingGrid = generateFlowField(this.levelGrid, this.player.gridPos);
+    this.flowField = generateFlowField(this.levelGrid, this.player.gridPos);
   }
 }

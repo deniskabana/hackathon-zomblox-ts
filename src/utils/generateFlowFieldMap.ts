@@ -1,73 +1,85 @@
 import { GRID_CONFIG, type GridPosition } from "../config/gameGrid";
-import { GridTileState, type GridTile, type LevelGrid } from "../types/Grid";
+import { GridTileState, type LevelGrid } from "../types/Grid";
 import type { Vector } from "../types/Vector";
 
-export type FlowFieldDistanceMap = Record<VectorId, { distance: number; cameFrom: VectorId | null; neighbors: VectorId[]; }>;
+export interface FlowFieldCell {
+  distance: number;
+  directionX: number;
+  directionY: number;
+}
+
+export type FlowField = FlowFieldCell[][]
 
 /**
- * Uses "Dijkstra's map" (or flow-field state map) to map every tile's distance from the player
+ * Uses "Dijkstra's map" (or flow-field state map) to map every tile's distance from the player (breadth first search)
  * @link https://www.redblobgames.com/pathfinding/tower-defense/
  */
-export default function generateFlowField(levelGrid: LevelGrid, from: GridPosition): FlowFieldDistanceMap {
-  const startPos: GridTile = levelGrid[from.x][from.y];
-  const queue: GridTile[] = [startPos];
-  const distanceMap: FlowFieldDistanceMap = {};
+export default function generateFlowField(levelGrid: LevelGrid, from: GridPosition): FlowField {
+  const flowField: FlowField = [];
+  for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
+    flowField[x] = [];
+    for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
+      flowField[x][y] = { distance: Infinity, directionX: 0, directionY: 0 };
+    }
+  }
 
-  queue.push(startPos);
-  distanceMap[vectorToVectorId(from)] = { distance: 0, neighbors: getTileNeighbors(levelGrid, from), cameFrom: null };
+  // BFS from player position
+  const queue: Vector[] = [from];
+  flowField[from.x][from.y].distance = 0;
 
   while (queue.length > 0) {
-    const currentTile = queue.shift();
-    if (!currentTile) throw new Error("Grid pathfinding critical error.");
-    const currentId = vectorToVectorId(currentTile.pos);
-    const { neighbors, distance } = distanceMap[currentId];
+    const current = queue.shift()!;
+    const currentDist = flowField[current.x][current.y].distance;
 
-    for (const neighborId of neighbors) {
-      const neighborVector = vectorIdToVector(neighborId);
-      const neighborTile = levelGrid[neighborVector.x][neighborVector.y];
+    // Check 8 neighbors
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        if (dx === 0 && dy === 0) continue;
 
-      if (!distanceMap[neighborId] && neighborTile.state === GridTileState.AVAILABLE) {
-        queue.push(levelGrid[neighborVector.x][neighborVector.y]);
-        distanceMap[neighborId] = { distance: distance + 1, neighbors: getTileNeighbors(levelGrid, neighborVector), cameFrom: currentId };
+        const nx = current.x + dx;
+        const ny = current.y + dy;
+
+        if (!levelGrid?.[nx]?.[ny]) continue;
+        if (levelGrid[nx][ny].state !== GridTileState.AVAILABLE) continue;
+
+        // If not visited yet
+        if (flowField[nx][ny].distance === Infinity) {
+          flowField[nx][ny].distance = currentDist + 1;
+          queue.push({ x: nx, y: ny });
+        }
       }
     }
   }
 
-  return distanceMap;
-}
+  // Precalculating movement vectors
+  for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
+    for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
+      let bestDist = flowField[x][y].distance;
+      let bestDx = 0;
+      let bestDy = 0;
 
+      // Check neighbors for lowest distance
+      for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+          if (dx === 0 && dy === 0) continue;
 
-export type VectorId = `${number};${number}`;
+          const nx = x + dx;
+          const ny = y + dy;
 
-export function vectorToVectorId({ x, y }: Vector): VectorId {
-  return `${x};${y}`;
-}
-export function vectorIdToVector(id: VectorId): Vector {
-  const [x, y] = id.split(";");
-  return { x: Number(x), y: Number(y) };
-}
+          if (!levelGrid?.[nx]?.[ny]) continue;
 
-export function getTileNeighbors(
-  levelGrid: LevelGrid,
-  { x, y }: GridPosition,
-): VectorId[] {
-  const neighbors: GridPosition[] = [];
+          if (flowField[nx][ny].distance < bestDist) {
+            bestDist = flowField[nx][ny].distance;
+            bestDx = dx;
+            bestDy = dy;
+          }
+        }
+      }
 
-  const saveNeighbor = (pos: Vector) => {
-    if (!levelGrid[pos.x][pos.y]) return;
-    neighbors.push(pos);
-  };
+      flowField[x][y].directionX = bestDx;
+      flowField[x][y].directionY = bestDy;
+    }
+  }
 
-  // Horizontal and vertical
-  if (y > 0) saveNeighbor({ x, y: y - 1 });
-  if (x < GRID_CONFIG.GRID_WIDTH - 1) saveNeighbor({ x: x + 1, y });
-  if (y < GRID_CONFIG.GRID_HEIGHT - 1) saveNeighbor({ x, y: y + 1 });
-  if (x > 0) saveNeighbor({ x: x - 1, y });
-  // Diagonal
-  if (x > 0 && y > 0) saveNeighbor({ x: x - 1, y: y - 1 });
-  if (x < GRID_CONFIG.GRID_WIDTH - 1 && y > 0) saveNeighbor({ x: x + 1, y: y - 1 });
-  if (x > 0 && y < GRID_CONFIG.GRID_HEIGHT - 1) saveNeighbor({ x: x - 1, y: y + 1 });
-  if (x < GRID_CONFIG.GRID_WIDTH - 1 && y < GRID_CONFIG.GRID_HEIGHT - 1) saveNeighbor({ x: x + 1, y: y + 1 });
-
-  return neighbors.map((pos) => vectorToVectorId(pos));
+  return flowField;
 }

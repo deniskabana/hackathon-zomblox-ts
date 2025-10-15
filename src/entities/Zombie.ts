@@ -1,7 +1,7 @@
 import { GRID_CONFIG, gridToWorld, type GridPosition, type WorldPosition } from "../config/gameGrid";
 import type GameInstance from "../GameInstance";
 import { ZIndex } from "../managers/DrawManager";
-import { vectorIdToVector, vectorToVectorId, type VectorId } from "../utils/generateFlowFieldMap";
+import type { FlowField } from "../utils/generateFlowFieldMap";
 import getDirectionalAngle from "../utils/getDirectionalAngle";
 import getVectorDistance from "../utils/getVectorDistance";
 import radiansToVector from "../utils/radiansToVector";
@@ -18,7 +18,6 @@ export default class Zombie extends AEntity {
 
   private distanceFromPlayer: number = Infinity;
   private lastDistanceInterval: number = 0;
-  private walkingTarget: WorldPosition | undefined;
 
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     super(gridToWorld(gridPos), entityId, true);
@@ -33,41 +32,16 @@ export default class Zombie extends AEntity {
 
     const playerPos = this.gameInstance.MANAGERS.LevelManager.player.worldPos;
 
-    if (this.lastDistanceInterval > 0) {
-      this.lastDistanceInterval -= _deltaTime;
-    } else {
-      this.distanceFromPlayer = getVectorDistance(this.worldPos, playerPos);
-      this.lastDistanceInterval = 0.2;
-
-      const pathFindingGrid = this.gameInstance.MANAGERS.LevelManager.pathFindingGrid
-      const currentPathGridPos = pathFindingGrid?.[vectorToVectorId(this.gridPos)]
-
-      if (this.gameInstance.MANAGERS.LevelManager.isInsideGrid(this.gridPos)) {
-        let lowestDistanceId: VectorId | undefined = undefined;
-
-        if (currentPathGridPos) {
-          for (const neighborId of currentPathGridPos.neighbors) {
-            const neighbor = pathFindingGrid[neighborId];
-            if (!lowestDistanceId || !neighbor || neighbor.distance < pathFindingGrid[lowestDistanceId]?.distance) {
-              lowestDistanceId = neighborId;
-            }
-          }
-        }
-
-        if (lowestDistanceId) {
-          const worldVector = gridToWorld(vectorIdToVector(lowestDistanceId));
-          this.walkingTarget = worldVector;
-          worldVector.x += GRID_CONFIG.TILE_SIZE / 2;
-          worldVector.y += GRID_CONFIG.TILE_SIZE / 2;
-          this.angle = getDirectionalAngle(worldVector, this.worldPos);
-        }
-      } else {
-        this.angle = getDirectionalAngle(playerPos, this.worldPos);
-        this.walkingTarget = undefined;
-      }
-    }
-
+    this.distanceFromPlayer = getVectorDistance(this.worldPos, playerPos);
     if (this.distanceFromPlayer < GRID_CONFIG.TILE_SIZE * 1.5) return;
+
+    const flowField = this.gameInstance.MANAGERS.LevelManager.flowField
+
+    if (this.gameInstance.MANAGERS.LevelManager.isInsideGrid(this.gridPos) && flowField) {
+      this.followFlowField(flowField, _deltaTime);
+    } else {
+      this.angle = getDirectionalAngle(playerPos, this.worldPos);
+    }
 
     // Apply movement
     const vector = radiansToVector(this.angle); // TODO: Calculate less times
@@ -90,17 +64,6 @@ export default class Zombie extends AEntity {
       ZIndex.ENTITIES,
       this.angle + Math.PI / 2,
     );
-
-    if (this.walkingTarget) {
-      this.gameInstance.MANAGERS.DrawManager.drawRectOutline(
-        this.walkingTarget.x - GRID_CONFIG.TILE_SIZE / 2,
-        this.walkingTarget.y - GRID_CONFIG.TILE_SIZE / 2,
-        GRID_CONFIG.TILE_SIZE,
-        GRID_CONFIG.TILE_SIZE,
-        '#00ff00',
-        2,
-      );
-    }
   }
 
   public getHealth(): number {
@@ -113,5 +76,14 @@ export default class Zombie extends AEntity {
       this.gameInstance.MANAGERS.AssetManager.playAudioAsset("AZombieDeath", "sound");
       this.gameInstance.MANAGERS.LevelManager.destroyEntity(this.entityId, "zombie");
     }
+  }
+
+  private followFlowField(flowField: FlowField, deltaTime: number): void {
+    const cell = flowField[this.gridPos.x][this.gridPos.y];
+
+    console.log('cell', cell)
+
+    this.worldPos.x += cell.directionX * this.speed * deltaTime;
+    this.worldPos.y += cell.directionY * this.speed * deltaTime;
   }
 }
