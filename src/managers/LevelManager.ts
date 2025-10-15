@@ -138,13 +138,23 @@ export default class LevelManager {
         const texture = this.gameInstance.MANAGERS.AssetManager.getImageAsset("ITextureGround");
         if (!texture) return;
 
-        this.gameInstance.MANAGERS.DrawManager.queueDraw(
+        // this.gameInstance.MANAGERS.DrawManager.queueDraw(
+        //   tileWorldPos.x,
+        //   tileWorldPos.y,
+        //   texture,
+        //   GRID_CONFIG.TILE_SIZE,
+        //   GRID_CONFIG.TILE_SIZE,
+        //   ZIndex.GROUND,
+        // );
+        const distance = this.flowField?.[x][y].distance ?? 0
+        this.gameInstance.MANAGERS.DrawManager.drawText(
+          String(distance),
           tileWorldPos.x,
           tileWorldPos.y,
-          texture,
-          GRID_CONFIG.TILE_SIZE,
-          GRID_CONFIG.TILE_SIZE,
-          ZIndex.GROUND,
+          `rgb(${distance * 10}, ${205 - (distance * 5)}, 40)`,
+          14,
+          'Arial',
+          'center',
         );
       });
     });
@@ -189,11 +199,11 @@ export default class LevelManager {
 
   private getRandomZombieSpawnPosition(margin: number = 2): WorldPosition {
     // Random out of viewport edge: 0 = top, 1 = right, 2 = bottom, 3 = left
+    // TODO: uncomment this
     // const edge = Math.floor(Math.random() * 4);
     const edge = 1;
 
     switch (edge) {
-      // @ts-expect-error Unused
       case 0:
         return {
           x: Math.random() * GRID_CONFIG.GRID_WIDTH,
@@ -206,14 +216,14 @@ export default class LevelManager {
           y: Math.random() * GRID_CONFIG.GRID_HEIGHT,
         };
 
-      // @ts-expect-error Unused
+      // @ts-expect-error TODO: Uncomment
       case 2:
         return {
           x: Math.random() * GRID_CONFIG.GRID_WIDTH,
           y: WORLD_SIZE.HEIGHT + margin,
         };
 
-      // @ts-expect-error Unused
+      // @ts-expect-error TODO: Uncomment
       case 3:
       default:
         return {

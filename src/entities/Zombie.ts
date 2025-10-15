@@ -9,14 +9,14 @@ import AEntity from "./AEntity";
 
 export default class Zombie extends AEntity {
   private gameInstance: GameInstance;
+  public health: number = 100 + (Math.random() - 0.5) * 50;
   private isWalking: boolean;
-  private angle: number = 0;
+
+  // TODO: uncomment
   // private speed: number = 60 + (Math.random() - 0.5) * 20;
   private speed: number = 40;
-
-  public health: number = 100 + (Math.random() - 0.5) * 50;
-
   private distanceFromPlayer: number = Infinity;
+  private angle: number = 0;
 
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     super(gridToWorld(gridPos), entityId, true);
@@ -37,7 +37,9 @@ export default class Zombie extends AEntity {
     const flowField = this.gameInstance.MANAGERS.LevelManager.flowField;
 
     if (this.gameInstance.MANAGERS.LevelManager.isInsideGrid(this.gridPos) && flowField) {
-      this.followFlowField(flowField, _deltaTime);
+      const fieldCell = flowField[this.gridPos.x][this.gridPos.y]
+      const vectorFrom = { x: fieldCell.cameFrom.x - 0.5, y: fieldCell.cameFrom.y - 0.5 }
+      this.angle = getDirectionalAngle(vectorFrom, this.gridPos);
     } else {
       this.angle = getDirectionalAngle(playerPos, this.worldPos);
     }
@@ -75,14 +77,5 @@ export default class Zombie extends AEntity {
       this.gameInstance.MANAGERS.AssetManager.playAudioAsset("AZombieDeath", "sound");
       this.gameInstance.MANAGERS.LevelManager.destroyEntity(this.entityId, "zombie");
     }
-  }
-
-  private followFlowField(flowField: FlowField, deltaTime: number): void {
-    const cell = flowField[this.gridPos.x][this.gridPos.y];
-
-    console.log("cell", cell);
-
-    this.worldPos.x += cell.directionX * this.speed * deltaTime;
-    this.worldPos.y += cell.directionY * this.speed * deltaTime;
   }
 }
