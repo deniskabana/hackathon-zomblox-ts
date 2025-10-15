@@ -12,7 +12,7 @@ export default function generateFlowField(levelGrid: LevelGrid, from: GridPositi
   const distanceMap: FlowFieldDistanceMap = {};
 
   queue.push(startPos);
-  distanceMap[vectorToVectorId(from)] = { distance: 0, neighbors: getTileNeighbors(levelGrid, from) };
+  distanceMap[vectorToVectorId(from)] = { distance: 0, neighbors: getTileNeighbors(levelGrid, from), cameFrom: null };
 
   while (queue.length > 0) {
     const currentTile = queue.shift();
@@ -26,7 +26,7 @@ export default function generateFlowField(levelGrid: LevelGrid, from: GridPositi
 
       if (!distanceMap[neighborId] && neighborTile.state === GridTileState.AVAILABLE) {
         queue.push(levelGrid[neighborVector.x][neighborVector.y]);
-        distanceMap[neighborId] = { distance: distance + 1, neighbors: getTileNeighbors(levelGrid, neighborVector) };
+        distanceMap[neighborId] = { distance: distance + 1, neighbors: getTileNeighbors(levelGrid, neighborVector), cameFrom: currentId };
       }
     }
   }
@@ -34,7 +34,7 @@ export default function generateFlowField(levelGrid: LevelGrid, from: GridPositi
   return distanceMap;
 }
 
-export type FlowFieldDistanceMap = Record<VectorId, { distance: number; neighbors: VectorId[]; }>;
+export type FlowFieldDistanceMap = Record<VectorId, { distance: number; cameFrom: VectorId | null; neighbors: VectorId[]; }>;
 
 export type VectorId = `${number};${number}`;
 

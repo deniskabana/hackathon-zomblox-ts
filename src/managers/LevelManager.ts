@@ -43,35 +43,53 @@ export default class LevelManager {
     this.player = new Player({ x: 2, y: 2 }, this.entityIdCounter++, this.gameInstance);
     this.lastPlayerGridPos = this.player.gridPos;
 
-    let blockId = this.entityIdCounter++;
-    this.blocks.set(blockId, new BlockWood({ x: 8, y: 12 }, blockId, this.gameInstance));
-    blockId = this.entityIdCounter++;
-    this.blocks.set(blockId, new BlockWood({ x: 7, y: 12 }, blockId, this.gameInstance));
-    blockId = this.entityIdCounter++;
-    this.blocks.set(blockId, new BlockWood({ x: 6, y: 12 }, blockId, this.gameInstance));
-    blockId = this.entityIdCounter++;
-    this.blocks.set(blockId, new BlockWood({ x: 6, y: 13 }, blockId, this.gameInstance));
-    blockId = this.entityIdCounter++;
-    this.blocks.set(blockId, new BlockWood({ x: 6, y: 14 }, blockId, this.gameInstance));
-    blockId = this.entityIdCounter++;
-    this.blocks.set(blockId, new BlockWood({ x: 6, y: 15 }, blockId, this.gameInstance));
-
-    blockId = this.entityIdCounter++;
-    this.blocks.set(blockId, new BlockWood({ x: 3, y: 4 }, blockId, this.gameInstance));
-    blockId = this.entityIdCounter++;
-    this.blocks.set(blockId, new BlockWood({ x: 4, y: 4 }, blockId, this.gameInstance));
-    blockId = this.entityIdCounter++;
-    this.blocks.set(blockId, new BlockWood({ x: 4, y: 4 }, blockId, this.gameInstance));
-    blockId = this.entityIdCounter++;
-    this.blocks.set(blockId, new BlockWood({ x: 5, y: 4 }, blockId, this.gameInstance));
-    blockId = this.entityIdCounter++;
-    this.blocks.set(blockId, new BlockWood({ x: 6, y: 4 }, blockId, this.gameInstance));
-    blockId = this.entityIdCounter++;
-    this.blocks.set(blockId, new BlockWood({ x: 6, y: 5 }, blockId, this.gameInstance));
-    blockId = this.entityIdCounter++;
-    this.blocks.set(blockId, new BlockWood({ x: 6, y: 6 }, blockId, this.gameInstance));
-    blockId = this.entityIdCounter++;
-    this.blocks.set(blockId, new BlockWood({ x: 6, y: 7 }, blockId, this.gameInstance));
+    // TODO: Remove, top-left
+    this.spawnBlock({ x: 7, y: 4 });
+    this.spawnBlock({ x: 6, y: 4 });
+    this.spawnBlock({ x: 6, y: 5 });
+    this.spawnBlock({ x: 6, y: 6 });
+    this.spawnBlock({ x: 6, y: 7 });
+    this.spawnBlock({ x: 6, y: 8 });
+    this.spawnBlock({ x: 5, y: 8 });
+    this.spawnBlock({ x: 4, y: 8 });
+    this.spawnBlock({ x: 3, y: 8 });
+    // TODO: Remove, top-right
+    this.spawnBlock({ x: 10, y: 4 });
+    this.spawnBlock({ x: 11, y: 4 });
+    this.spawnBlock({ x: 12, y: 4 });
+    this.spawnBlock({ x: 12, y: 3 });
+    this.spawnBlock({ x: 12, y: 2 });
+    this.spawnBlock({ x: 13, y: 2 });
+    // TODO: Remove, center
+    this.spawnBlock({ x: 9, y: 7 });
+    this.spawnBlock({ x: 9, y: 8 });
+    this.spawnBlock({ x: 9, y: 9 });
+    this.spawnBlock({ x: 9, y: 10 });
+    this.spawnBlock({ x: 10, y: 8 });
+    this.spawnBlock({ x: 11, y: 8 });
+    this.spawnBlock({ x: 12, y: 8 });
+    this.spawnBlock({ x: 13, y: 8 });
+    this.spawnBlock({ x: 13, y: 9 });
+    this.spawnBlock({ x: 13, y: 10 });
+    this.spawnBlock({ x: 13, y: 11 });
+    this.spawnBlock({ x: 13, y: 12 });
+    // TODO: Remove, bottom-left
+    this.spawnBlock({ x: 5, y: 11 });
+    this.spawnBlock({ x: 5, y: 12 });
+    this.spawnBlock({ x: 5, y: 13 });
+    this.spawnBlock({ x: 5, y: 14 });
+    this.spawnBlock({ x: 5, y: 15 });
+    this.spawnBlock({ x: 6, y: 13 });
+    this.spawnBlock({ x: 7, y: 13 });
+    // TODO: Remove, bottom-right
+    this.spawnBlock({ x: 13, y: 16 });
+    this.spawnBlock({ x: 14, y: 16 });
+    this.spawnBlock({ x: 15, y: 16 });
+    this.spawnBlock({ x: 15, y: 15 });
+    this.spawnBlock({ x: 16, y: 15 });
+    this.spawnBlock({ x: 16, y: 14 });
+    this.spawnBlock({ x: 17, y: 14 });
+    this.spawnBlock({ x: 17, y: 13 });
 
     this.levelState = { phase: "night", daysCounter: 0 };
 
@@ -96,9 +114,7 @@ export default class LevelManager {
       !(this.lastPlayerGridPos.x === this.player.gridPos.x && this.lastPlayerGridPos.y === this.player.gridPos.y) ||
       !this.pathFindingGrid
     ) {
-      const levelGrid = this.fillLevelGrid();
-      this.lastPlayerGridPos = this.player.gridPos;
-      this.pathFindingGrid = generateFlowField(levelGrid, this.player.gridPos);
+      this.updatePathFindingGrid();
     }
   }
 
@@ -140,6 +156,18 @@ export default class LevelManager {
     if (type === "block") entityList = this.blocks;
     if (type === "zombie") entityList = this.zombies;
     entityList?.delete(entityId);
+  }
+
+  // Blocks
+  // ==================================================
+
+  public spawnBlock(pos: GridPosition): void {
+    const entityId = this.entityIdCounter++;
+    this.blocks.set(entityId, new BlockWood(pos, entityId, this.gameInstance));
+
+    if (this.zombies.size > 1) {
+      this.updatePathFindingGrid();
+    }
   }
 
   // Zombies
@@ -235,11 +263,13 @@ export default class LevelManager {
       pos: this.player.gridPos,
     };
 
-    for (const zombie of this.zombies.values()) {
-      // TODO: This assumes zombies will never overlap which is not true!
-      // FIXME: Refactor!
-      grid[zombie.gridPos.x][zombie.gridPos.y] = { state: GridTileState.AVAILABLE, ref: zombie, pos: zombie.gridPos };
-    }
+    // for (const zombie of this.zombies.values()) {
+    // TODO: This assumes zombies will never overlap which is not true!
+    // FIXME: Refactor!
+    // if (grid[zombie.gridPos.x]) {
+    //   grid[zombie.gridPos.x][zombie.gridPos.y] = { state: GridTileState.AVAILABLE, ref: zombie, pos: zombie.gridPos };
+    // }
+    // }
 
     for (const block of this.blocks.values()) {
       grid[block.gridPos.x][block.gridPos.y] = { state: GridTileState.BLOCKED, ref: block, pos: block.gridPos };
@@ -265,7 +295,7 @@ export default class LevelManager {
 
     const direction = radiansToVector(angleRad);
     const startGrid = worldToGrid({ x: from.x, y: from.y });
-    const currentLevelGrid = this.fillLevelGrid();
+    const currentLevelGrid = this.levelGrid;
 
     const stepX = direction.x > 0 ? 1 : -1;
     const stepY = direction.y > 0 ? 1 : -1;
@@ -302,5 +332,11 @@ export default class LevelManager {
 
     if (raycastHit && getVectorDistance(from, raycastHit.worldPos) > maxDistance) return null;
     return raycastHit;
+  }
+
+  private updatePathFindingGrid(): void {
+    this.levelGrid = this.fillLevelGrid();
+    this.lastPlayerGridPos = this.player.gridPos;
+    this.pathFindingGrid = generateFlowField(this.levelGrid, this.player.gridPos);
   }
 }

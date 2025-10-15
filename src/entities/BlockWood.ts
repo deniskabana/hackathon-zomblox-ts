@@ -12,7 +12,7 @@ export default class BlockWood extends AEntity {
     this.gameInstance = gameInstance;
   }
 
-  update(_deltaTime: number) {}
+  update(_deltaTime: number) { }
 
   draw() {
     const sprite = this.gameInstance.MANAGERS.AssetManager.getImageAsset("IBlockWood");
@@ -24,7 +24,7 @@ export default class BlockWood extends AEntity {
       sprite,
       GRID_CONFIG.TILE_SIZE,
       GRID_CONFIG.TILE_SIZE,
-      ZIndex.ENTITIES,
+      ZIndex.BLOCKS,
       0,
     );
   }
