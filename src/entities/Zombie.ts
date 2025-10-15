@@ -1,7 +1,6 @@
 import { GRID_CONFIG, gridToWorld, type GridPosition } from "../config/gameGrid";
 import type GameInstance from "../GameInstance";
 import { ZIndex } from "../managers/DrawManager";
-import type { FlowField } from "../utils/generateFlowFieldMap";
 import getDirectionalAngle from "../utils/getDirectionalAngle";
 import getVectorDistance from "../utils/getVectorDistance";
 import radiansToVector from "../utils/radiansToVector";
@@ -30,16 +29,14 @@ export default class Zombie extends AEntity {
     if (!this.isWalking) return;
 
     const playerPos = this.gameInstance.MANAGERS.LevelManager.player.worldPos;
-
     this.distanceFromPlayer = getVectorDistance(this.worldPos, playerPos);
+
     if (this.distanceFromPlayer < GRID_CONFIG.TILE_SIZE * 1.5) return;
 
     const flowField = this.gameInstance.MANAGERS.LevelManager.flowField;
 
     if (this.gameInstance.MANAGERS.LevelManager.isInsideGrid(this.gridPos) && flowField) {
-      const fieldCell = flowField[this.gridPos.x][this.gridPos.y]
-      const vectorFrom = { x: fieldCell.cameFrom.x - 0.5, y: fieldCell.cameFrom.y - 0.5 }
-      this.angle = getDirectionalAngle(vectorFrom, this.gridPos);
+      this.angle = getDirectionalAngle(flowField[this.gridPos.x][this.gridPos.y].cameFrom, this.gridPos);
     } else {
       this.angle = getDirectionalAngle(playerPos, this.worldPos);
     }
@@ -57,8 +54,8 @@ export default class Zombie extends AEntity {
     if (!sprite) return;
 
     this.gameInstance.MANAGERS.DrawManager.queueDraw(
-      this.worldPos.x,
-      this.worldPos.y,
+      this.worldPos.x - GRID_CONFIG.TILE_SIZE / 2,
+      this.worldPos.y - GRID_CONFIG.TILE_SIZE / 2,
       sprite,
       GRID_CONFIG.TILE_SIZE,
       GRID_CONFIG.TILE_SIZE,

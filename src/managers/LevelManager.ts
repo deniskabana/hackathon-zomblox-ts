@@ -15,7 +15,6 @@ import type { LevelState } from "../types/LevelState";
 import generateFlowField, { type FlowField } from "../utils/generateFlowFieldMap";
 import getVectorDistance from "../utils/getVectorDistance";
 import radiansToVector from "../utils/radiansToVector";
-import { ZIndex } from "./DrawManager";
 
 export default class LevelManager {
   private gameInstance: GameInstance;
@@ -146,15 +145,15 @@ export default class LevelManager {
         //   GRID_CONFIG.TILE_SIZE,
         //   ZIndex.GROUND,
         // );
-        const distance = this.flowField?.[x][y].distance ?? 0
+        const distance = this.flowField?.[x][y].distance ?? 0;
         this.gameInstance.MANAGERS.DrawManager.drawText(
           String(distance),
           tileWorldPos.x,
           tileWorldPos.y,
-          `rgb(${distance * 10}, ${205 - (distance * 5)}, 40)`,
+          `rgb(${distance * 10}, ${205 - distance * 5}, 40)`,
           14,
-          'Arial',
-          'center',
+          "Arial",
+          "center",
         );
       });
     });
@@ -204,6 +203,7 @@ export default class LevelManager {
     const edge = 1;
 
     switch (edge) {
+      // @ts-expect-error TODO: Uncomment
       case 0:
         return {
           x: Math.random() * GRID_CONFIG.GRID_WIDTH,
