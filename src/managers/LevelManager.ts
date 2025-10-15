@@ -12,8 +12,8 @@ import Zombie from "../entities/Zombie";
 import type GameInstance from "../GameInstance";
 import { type LevelGrid, GridTileState, type GridTileRef } from "../types/Grid";
 import type { LevelState } from "../types/LevelState";
-import type { FlowFieldDistanceMap } from "../utils/generateFlowFieldMap";
-import generateFlowField from "../utils/generateFlowFieldMap";
+import type { FlowFieldDistanceMap, VectorId } from "../utils/generateFlowFieldMap";
+import generateFlowField, { vectorIdToVector, vectorToVectorId } from "../utils/generateFlowFieldMap";
 import getVectorDistance from "../utils/getVectorDistance";
 import radiansToVector from "../utils/radiansToVector";
 import { ZIndex } from "./DrawManager";
@@ -139,6 +139,36 @@ export default class LevelManager {
         const texture = this.gameInstance.MANAGERS.AssetManager.getImageAsset("ITextureGround");
         if (!texture) return;
 
+
+        if (this.pathFindingGrid) {
+          let vectorId: VectorId;
+          for (vectorId in this.pathFindingGrid) {
+            const vector = gridToWorld(vectorIdToVector(vectorId));
+
+            // this.gameInstance.MANAGERS.DrawManager.drawRectOutline(
+            //   vector.x + 1 - GRID_CONFIG.TILE_SIZE / 2,
+            //   vector.y + 1 - GRID_CONFIG.TILE_SIZE / 2,
+            //   GRID_CONFIG.TILE_SIZE - 1,
+            //   GRID_CONFIG.TILE_SIZE - 1,
+            //   '#666',
+            //   1,
+            // );
+
+            const distance = this.pathFindingGrid[vectorId].distance;
+            this.gameInstance.MANAGERS.DrawManager.drawText(
+              String(distance),
+              vector.x,
+              vector.y,
+              `#ccc`,
+              14,
+              'Arial',
+              'center'
+            )
+          }
+        }
+
+        return
+
         this.gameInstance.MANAGERS.DrawManager.queueDraw(
           tileWorldPos.x,
           tileWorldPos.y,
@@ -190,7 +220,8 @@ export default class LevelManager {
 
   private getRandomZombieSpawnPosition(margin: number = 2): WorldPosition {
     // Random out of viewport edge: 0 = top, 1 = right, 2 = bottom, 3 = left
-    const edge = Math.floor(Math.random() * 4);
+    // const edge = Math.floor(Math.random() * 4);
+    const edge = 1;
 
     switch (edge) {
       case 0:

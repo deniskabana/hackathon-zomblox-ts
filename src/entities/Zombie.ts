@@ -1,7 +1,6 @@
-import { GRID_CONFIG, gridToWorld, type GridPosition } from "../config/gameGrid";
+import { GRID_CONFIG, gridToWorld, type GridPosition, type WorldPosition } from "../config/gameGrid";
 import type GameInstance from "../GameInstance";
 import { ZIndex } from "../managers/DrawManager";
-import type { Vector } from "../types/Vector";
 import { vectorIdToVector, vectorToVectorId, type VectorId } from "../utils/generateFlowFieldMap";
 import getDirectionalAngle from "../utils/getDirectionalAngle";
 import getVectorDistance from "../utils/getVectorDistance";
@@ -12,12 +11,14 @@ export default class Zombie extends AEntity {
   private gameInstance: GameInstance;
   private isWalking: boolean;
   private angle: number = 0;
-  private speed: number = 60 + (Math.random() - 0.5) * 20;
+  // private speed: number = 60 + (Math.random() - 0.5) * 20;
+  private speed: number = 40
 
   public health: number = 100 + (Math.random() - 0.5) * 50;
 
-  private distanceFromPlayer: number = -1;
+  private distanceFromPlayer: number = Infinity;
   private lastDistanceInterval: number = 0;
+  private walkingTarget: WorldPosition | undefined;
 
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     super(gridToWorld(gridPos), entityId, true);
@@ -35,60 +36,45 @@ export default class Zombie extends AEntity {
     if (this.lastDistanceInterval > 0) {
       this.lastDistanceInterval -= _deltaTime;
     } else {
-      // Keep this throttled! It's a zombie, it can be stupid
       this.distanceFromPlayer = getVectorDistance(this.worldPos, playerPos);
       this.lastDistanceInterval = 0.2;
-    }
 
-    if (this.distanceFromPlayer < 70) return;
+      const pathFindingGrid = this.gameInstance.MANAGERS.LevelManager.pathFindingGrid
+      const currentPathGridPos = pathFindingGrid?.[vectorToVectorId(this.gridPos)]
 
-    const pathFindingGrid = this.gameInstance.MANAGERS.LevelManager.pathFindingGrid
-    const currentPathGridPos = pathFindingGrid?.[vectorToVectorId(this.gridPos)]
+      if (this.gameInstance.MANAGERS.LevelManager.isInsideGrid(this.gridPos)) {
+        let lowestDistanceId: VectorId | undefined = undefined;
 
-    if (this.gameInstance.MANAGERS.LevelManager.isInsideGrid(this.gridPos)) {
-      let lowestDistanceId: VectorId = vectorToVectorId(this.gridPos);
-      if (!currentPathGridPos) throw new Error('Pathfinding grid not found (Zombie.ts)');
-
-      for (const neighborId of currentPathGridPos.neighbors) {
-        const neighbor = pathFindingGrid[neighborId];
-        if (!neighbor || neighbor.distance < pathFindingGrid[lowestDistanceId]?.distance) {
-          lowestDistanceId = neighborId;
+        if (currentPathGridPos) {
+          for (const neighborId of currentPathGridPos.neighbors) {
+            const neighbor = pathFindingGrid[neighborId];
+            if (!lowestDistanceId || !neighbor || neighbor.distance < pathFindingGrid[lowestDistanceId]?.distance) {
+              lowestDistanceId = neighborId;
+            }
+          }
         }
-      }
 
-      this.angle = getDirectionalAngle(gridToWorld(vectorIdToVector(lowestDistanceId)), this.worldPos);
-      console.log(lowestDistanceId)
-    } else {
-      this.angle = getDirectionalAngle(playerPos, this.worldPos);
-      console.log(this.angle)
+        if (lowestDistanceId) {
+          const worldVector = gridToWorld(vectorIdToVector(lowestDistanceId));
+          this.walkingTarget = worldVector;
+          worldVector.x += GRID_CONFIG.TILE_SIZE / 2;
+          worldVector.y += GRID_CONFIG.TILE_SIZE / 2;
+          this.angle = getDirectionalAngle(worldVector, this.worldPos);
+        }
+      } else {
+        this.angle = getDirectionalAngle(playerPos, this.worldPos);
+        this.walkingTarget = undefined;
+      }
     }
 
-    const vector = radiansToVector(this.angle);
+    if (this.distanceFromPlayer < GRID_CONFIG.TILE_SIZE * 1.5) return;
+
+    // Apply movement
+    const vector = radiansToVector(this.angle); // TODO: Calculate less times
     this.setWorldPosition({
       x: this.worldPos.x + vector.x * this.speed * _deltaTime,
       y: this.worldPos.y + vector.y * this.speed * _deltaTime,
     });
-
-    // if (currentPfGridPos && currentPfGridPos.neighbors) {
-    //   let lowestDistanceNeighbor: VectorId = vectorToVectorId(this.gridPos)
-    //
-    //   currentPfGridPos.neighbors.forEach((vectorId) => {
-    //     const neighbor = pathFindingGrid[vectorId];
-    //     if (!lowestDistanceNeighbor || neighbor.distance < pathFindingGrid[lowestDistanceNeighbor].distance) {
-    //       lowestDistanceNeighbor = vectorId;
-    //     }
-    //   });
-    //
-    //   const nextTarget = gridToWorld(vectorIdToVector(lowestDistanceNeighbor));
-    //   nextTarget.x += GRID_CONFIG.TILE_SIZE / 2;
-    //   nextTarget.y += GRID_CONFIG.TILE_SIZE / 2;
-    //   this.angle = getDirectionalAngle(nextTarget, this.worldPos);
-    //
-    //   console.log({
-    //     currentPfGridPos, gridPos: this.gridPos, lowestDistanceNeighbor, nextTarget
-    //   })
-    // }
-    //
   }
 
   public draw() {
@@ -104,6 +90,17 @@ export default class Zombie extends AEntity {
       ZIndex.ENTITIES,
       this.angle + Math.PI / 2,
     );
+
+    if (this.walkingTarget) {
+      this.gameInstance.MANAGERS.DrawManager.drawRectOutline(
+        this.walkingTarget.x - GRID_CONFIG.TILE_SIZE / 2,
+        this.walkingTarget.y - GRID_CONFIG.TILE_SIZE / 2,
+        GRID_CONFIG.TILE_SIZE,
+        GRID_CONFIG.TILE_SIZE,
+        '#00ff00',
+        2,
+      );
+    }
   }
 
   public getHealth(): number {

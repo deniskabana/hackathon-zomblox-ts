@@ -2,6 +2,8 @@ import { GRID_CONFIG, type GridPosition } from "../config/gameGrid";
 import { GridTileState, type GridTile, type LevelGrid } from "../types/Grid";
 import type { Vector } from "../types/Vector";
 
+export type FlowFieldDistanceMap = Record<VectorId, { distance: number; cameFrom: VectorId | null; neighbors: VectorId[]; }>;
+
 /**
  * Uses "Dijkstra's map" (or flow-field state map) to map every tile's distance from the player
  * @link https://www.redblobgames.com/pathfinding/tower-defense/
@@ -34,7 +36,6 @@ export default function generateFlowField(levelGrid: LevelGrid, from: GridPositi
   return distanceMap;
 }
 
-export type FlowFieldDistanceMap = Record<VectorId, { distance: number; cameFrom: VectorId | null; neighbors: VectorId[]; }>;
 
 export type VectorId = `${number};${number}`;
 

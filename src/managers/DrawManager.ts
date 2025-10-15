@@ -179,6 +179,23 @@ export default class DrawManager {
     this.ctx.restore();
   }
 
+  public drawText(
+    text: string,
+    x: number,
+    y: number,
+    color: string = '#ffffff',
+    fontSize: number = 16,
+    fontFamily: string = 'Arial',
+    align: CanvasTextAlign = 'left'
+  ): void {
+    this.ctx.save();
+    this.ctx.fillStyle = color;
+    this.ctx.font = `${fontSize}px ${fontFamily}`;
+    this.ctx.textAlign = align;
+    this.ctx.fillText(text, x, y);
+    this.ctx.restore();
+  }
+
   // Maintenance
 
   public getSize(): { width: number; height: number } {
