@@ -141,8 +141,8 @@ export default class DrawManager {
     const queue = this.drawQueue[zIndex] ?? [];
     queue.push({
       image,
-      x: screenPos.x - width / 2,
-      y: screenPos.y - height / 2,
+      x: screenPos.x,
+      y: screenPos.y,
       width,
       height,
       rotation,
@@ -163,7 +163,8 @@ export default class DrawManager {
     this.ctx.save();
     this.ctx.strokeStyle = color;
     this.ctx.lineWidth = lineWidth;
-    this.ctx.strokeRect(x, y, width, height);
+    const screenPos = this.gameInstance.MANAGERS.CameraManager.worldToScreen({ x, y });
+    this.ctx.strokeRect(screenPos.x, screenPos.y, width, height);
     this.ctx.restore();
   }
 
@@ -172,8 +173,10 @@ export default class DrawManager {
     this.ctx.strokeStyle = color;
     this.ctx.lineWidth = lineWidth;
     this.ctx.beginPath();
-    this.ctx.moveTo(x1, y1);
-    this.ctx.lineTo(x2, y2);
+    const screenPos1 = this.gameInstance.MANAGERS.CameraManager.worldToScreen({ x: x1, y: y1 });
+    this.ctx.moveTo(screenPos1.x, screenPos1.y);
+    const screenPos2 = this.gameInstance.MANAGERS.CameraManager.worldToScreen({ x: x2, y: y2 });
+    this.ctx.lineTo(screenPos2.x, screenPos2.y);
     this.ctx.closePath();
     this.ctx.stroke();
     this.ctx.restore();
@@ -192,7 +195,8 @@ export default class DrawManager {
     this.ctx.fillStyle = color;
     this.ctx.font = `${fontSize}px ${fontFamily}`;
     this.ctx.textAlign = align;
-    this.ctx.fillText(text, x, y);
+    const screenPos = this.gameInstance.MANAGERS.CameraManager.worldToScreen({ x, y });
+    this.ctx.fillText(text, screenPos.x, screenPos.y);
     this.ctx.restore();
   }
 

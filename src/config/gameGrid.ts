@@ -24,11 +24,12 @@ export interface WorldPosition {
 
 export function gridToWorld(gridPos: GridPosition): WorldPosition {
   return {
-    x: gridPos.x * GRID_CONFIG.TILE_SIZE + GRID_CONFIG.TILE_SIZE / 2,
-    y: gridPos.y * GRID_CONFIG.TILE_SIZE + GRID_CONFIG.TILE_SIZE / 2,
+    x: gridPos.x * GRID_CONFIG.TILE_SIZE,
+    y: gridPos.y * GRID_CONFIG.TILE_SIZE,
   };
 }
 
+/** WARN: Floors values, since grids are integers! */
 export function worldToGrid(worldPos: WorldPosition): GridPosition {
   return {
     x: Math.floor(worldPos.x / GRID_CONFIG.TILE_SIZE),

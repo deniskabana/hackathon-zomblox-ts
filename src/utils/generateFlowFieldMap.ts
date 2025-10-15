@@ -4,9 +4,8 @@ import type { Vector } from "../types/Vector";
 
 export interface FlowFieldCell {
   distance: number;
-  directionX: number;
-  directionY: number;
   cameFrom: Vector;
+  neighbors: Vector[];
 }
 
 export type FlowField = FlowFieldCell[][];
@@ -21,7 +20,7 @@ export default function generateFlowField(levelGrid: LevelGrid, from: GridPositi
     flowField[x] = [];
 
     for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
-      flowField[x][y] = { distance: Infinity, directionX: 0, directionY: 0, cameFrom: { x: 0, y: 0 } };
+      flowField[x][y] = { distance: Infinity, cameFrom: { x: 0, y: 0 }, neighbors: [] };
     }
   }
 
@@ -33,27 +32,30 @@ export default function generateFlowField(levelGrid: LevelGrid, from: GridPositi
     const current = queue.shift()!;
     const currentDist = flowField[current.x][current.y].distance;
 
-    // Check neighbors
     for (let dx = -1; dx <= 1; dx++) {
       for (let dy = -1; dy <= 1; dy++) {
         if (dx === 0 && dy === 0) continue;
-        if (dx !== 0 && dy !== 0) continue;
 
         const nx = current.x + dx;
         const ny = current.y + dy;
+        const next: Vector = { x: nx, y: ny };
 
         if (!levelGrid?.[nx]?.[ny]) continue;
         if (levelGrid[nx][ny].state !== GridTileState.AVAILABLE) continue;
 
+        // WARN: Keep neighbors calculation here instead of in Zombie class due to "limitless" zombies
+        flowField[current.x][current.y].neighbors.push(next);
+
         if (flowField[nx][ny].distance === Infinity) {
+          if (dx !== 0 && dy !== 0) continue;
+
           flowField[nx][ny].distance = currentDist + 1;
           flowField[nx][ny].cameFrom = { x: current.x, y: current.y };
-          queue.push({ x: nx, y: ny });
+          queue.push(next);
         }
       }
     }
   }
 
-  console.log(flowField);
   return flowField;
 }

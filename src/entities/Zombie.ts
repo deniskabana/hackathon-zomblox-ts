@@ -1,30 +1,33 @@
-import { GRID_CONFIG, gridToWorld, type GridPosition } from "../config/gameGrid";
+import { GRID_CONFIG, gridToWorld, type GridPosition, type WorldPosition } from "../config/gameGrid";
 import type GameInstance from "../GameInstance";
 import { ZIndex } from "../managers/DrawManager";
+import type { Vector } from "../types/Vector";
 import getDirectionalAngle from "../utils/getDirectionalAngle";
 import getVectorDistance from "../utils/getVectorDistance";
+import radialLerp from "../utils/radialLerp";
 import radiansToVector from "../utils/radiansToVector";
 import AEntity from "./AEntity";
 
 export default class Zombie extends AEntity {
   private gameInstance: GameInstance;
-  public health: number = 100 + (Math.random() - 0.5) * 50;
-  private isWalking: boolean;
+  public health: number;
 
-  // TODO: uncomment
-  // private speed: number = 60 + (Math.random() - 0.5) * 20;
-  private speed: number = 40;
+  private isWalking: boolean;
+  private speed: number;
   private distanceFromPlayer: number = Infinity;
   private angle: number = 0;
+  private desiredAngle: number | undefined;
+  private moveTargetPos: WorldPosition | undefined;
 
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     super(gridToWorld(gridPos), entityId, true);
     this.gameInstance = gameInstance;
     this.isWalking = true;
+    this.health = 100 + (Math.random() - 0.5) * 50;
+    this.speed = 40 + (Math.random() - 0.5) * 20;
   }
 
-  // FIXME: Refactor to only ask for directions once destination is reached
-  // TODO: Obstacle avoidance / handling non-available grid positions / collision handling
+  // TODO: Obstacle avoidance / collision handling
   public update(_deltaTime: number) {
     if (!this.isWalking) return;
 
@@ -36,13 +39,23 @@ export default class Zombie extends AEntity {
     const flowField = this.gameInstance.MANAGERS.LevelManager.flowField;
 
     if (this.gameInstance.MANAGERS.LevelManager.isInsideGrid(this.gridPos) && flowField) {
-      this.angle = getDirectionalAngle(flowField[this.gridPos.x][this.gridPos.y].cameFrom, this.gridPos);
+      const fieldCell = flowField[this.gridPos.x][this.gridPos.y];
+
+      const bestValueNeighbor = fieldCell.neighbors.reduce<Vector>((acc, val) => {
+        if (!acc || flowField[val.x][val.y].distance < flowField[acc.x][acc.y].distance) return val;
+        return acc;
+      }, this.gridPos); // BUG: Known issue - if zombie's gridPos enters a block, it panics af
+
+      this.moveTargetPos = gridToWorld(bestValueNeighbor);
     } else {
-      this.angle = getDirectionalAngle(playerPos, this.worldPos);
+      this.moveTargetPos = playerPos;
     }
 
     // Apply movement
     const vector = radiansToVector(this.angle); // TODO: Calculate less times
+    this.desiredAngle = getDirectionalAngle(this.moveTargetPos, this.worldPos);
+    if (this.angle !== this.desiredAngle)
+      this.angle = radialLerp(this.angle, this.desiredAngle, Math.min(1, _deltaTime * 5));
     this.setWorldPosition({
       x: this.worldPos.x + vector.x * this.speed * _deltaTime,
       y: this.worldPos.y + vector.y * this.speed * _deltaTime,
@@ -54,14 +67,29 @@ export default class Zombie extends AEntity {
     if (!sprite) return;
 
     this.gameInstance.MANAGERS.DrawManager.queueDraw(
-      this.worldPos.x - GRID_CONFIG.TILE_SIZE / 2,
-      this.worldPos.y - GRID_CONFIG.TILE_SIZE / 2,
+      this.worldPos.x,
+      this.worldPos.y,
       sprite,
       GRID_CONFIG.TILE_SIZE,
       GRID_CONFIG.TILE_SIZE,
       ZIndex.ENTITIES,
       this.angle + Math.PI / 2,
     );
+    const settings = this.gameInstance.MANAGERS.GameManager.getSettings();
+    if (
+      this.moveTargetPos &&
+      this.gameInstance.MANAGERS.LevelManager.isInsideGrid(this.gridPos) &&
+      settings.debug.enableFlowFieldRender
+    ) {
+      this.gameInstance.MANAGERS.DrawManager.drawLine(
+        this.moveTargetPos.x + GRID_CONFIG.TILE_SIZE / 2,
+        this.moveTargetPos.y + GRID_CONFIG.TILE_SIZE / 2,
+        this.worldPos.x + GRID_CONFIG.TILE_SIZE / 2,
+        this.worldPos.y + GRID_CONFIG.TILE_SIZE / 2,
+        "#00aaeeaa",
+        2,
+      );
+    }
   }
 
   public getHealth(): number {

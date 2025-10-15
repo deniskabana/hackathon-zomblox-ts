@@ -15,6 +15,7 @@ import type { LevelState } from "../types/LevelState";
 import generateFlowField, { type FlowField } from "../utils/generateFlowFieldMap";
 import getVectorDistance from "../utils/getVectorDistance";
 import radiansToVector from "../utils/radiansToVector";
+import { ZIndex } from "./DrawManager";
 
 export default class LevelManager {
   private gameInstance: GameInstance;
@@ -123,13 +124,8 @@ export default class LevelManager {
   public drawEntities(_deltaTime: number): void {
     this.player.draw(_deltaTime);
 
-    for (const zombie of this.zombies.values()) {
-      zombie.draw();
-    }
-
-    for (const block of this.blocks.values()) {
-      block.draw();
-    }
+    for (const zombie of this.zombies.values()) zombie.draw();
+    for (const block of this.blocks.values()) block.draw();
 
     this.levelGrid.forEach((gridRow, x) => {
       gridRow.forEach((_gridCol, y) => {
@@ -137,32 +133,39 @@ export default class LevelManager {
         const texture = this.gameInstance.MANAGERS.AssetManager.getImageAsset("ITextureGround");
         if (!texture) return;
 
-        // this.gameInstance.MANAGERS.DrawManager.queueDraw(
-        //   tileWorldPos.x,
-        //   tileWorldPos.y,
-        //   texture,
-        //   GRID_CONFIG.TILE_SIZE,
-        //   GRID_CONFIG.TILE_SIZE,
-        //   ZIndex.GROUND,
-        // );
-        const distance = this.flowField?.[x][y].distance ?? 0;
-        this.gameInstance.MANAGERS.DrawManager.drawText(
-          String(distance),
-          tileWorldPos.x,
-          tileWorldPos.y,
-          `rgb(${distance * 10}, ${205 - distance * 5}, 40)`,
-          14,
-          "Arial",
-          "center",
-        );
+        const settings = this.gameInstance.MANAGERS.GameManager.getSettings();
+        if (!settings.debug.enableFlowFieldRender) {
+          this.gameInstance.MANAGERS.DrawManager.queueDraw(
+            tileWorldPos.x,
+            tileWorldPos.y,
+            texture,
+            GRID_CONFIG.TILE_SIZE,
+            GRID_CONFIG.TILE_SIZE,
+            ZIndex.GROUND,
+          );
+        } else {
+          const distance = this.flowField?.[x][y].distance ?? 0;
+          this.gameInstance.MANAGERS.DrawManager.drawText(
+            String(distance),
+            tileWorldPos.x + GRID_CONFIG.TILE_SIZE / 2,
+            tileWorldPos.y + GRID_CONFIG.TILE_SIZE / 2,
+            `rgb(${distance * 10}, ${205 - distance * 5}, 40)`,
+            14,
+            "Arial",
+            "center",
+          );
+        }
       });
     });
   }
 
   public destroyEntity(entityId: number, type: "block" | "zombie"): void {
     let entityList: typeof this.blocks | typeof this.zombies | undefined = undefined;
-    if (type === "block") entityList = this.blocks;
     if (type === "zombie") entityList = this.zombies;
+    if (type === "block") {
+      entityList = this.blocks;
+      this.updatePathFindingGrid();
+    }
     entityList?.delete(entityId);
   }
 
@@ -172,10 +175,7 @@ export default class LevelManager {
   public spawnBlock(pos: GridPosition): void {
     const entityId = this.entityIdCounter++;
     this.blocks.set(entityId, new BlockWood(pos, entityId, this.gameInstance));
-
-    if (this.zombies.size > 1) {
-      this.updatePathFindingGrid();
-    }
+    if (this.zombies.size > 1) this.updatePathFindingGrid();
   }
 
   // Zombies
@@ -190,20 +190,16 @@ export default class LevelManager {
   }
 
   public spawnZombie(): void {
-    if (this.zombies.size >= 1) return;
-    // if (this.zombies.size >= 90) return;
+    if (this.zombies.size >= 10) return;
     const entityId = this.entityIdCounter++;
     this.zombies.set(entityId, new Zombie(this.getRandomZombieSpawnPosition(), entityId, this.gameInstance));
   }
 
   private getRandomZombieSpawnPosition(margin: number = 2): WorldPosition {
     // Random out of viewport edge: 0 = top, 1 = right, 2 = bottom, 3 = left
-    // TODO: uncomment this
-    // const edge = Math.floor(Math.random() * 4);
-    const edge = 1;
+    const edge = Math.floor(Math.random() * 4);
 
     switch (edge) {
-      // @ts-expect-error TODO: Uncomment
       case 0:
         return {
           x: Math.random() * GRID_CONFIG.GRID_WIDTH,
@@ -216,14 +212,12 @@ export default class LevelManager {
           y: Math.random() * GRID_CONFIG.GRID_HEIGHT,
         };
 
-      // @ts-expect-error TODO: Uncomment
       case 2:
         return {
           x: Math.random() * GRID_CONFIG.GRID_WIDTH,
           y: WORLD_SIZE.HEIGHT + margin,
         };
 
-      // @ts-expect-error TODO: Uncomment
       case 3:
       default:
         return {
@@ -264,8 +258,6 @@ export default class LevelManager {
     return levelGrid;
   }
 
-  // WARN: THIS IS MOST PROBABLY NOT A GOOD IDEA LONG-TERM
-  // Entities could call grid update by reference and perform calculations only if needed
   private fillLevelGrid(): LevelGrid {
     const grid = this.generateEmptyLevelGrid();
 
@@ -276,19 +268,11 @@ export default class LevelManager {
       pos: this.player.gridPos,
     };
 
-    // for (const zombie of this.zombies.values()) {
-    // TODO: This assumes zombies will never overlap which is not true!
-    // FIXME: Refactor!
-    // if (grid[zombie.gridPos.x]) {
-    //   grid[zombie.gridPos.x][zombie.gridPos.y] = { state: GridTileState.AVAILABLE, ref: zombie, pos: zombie.gridPos };
-    // }
-    // }
-
     for (const block of this.blocks.values()) {
       grid[block.gridPos.x][block.gridPos.y] = { state: GridTileState.BLOCKED, ref: block, pos: block.gridPos };
     }
 
-    // TODO: Blocks, map tiles
+    // TODO: Map tiles
 
     return grid;
   }

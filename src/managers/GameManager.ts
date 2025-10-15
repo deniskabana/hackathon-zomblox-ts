@@ -65,6 +65,7 @@ export default class GameManager {
       ...this.gameSettings,
       ...settings,
       volume: { ...this.gameSettings.volume, ...settings.volume },
+      debug: { ...this.gameSettings.debug, ...settings.debug },
     };
     this.gameSettings = newSettings;
     localStorage.setItem(KEY_SETTINGS, JSON.stringify(this.gameSettings));

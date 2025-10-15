@@ -1,9 +1,17 @@
 import type { AssetAudioName } from "../config/assets";
-import { GRID_CONFIG, gridToWorld, type GridPosition, type WorldPosition } from "../config/gameGrid";
+import {
+  GRID_CONFIG,
+  gridToWorld,
+  WORLD_SIZE,
+  worldToGrid,
+  type GridPosition,
+  type WorldPosition,
+} from "../config/gameGrid";
 import { DEF_WEAPONS, type Weapon } from "../config/weapons";
 import type GameInstance from "../GameInstance";
 import type { AssetImage } from "../managers/AssetManager";
 import { ZIndex } from "../managers/DrawManager";
+import { GridTileState } from "../types/Grid";
 import getDirectionalAngle from "../utils/getDirectionalAngle";
 import getVectorDistance from "../utils/getVectorDistance";
 import normalizeVector from "../utils/normalizeVector";
@@ -37,10 +45,11 @@ export default class Player extends AEntity {
     const movementVector = this.getMovementInput();
     this.isMoving = !(movementVector.x === 0 && movementVector.y === 0);
 
-    this.setWorldPosition({
+    const futurePos = {
       x: this.worldPos.x + movementVector.x * _deltaTime * this.moveSpeed,
       y: this.worldPos.y + movementVector.y * _deltaTime * this.moveSpeed,
-    });
+    };
+    if (!this.checkHasCollisions(futurePos)) this.setWorldPosition(futurePos);
 
     if (this.gunCooldown > 0) this.gunCooldown -= _deltaTime;
     if (this.nextWeaponCooldown > 0) this.nextWeaponCooldown -= _deltaTime;
@@ -60,8 +69,8 @@ export default class Player extends AEntity {
     if (!playerSprite) return;
 
     this.gameInstance.MANAGERS.DrawManager.queueDraw(
-      this.worldPos.x,
-      this.worldPos.y,
+      this.worldPos.x - GRID_CONFIG.TILE_SIZE / 2,
+      this.worldPos.y - GRID_CONFIG.TILE_SIZE / 2,
       playerSprite,
       GRID_CONFIG.TILE_SIZE,
       GRID_CONFIG.TILE_SIZE,
@@ -165,5 +174,27 @@ export default class Player extends AEntity {
       this.gameInstance.MANAGERS.AssetManager.playAudioAsset("APlayerHurt", "sound");
     }
     console.warn("PLAYER HEALTH: ", this.health);
+  }
+
+  private checkHasCollisions(futurePos: WorldPosition): boolean {
+    const radius = GRID_CONFIG.TILE_SIZE / 2;
+
+    if (futurePos.x - radius < 0 || futurePos.x + radius >= WORLD_SIZE.WIDTH) return true;
+    if (futurePos.y - radius < 0 || futurePos.y + radius >= WORLD_SIZE.HEIGHT) return true;
+
+    const gridPosList: GridPosition[] = [
+      worldToGrid({ x: futurePos.x - radius, y: futurePos.y - radius }),
+      worldToGrid({ x: futurePos.x - radius, y: futurePos.y + radius }),
+      worldToGrid({ x: futurePos.x + radius, y: futurePos.y + radius }),
+      worldToGrid({ x: futurePos.x + radius, y: futurePos.y - radius }),
+    ];
+
+    const levelGrid = this.gameInstance.MANAGERS.LevelManager.levelGrid;
+    for (const gridPos of gridPosList) {
+      const { state } = levelGrid[gridPos.x][gridPos.y];
+      if (state === GridTileState.BLOCKED) return true;
+    }
+
+    return false;
   }
 }
