@@ -24,8 +24,8 @@ export default class Zombie extends AEntity {
     super(gridToWorld(gridPos), entityId, true);
     this.gameInstance = gameInstance;
     this.isWalking = true;
-    this.health = 100 + (Math.random() - 0.5) * 50;
-    this.speed = 50 + (Math.random() - 0.5) * 20;
+    this.health = 40 + (Math.random() - 0.5) * 30;
+    this.speed = 40 + (Math.random() - 0.5) * 30;
   }
 
   // TODO: Obstacle avoidance / collision handling

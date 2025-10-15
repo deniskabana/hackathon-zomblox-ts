@@ -34,7 +34,7 @@ export default class LevelManager {
 
   // Gameplay
   private isSpawningZombies: boolean = false;
-  private zombieSpawnInterval: number = 1000;
+  private zombieSpawnInterval: number = 1200;
   private spawnTimer: number = 0;
 
   constructor(gameInstance: GameInstance) {
