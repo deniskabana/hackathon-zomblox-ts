@@ -177,7 +177,7 @@ export default class Player extends AEntity {
   }
 
   private checkHasCollisions(futurePos: WorldPosition): boolean {
-    const radius = GRID_CONFIG.TILE_SIZE / 2;
+    const radius = GRID_CONFIG.TILE_SIZE / 3;
 
     if (futurePos.x - radius < 0 || futurePos.x + radius >= WORLD_SIZE.WIDTH) return true;
     if (futurePos.y - radius < 0 || futurePos.y + radius >= WORLD_SIZE.HEIGHT) return true;

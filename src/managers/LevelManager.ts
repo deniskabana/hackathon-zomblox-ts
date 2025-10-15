@@ -162,11 +162,10 @@ export default class LevelManager {
   public destroyEntity(entityId: number, type: "block" | "zombie"): void {
     let entityList: typeof this.blocks | typeof this.zombies | undefined = undefined;
     if (type === "zombie") entityList = this.zombies;
-    if (type === "block") {
-      entityList = this.blocks;
-      this.updatePathFindingGrid();
-    }
+    if (type === "block") entityList = this.blocks;
     entityList?.delete(entityId);
+
+    if (type === "block") this.updatePathFindingGrid();
   }
 
   // Blocks
@@ -310,11 +309,17 @@ export default class LevelManager {
     for (let i = 0; i < MAX_RANGE; i++) {
       if (!this.isInsideGrid({ x: currentX, y: currentY })) break;
 
-      // TODO: Check and damage entities that occupy the tile
       const { ref, state } = currentLevelGrid?.[currentX]?.[currentY] ?? { ref: null, state: GridTileState.AVAILABLE };
       if (state === GridTileState.BLOCKED) {
         raycastHit = ref;
         break;
+      }
+
+      for (const [_id, zombie] of this.zombies) {
+        if (zombie.gridPos.x === currentX && zombie.gridPos.y === currentY) {
+          raycastHit = zombie;
+          break;
+        }
       }
 
       // Next tile
