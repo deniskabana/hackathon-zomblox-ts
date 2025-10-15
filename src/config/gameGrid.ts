@@ -33,7 +33,7 @@ export function worldToGrid(worldPos: WorldPosition): GridPosition {
   return {
     x: Math.floor(worldPos.x / GRID_CONFIG.TILE_SIZE),
     y: Math.floor(worldPos.y / GRID_CONFIG.TILE_SIZE),
-  }
+  };
 }
 
 export function isValidGridPos(pos: GridPosition): boolean {

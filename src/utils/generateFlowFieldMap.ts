@@ -8,7 +8,7 @@ export interface FlowFieldCell {
   directionY: number;
 }
 
-export type FlowField = FlowFieldCell[][]
+export type FlowField = FlowFieldCell[][];
 
 /**
  * Uses "Dijkstra's map" (or flow-field state map) to map every tile's distance from the player (breadth first search)

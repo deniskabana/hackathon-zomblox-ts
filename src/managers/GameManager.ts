@@ -6,6 +6,7 @@ import { GameState } from "../types/GameState";
 const KEY_SETTINGS = "game-manager-key-settings";
 
 export default class GameManager {
+  // @ts-expect-error Unused
   private gameInstance: GameInstance;
   private gameState: GameState = GameState.INITIALIZING;
   private prePauseState: GameState | undefined = undefined;

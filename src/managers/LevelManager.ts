@@ -193,6 +193,7 @@ export default class LevelManager {
     const edge = 1;
 
     switch (edge) {
+      // @ts-expect-error Unused
       case 0:
         return {
           x: Math.random() * GRID_CONFIG.GRID_WIDTH,
@@ -205,12 +206,14 @@ export default class LevelManager {
           y: Math.random() * GRID_CONFIG.GRID_HEIGHT,
         };
 
+      // @ts-expect-error Unused
       case 2:
         return {
           x: Math.random() * GRID_CONFIG.GRID_WIDTH,
           y: WORLD_SIZE.HEIGHT + margin,
         };
 
+      // @ts-expect-error Unused
       case 3:
       default:
         return {

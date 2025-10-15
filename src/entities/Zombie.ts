@@ -1,4 +1,4 @@
-import { GRID_CONFIG, gridToWorld, type GridPosition, type WorldPosition } from "../config/gameGrid";
+import { GRID_CONFIG, gridToWorld, type GridPosition } from "../config/gameGrid";
 import type GameInstance from "../GameInstance";
 import { ZIndex } from "../managers/DrawManager";
 import type { FlowField } from "../utils/generateFlowFieldMap";
@@ -12,12 +12,11 @@ export default class Zombie extends AEntity {
   private isWalking: boolean;
   private angle: number = 0;
   // private speed: number = 60 + (Math.random() - 0.5) * 20;
-  private speed: number = 40
+  private speed: number = 40;
 
   public health: number = 100 + (Math.random() - 0.5) * 50;
 
   private distanceFromPlayer: number = Infinity;
-  private lastDistanceInterval: number = 0;
 
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     super(gridToWorld(gridPos), entityId, true);
@@ -35,7 +34,7 @@ export default class Zombie extends AEntity {
     this.distanceFromPlayer = getVectorDistance(this.worldPos, playerPos);
     if (this.distanceFromPlayer < GRID_CONFIG.TILE_SIZE * 1.5) return;
 
-    const flowField = this.gameInstance.MANAGERS.LevelManager.flowField
+    const flowField = this.gameInstance.MANAGERS.LevelManager.flowField;
 
     if (this.gameInstance.MANAGERS.LevelManager.isInsideGrid(this.gridPos) && flowField) {
       this.followFlowField(flowField, _deltaTime);
@@ -81,7 +80,7 @@ export default class Zombie extends AEntity {
   private followFlowField(flowField: FlowField, deltaTime: number): void {
     const cell = flowField[this.gridPos.x][this.gridPos.y];
 
-    console.log('cell', cell)
+    console.log("cell", cell);
 
     this.worldPos.x += cell.directionX * this.speed * deltaTime;
     this.worldPos.y += cell.directionY * this.speed * deltaTime;

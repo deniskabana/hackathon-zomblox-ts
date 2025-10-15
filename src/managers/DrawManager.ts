@@ -183,10 +183,10 @@ export default class DrawManager {
     text: string,
     x: number,
     y: number,
-    color: string = '#ffffff',
+    color: string = "#ffffff",
     fontSize: number = 16,
-    fontFamily: string = 'Arial',
-    align: CanvasTextAlign = 'left'
+    fontFamily: string = "Arial",
+    align: CanvasTextAlign = "left",
   ): void {
     this.ctx.save();
     this.ctx.fillStyle = color;
