@@ -1,5 +1,5 @@
 import type GameInstance from "../GameInstance";
-import styles from '../styles/UIManager.module.css'
+import styles from "../styles/UIManager.module.css";
 
 // TODO: Refactor this into style.css and stop over-engineering shit
 export default class UIManager {
@@ -23,14 +23,14 @@ export default class UIManager {
     document.body.appendChild(this.startGameContainer);
 
     this.fpsContainer = document.createElement("div");
-    this.fpsContainer.className = styles.devUiContainer + ' ' + styles.contentContainer;
+    this.fpsContainer.className = styles.devUiContainer + " " + styles.contentContainer;
     this.fpsText = document.createElement("p");
     this.fpsText.className = styles.uiText;
     this.fpsContainer.appendChild(this.fpsText);
     document.body.appendChild(this.fpsContainer);
 
     this.debugContainer = document.createElement("div");
-    this.debugContainer.className = styles.devUiContainer + ' ' + styles.devDebugContainer;
+    this.debugContainer.className = styles.devUiContainer + " " + styles.devDebugContainer;
     this.debugTextTracks = document.createElement("div");
     this.debugTextZombies = document.createElement("div");
     this.debugTextHealth = document.createElement("div");
@@ -43,27 +43,27 @@ export default class UIManager {
   }
 
   private initCheckbox(): void {
-    this.flagsContainer = document.createElement('div');
-    this.flagsContainer.className = styles.devUiContainer + ' ' + styles.flagsContainer + ' ' + styles.contentContainer;
+    this.flagsContainer = document.createElement("div");
+    this.flagsContainer.className = styles.devUiContainer + " " + styles.flagsContainer + " " + styles.contentContainer;
 
-    const checkboxLabel = document.createElement('label');
+    const checkboxLabel = document.createElement("label");
 
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.addEventListener('change', (event) => {
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.addEventListener("change", (event) => {
       const target = event.target as HTMLInputElement;
       this.gameInstance.MANAGERS.GameManager.setSettings({
-        debug: { enableFlowFieldRender: target.checked }
-      })
-    })
+        debug: { enableFlowFieldRender: target.checked },
+      });
+    });
     checkboxLabel.appendChild(checkbox);
 
-    const checkboxText = document.createElement('span')
+    const checkboxText = document.createElement("span");
     checkboxText.className = styles.uiText;
-    checkboxText.innerText = "Debug flow field"
+    checkboxText.innerText = "Debug flow field";
     checkboxLabel.appendChild(checkboxText);
 
-    this.flagsContainer.appendChild(checkboxLabel)
+    this.flagsContainer.appendChild(checkboxLabel);
     document.body.appendChild(this.flagsContainer);
   }
 
