@@ -77,6 +77,7 @@ export default class Zombie extends AEntity {
       ZIndex.ENTITIES,
       this.angle + Math.PI / 2,
     );
+
     const settings = this.gameInstance.MANAGERS.GameManager.getSettings();
     if (
       this.moveTargetPos &&

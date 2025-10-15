@@ -66,7 +66,6 @@ export default class GameInstance {
   private async loadAndPrepareGame(): Promise<void> {
     await this.MANAGERS.AssetManager.preloadAssets();
     this.MANAGERS.GameManager.stateSetReady();
-    this.MANAGERS.UIManager.init();
     this.MANAGERS.UIManager.drawStartGameContainer();
   }
 
