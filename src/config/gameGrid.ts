@@ -22,10 +22,10 @@ export interface WorldPosition {
   y: number;
 }
 
-export function gridToWorld(gridPos: GridPosition): WorldPosition {
+export function gridToWorld(gridPos: GridPosition, center?: boolean): WorldPosition {
   return {
-    x: gridPos.x * GRID_CONFIG.TILE_SIZE,
-    y: gridPos.y * GRID_CONFIG.TILE_SIZE,
+    x: gridPos.x * GRID_CONFIG.TILE_SIZE + (center ? GRID_CONFIG.TILE_SIZE / 2 : 0),
+    y: gridPos.y * GRID_CONFIG.TILE_SIZE + (center ? GRID_CONFIG.TILE_SIZE / 2 : 0),
   };
 }
 

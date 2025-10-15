@@ -46,7 +46,7 @@ export default class Zombie extends AEntity {
         return acc;
       }, this.gridPos); // BUG: Known issue - if zombie's gridPos enters a block, it panics af
 
-      this.moveTargetPos = gridToWorld(bestValueNeighbor);
+      this.moveTargetPos = gridToWorld(bestValueNeighbor, true);
     } else {
       this.moveTargetPos = playerPos;
     }
@@ -55,7 +55,7 @@ export default class Zombie extends AEntity {
     const vector = radiansToVector(this.angle); // TODO: Calculate less times
     this.desiredAngle = getDirectionalAngle(this.moveTargetPos, this.worldPos);
     if (this.angle !== this.desiredAngle)
-      this.angle = radialLerp(this.angle, this.desiredAngle, Math.min(1, _deltaTime * 5));
+      this.angle = radialLerp(this.angle, this.desiredAngle, Math.min(1, _deltaTime * 2.5));
     this.setWorldPosition({
       x: this.worldPos.x + vector.x * this.speed * _deltaTime,
       y: this.worldPos.y + vector.y * this.speed * _deltaTime,
@@ -67,8 +67,8 @@ export default class Zombie extends AEntity {
     if (!sprite) return;
 
     this.gameInstance.MANAGERS.DrawManager.queueDraw(
-      this.worldPos.x,
-      this.worldPos.y,
+      this.worldPos.x - GRID_CONFIG.TILE_SIZE / 2,
+      this.worldPos.y - GRID_CONFIG.TILE_SIZE / 2,
       sprite,
       GRID_CONFIG.TILE_SIZE,
       GRID_CONFIG.TILE_SIZE,
@@ -81,13 +81,13 @@ export default class Zombie extends AEntity {
       this.gameInstance.MANAGERS.LevelManager.isInsideGrid(this.gridPos) &&
       settings.debug.enableFlowFieldRender
     ) {
-      this.gameInstance.MANAGERS.DrawManager.drawLine(
-        this.moveTargetPos.x + GRID_CONFIG.TILE_SIZE / 2,
-        this.moveTargetPos.y + GRID_CONFIG.TILE_SIZE / 2,
-        this.worldPos.x + GRID_CONFIG.TILE_SIZE / 2,
-        this.worldPos.y + GRID_CONFIG.TILE_SIZE / 2,
+      this.gameInstance.MANAGERS.DrawManager.drawRectOutline(
+        gridToWorld(this.gridPos).x,
+        gridToWorld(this.gridPos).y,
+        GRID_CONFIG.TILE_SIZE,
+        GRID_CONFIG.TILE_SIZE,
         "#00aaeeaa",
-        2,
+        1,
       );
     }
   }

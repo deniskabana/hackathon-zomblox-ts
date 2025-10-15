@@ -42,13 +42,13 @@ export default function generateFlowField(levelGrid: LevelGrid, from: GridPositi
 
         if (!levelGrid?.[nx]?.[ny]) continue;
         if (levelGrid[nx][ny].state !== GridTileState.AVAILABLE) continue;
+        if (dx !== 0 && dy !== 0) continue; // TODO: Remove 4-way movement once zombie collisions are solved
 
         // WARN: Keep neighbors calculation here instead of in Zombie class due to "limitless" zombies
         flowField[current.x][current.y].neighbors.push(next);
 
         if (flowField[nx][ny].distance === Infinity) {
-          if (dx !== 0 && dy !== 0) continue;
-
+          // if (dx !== 0 && dy !== 0) continue; // TODO: Uncomment for more natural, 8-way movement
           flowField[nx][ny].distance = currentDist + 1;
           flowField[nx][ny].cameFrom = { x: current.x, y: current.y };
           queue.push(next);
