@@ -190,7 +190,7 @@ export default class LevelManager {
   }
 
   public spawnZombie(): void {
-    if (this.zombies.size >= 50) return;
+    if (this.zombies.size >= 100) return;
     const entityId = this.entityIdCounter++;
     this.zombies.set(entityId, new Zombie(this.getRandomZombieSpawnPosition(), entityId, this.gameInstance));
   }

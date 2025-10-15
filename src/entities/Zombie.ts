@@ -1,6 +1,7 @@
-import { GRID_CONFIG, gridToWorld, type GridPosition, type WorldPosition } from "../config/gameGrid";
+import { GRID_CONFIG, gridToWorld, worldToGrid, type GridPosition, type WorldPosition } from "../config/gameGrid";
 import type GameInstance from "../GameInstance";
 import { ZIndex } from "../managers/DrawManager";
+import { GridTileState } from "../types/Grid";
 import type { Vector } from "../types/Vector";
 import getDirectionalAngle from "../utils/getDirectionalAngle";
 import getVectorDistance from "../utils/getVectorDistance";
@@ -24,7 +25,7 @@ export default class Zombie extends AEntity {
     this.gameInstance = gameInstance;
     this.isWalking = true;
     this.health = 100 + (Math.random() - 0.5) * 50;
-    this.speed = 40 + (Math.random() - 0.5) * 20;
+    this.speed = 50 + (Math.random() - 0.5) * 20;
   }
 
   // TODO: Obstacle avoidance / collision handling
@@ -55,11 +56,12 @@ export default class Zombie extends AEntity {
     const vector = radiansToVector(this.angle); // TODO: Calculate less times
     this.desiredAngle = getDirectionalAngle(this.moveTargetPos, this.worldPos);
     if (this.angle !== this.desiredAngle)
-      this.angle = radialLerp(this.angle, this.desiredAngle, Math.min(1, _deltaTime * 2.5));
-    this.setWorldPosition({
+      this.angle = radialLerp(this.angle, this.desiredAngle, Math.min(1, _deltaTime * 3.5));
+    const futurePos = {
       x: this.worldPos.x + vector.x * this.speed * _deltaTime,
       y: this.worldPos.y + vector.y * this.speed * _deltaTime,
-    });
+    };
+    if (!this.checkHasCollisions(futurePos)) this.setWorldPosition(futurePos);
   }
 
   public draw() {
@@ -102,5 +104,14 @@ export default class Zombie extends AEntity {
       this.gameInstance.MANAGERS.AssetManager.playAudioAsset("AZombieDeath", "sound");
       this.gameInstance.MANAGERS.LevelManager.destroyEntity(this.entityId, "zombie");
     }
+  }
+
+  private checkHasCollisions(futurePos: WorldPosition): boolean {
+    const levelGrid = this.gameInstance.MANAGERS.LevelManager.levelGrid;
+    const gridPos = worldToGrid(futurePos);
+    // It's a zombie. Just stop it and give it time to rotate
+    if (levelGrid[gridPos.x]?.[gridPos.y]?.state === GridTileState.BLOCKED) return true;
+
+    return false;
   }
 }
