@@ -5,21 +5,43 @@ export interface ScreenPosition {
   y: number;
 }
 
+// TODO: Implement input controls
+export enum GameControl {
+  MOVE_UP = 'MOVE_UP',
+  MOVE_DOWN = 'MOVE_DOWN',
+  MOVE_LEFT = 'MOVE_LEFT',
+  MOVE_RIGHT = 'MOVE_RIGHT',
+  SHOOT = 'SHOOT',
+  RELOAD = 'RELOAD',
+  PAUSE = 'PAUSE',
+  CHANGE_WEAPON = 'CHANGE_WEAPON',
+  BUILD_MENU = 'BUILD_MENU',
+}
+
 export default class InputManager {
   private gameInstance: GameInstance;
+
+  // Mouse
   public mouseScreenPos: ScreenPosition = { x: 0, y: 0 };
   private isMousePressed: boolean = false;
+
+  // Keys / touch
   private keysPressed: Set<string> = new Set();
 
   constructor(gameInstance: GameInstance) {
     this.gameInstance = gameInstance;
+
     document.addEventListener("mousedown", this.onMouseDown.bind(this));
     document.addEventListener("mouseup", this.onMouseUp.bind(this));
     document.addEventListener("mousemove", this.onMouseMove.bind(this));
+
     document.addEventListener("keydown", this.onKeyDown.bind(this));
     document.addEventListener("keyup", this.onKeyUp.bind(this));
     document.addEventListener("keypress", this.onKeyPress.bind(this));
   }
+
+  // Event handles
+  // --------------------------------------------------
 
   private onMouseDown(): void {
     this.isMousePressed = true;
@@ -46,6 +68,9 @@ export default class InputManager {
   private onKeyPress(event: KeyboardEvent): void {
     event.preventDefault();
   }
+
+  // Utils
+  // --------------------------------------------------
 
   private updateMousePosition(event: MouseEvent): void {
     const rect = this.gameInstance.canvas.getBoundingClientRect();

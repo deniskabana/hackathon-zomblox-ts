@@ -23,12 +23,14 @@ export default class Player extends AEntity {
   private moveSpeed: number;
   private isMoving: boolean = false;
 
-  private gunCooldown: number = 0;
-  private nextWeaponCooldown: number = 0;
-  private stepSoundCooldown: number = 0;
-
   public health: number;
+  public maxHealth: number;
   public weapon: Weapon;
+
+  // Timers
+  private gunCooldownTimer: number = 0;
+  private nextWeaponCooldownTimer: number = 0;
+  private stepSoundCooldownTimer: number = 0;
 
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     super(gridToWorld(gridPos), entityId, true);
@@ -37,30 +39,15 @@ export default class Player extends AEntity {
     const settings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.player;
     this.moveSpeed = settings.movementSpeed;
     this.health = settings.startHealth;
+    this.maxHealth = settings.startHealth;
     this.weapon = settings.defaultWeapon;
   }
 
   public update(_deltaTime: number) {
-    this.moveDirection = this.getAimAngle();
-    const movementVector = this.getMovementInput();
-    this.isMoving = !(movementVector.x === 0 && movementVector.y === 0);
-
-    const futurePos = {
-      x: this.worldPos.x + movementVector.x * _deltaTime * this.moveSpeed,
-      y: this.worldPos.y + movementVector.y * _deltaTime * this.moveSpeed,
-    };
-    // TODO: This also restricts diagonal movement if only one axis causes a collision
-    if (!this.checkHasCollisions(futurePos)) this.setWorldPosition(futurePos);
-
-    if (this.gunCooldown > 0) this.gunCooldown -= _deltaTime;
-    if (this.nextWeaponCooldown > 0) this.nextWeaponCooldown -= _deltaTime;
-    if (this.stepSoundCooldown > 0) this.stepSoundCooldown -= _deltaTime;
-
-    if (this.isMoving && this.stepSoundCooldown <= 0) {
-      this.gameInstance.MANAGERS.AssetManager.playAudioAsset("APlayerStep", "sound");
-      this.stepSoundCooldown = 0.35;
-    }
-
+    this.applyMovement(_deltaTime);
+    if (this.gunCooldownTimer > 0) this.gunCooldownTimer -= _deltaTime;
+    if (this.nextWeaponCooldownTimer > 0) this.nextWeaponCooldownTimer -= _deltaTime;
+    if (this.stepSoundCooldownTimer > 0) this.stepSoundCooldownTimer -= _deltaTime;
     if (this.getCheckShootInput()) this.shoot();
     if (this.gameInstance.MANAGERS.InputManager.isKeyDown("Tab")) this.chooseNextWeapon();
   }
@@ -104,12 +91,12 @@ export default class Player extends AEntity {
   }
 
   public shoot(): void {
-    if (this.gunCooldown > 0) return;
+    if (this.gunCooldownTimer > 0) return;
     const weaponSound = this.getWeaponSound();
     if (weaponSound) this.gameInstance.MANAGERS.AssetManager.playAudioAsset(weaponSound, "sound");
 
     const weaponDef = DEF_WEAPONS[this.weapon];
-    this.gunCooldown = weaponDef.cooldown;
+    this.gunCooldownTimer = weaponDef.cooldown;
     const gunSpread = weaponDef.spread;
 
     for (let i = 0; i < weaponDef.shots; i++) {
@@ -157,13 +144,13 @@ export default class Player extends AEntity {
   }
 
   private chooseNextWeapon(): void {
-    if (this.nextWeaponCooldown > 0) return;
+    if (this.nextWeaponCooldownTimer > 0) return;
     const currentWeapon = this.weapon;
     const weapons = Object.keys(DEF_WEAPONS) as Weapon[];
     const currentIndex = weapons.findIndex((name) => name === currentWeapon);
     const newIndex = (currentIndex + 1) % weapons.length;
     this.weapon = weapons[newIndex];
-    this.nextWeaponCooldown = 0.25;
+    this.nextWeaponCooldownTimer = 0.25;
   }
 
   public damage(amount: number): void {
@@ -198,5 +185,24 @@ export default class Player extends AEntity {
     }
 
     return false;
+  }
+
+  private applyMovement(_deltaTime: number): void {
+    this.moveDirection = this.getAimAngle();
+    const movementVector = this.getMovementInput();
+    this.isMoving = !(movementVector.x === 0 && movementVector.y === 0);
+
+    const futurePos = {
+      x: this.worldPos.x + movementVector.x * _deltaTime * this.moveSpeed,
+      y: this.worldPos.y + movementVector.y * _deltaTime * this.moveSpeed,
+    };
+    // BUG: Movement is restricted if diagonal and ANY axis collides
+    if (!this.checkHasCollisions(futurePos)) this.setWorldPosition(futurePos);
+
+    // Play step sound
+    if (this.isMoving && this.stepSoundCooldownTimer <= 0) {
+      this.gameInstance.MANAGERS.AssetManager.playAudioAsset("APlayerStep", "sound");
+      this.stepSoundCooldownTimer = 0.35;
+    }
   }
 }
