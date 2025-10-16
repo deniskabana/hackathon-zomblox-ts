@@ -295,7 +295,6 @@ export default class LevelManager {
 
     const direction = radiansToVector(angleRad);
     const startGrid = worldToGrid({ x: from.x, y: from.y });
-    const currentLevelGrid = this.levelGrid;
 
     const stepX = direction.x > 0 ? 1 : -1;
     const stepY = direction.y > 0 ? 1 : -1;
@@ -310,22 +309,21 @@ export default class LevelManager {
     let currentY = startGrid.y;
     let raycastHit: null | GridTileRef = null;
 
+    const levelGridWithZombies = this.fillLevelGrid();
+
+    for (const [_id, zombie] of this.zombies) {
+      if (!this.isInsideGrid(zombie.gridPos)) continue;
+      levelGridWithZombies[zombie.gridPos.x][zombie.gridPos.y].state = GridTileState.BLOCKED;
+      levelGridWithZombies[zombie.gridPos.x][zombie.gridPos.y].ref = zombie;
+    }
+
     for (let i = 0; i < MAX_RANGE; i++) {
       if (!this.isInsideGrid({ x: currentX, y: currentY })) break;
 
-      const { ref, state } = currentLevelGrid?.[currentX]?.[currentY] ?? { ref: null, state: GridTileState.AVAILABLE };
+      const { ref, state } = levelGridWithZombies?.[currentX]?.[currentY] ?? { ref: null, state: GridTileState.AVAILABLE };
       if (state === GridTileState.BLOCKED) {
         raycastHit = ref;
         break;
-      }
-
-      // BUG: This does not work well in real-world and causes a lot of misses!
-      for (const [_id, zombie] of this.zombies) {
-        // TODO: collection of zombies can only be created once and then iterated as a static ref
-        if (zombie.gridPos.x === currentX && zombie.gridPos.y === currentY) {
-          raycastHit = zombie;
-          break;
-        }
       }
 
       // Next tile
