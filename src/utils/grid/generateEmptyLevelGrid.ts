@@ -5,11 +5,11 @@ export default function generateEmptyLevelGrid(gridConfig: GridConfig): LevelGri
   const levelGrid: LevelGrid = [];
 
   for (let x = 0; x < gridConfig.GRID_WIDTH; x++) {
-    const columns: LevelGrid[number] = [];
+    levelGrid[x] = [];
+
     for (let y = 0; y < gridConfig.GRID_HEIGHT; y++) {
-      columns.push({ state: GridTileState.AVAILABLE, ref: null, pos: { x, y } });
+      levelGrid[x][y] = { state: GridTileState.AVAILABLE, ref: null, pos: { x, y } };
     }
-    levelGrid.push(columns);
   }
 
   return levelGrid;
