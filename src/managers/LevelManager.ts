@@ -15,10 +15,10 @@ import type { LevelState } from "../types/LevelState";
 import generateFlowField, { type FlowField } from "../utils/generateFlowFieldMap";
 import getVectorDistance from "../utils/getVectorDistance";
 import radiansToVector from "../utils/radiansToVector";
+import { AManager } from "./abstract/AManager";
 import { ZIndex } from "./DrawManager";
 
-export default class LevelManager {
-  private gameInstance: GameInstance;
+export default class LevelManager extends AManager {
   public worldWidth = WORLD_SIZE.WIDTH;
   public worldHeight = WORLD_SIZE.HEIGHT;
   public levelState?: LevelState;
@@ -39,29 +39,19 @@ export default class LevelManager {
   private zombieSpawnsLeft: number = 0;
 
   constructor(gameInstance: GameInstance) {
-    this.gameInstance = gameInstance;
+    super(gameInstance);
   }
 
   public update(_deltaTime: number) {
     this.player?.update(_deltaTime);
 
-    for (const zombie of this.zombies.values()) {
-      zombie.update(_deltaTime);
-    }
+    for (const zombie of this.zombies.values()) zombie.update(_deltaTime);
+    this.applyZombieSpawn(_deltaTime);
 
-    if (this.isSpawningZombies) this.spawnTimer += _deltaTime;
-
-    if (this.spawnTimer > this.zombieSpawnInterval / 1000) {
-      this.spawnZombie();
-      this.spawnTimer = 0;
-    }
-
-    if (
-      !(this.lastPlayerGridPos.x === this.player?.gridPos.x && this.lastPlayerGridPos.y === this.player.gridPos.y) ||
-      !this.flowField
-    ) {
-      this.updatePathFindingGrid();
-    }
+    const hasPlayerMoved = !(
+      this.lastPlayerGridPos.x === this.player?.gridPos.x && this.lastPlayerGridPos.y === this.player.gridPos.y
+    );
+    if (!hasPlayerMoved || !this.flowField) this.updatePathFindingGrid();
   }
 
   public init(): void {
@@ -167,7 +157,6 @@ export default class LevelManager {
     if (type === "zombie") entityList = this.zombies;
     if (type === "block") entityList = this.blocks;
     entityList?.delete(entityId);
-
     if (type === "block") this.updatePathFindingGrid();
   }
 
@@ -194,11 +183,16 @@ export default class LevelManager {
     this.zombieSpawnsLeft = 0;
   }
 
-  public spawnZombie(): void {
-    if (this.zombieSpawnsLeft <= 0) return;
-    const entityId = this.entityIdCounter++;
-    this.zombies.set(entityId, new Zombie(this.getRandomZombieSpawnPosition(), entityId, this.gameInstance));
-    this.zombieSpawnsLeft--;
+  public applyZombieSpawn(_deltaTime: number): void {
+    if (this.isSpawningZombies) this.spawnTimer += _deltaTime;
+    if (this.spawnTimer > this.zombieSpawnInterval / 1000) {
+      this.spawnTimer = 0;
+
+      if (this.zombieSpawnsLeft <= 0) return;
+      const entityId = this.entityIdCounter++;
+      this.zombies.set(entityId, new Zombie(this.getRandomZombieSpawnPosition(), entityId, this.gameInstance));
+      this.zombieSpawnsLeft--;
+    }
   }
 
   private getRandomZombieSpawnPosition(margin: number = 2): WorldPosition {
@@ -290,11 +284,6 @@ export default class LevelManager {
   // Grid :: Raycasting
   // ==================================================
 
-  /*
-   * Raycasting
-   * NOTE: Shamelessly put together from pieces, apparently this is called DDA (Digital Differential Analyzer)
-   * This solution is not optimal but I lack the time and knowledge to make it better for an MVP
-   */
   public raycastShot(from: WorldPosition, angleRad: number, maxDistance: number): null | GridTileRef {
     const MAX_RANGE = 100;
 
