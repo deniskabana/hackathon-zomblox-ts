@@ -1,4 +1,4 @@
-import type AEntity from "../entities/AEntity";
+import type AEntity from "../entities/abstract/AEntity";
 import type { Vector } from "./Vector";
 
 export enum GridTileState {

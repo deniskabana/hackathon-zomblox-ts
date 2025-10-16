@@ -5,13 +5,13 @@ import Zombie from "../entities/Zombie";
 import type GameInstance from "../GameInstance";
 import { type GridTileRef, type LevelGrid } from "../types/Grid";
 import type { LevelState } from "../types/LevelState";
+import { ZIndex } from "../types/ZIndex";
 import fillLevelGrid from "../utils/grid/fillLevelGrid";
 import generateEmptyLevelGrid from "../utils/grid/generateEmptyLevelGrid";
 import generateFlowField, { type FlowField } from "../utils/grid/generateFlowFieldMap";
 import raycast2D from "../utils/grid/raycast2D";
 import areVectorsEqual from "../utils/math/areVectorsEqual";
 import { AManager } from "./abstract/AManager";
-import { ZIndex } from "./DrawManager";
 
 export default class LevelManager extends AManager {
   public worldWidth = WORLD_SIZE.WIDTH;

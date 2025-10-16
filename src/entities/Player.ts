@@ -10,12 +10,12 @@ import {
 import { DEF_WEAPONS, type Weapon } from "../config/weapons";
 import type GameInstance from "../GameInstance";
 import type { AssetImage } from "../managers/AssetManager";
-import { ZIndex } from "../managers/DrawManager";
 import { GridTileState } from "../types/Grid";
+import { ZIndex } from "../types/ZIndex";
 import getDirectionalAngle from "../utils/math/getDirectionalAngle";
 import getVectorDistance from "../utils/math/getVectorDistance";
 import normalizeVector from "../utils/math/normalizeVector";
-import AEntity from "./AEntity";
+import AEntity from "./abstract/AEntity";
 
 export default class Player extends AEntity {
   private gameInstance: GameInstance;

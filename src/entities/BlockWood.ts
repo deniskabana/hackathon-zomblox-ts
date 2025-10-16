@@ -1,7 +1,7 @@
 import { GRID_CONFIG, gridToWorld, type GridPosition } from "../config/gameGrid";
 import type GameInstance from "../GameInstance";
-import { ZIndex } from "../managers/DrawManager";
-import AEntity from "./AEntity";
+import { ZIndex } from "../types/ZIndex";
+import AEntity from "./abstract/AEntity";
 
 export default class BlockWood extends AEntity {
   private gameInstance: GameInstance;

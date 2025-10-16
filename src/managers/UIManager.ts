@@ -1,8 +1,8 @@
 import type GameInstance from "../GameInstance";
 import styles from "../styles/UIManager.module.css";
+import { AManager } from "./abstract/AManager";
 
-export default class UIManager {
-  private gameInstance: GameInstance;
+export default class UIManager extends AManager {
   private fpsContainer: HTMLDivElement;
   private fpsText: HTMLParagraphElement;
 
@@ -16,6 +16,8 @@ export default class UIManager {
   private flagsContainer: HTMLDivElement | undefined;
 
   constructor(gameInstance: GameInstance) {
+    super(gameInstance);
+
     this.gameInstance = gameInstance;
     this.startGameContainer = document.createElement("div");
     this.startGameContainer.className = styles.startGameContainer;
@@ -40,6 +42,8 @@ export default class UIManager {
 
     if (gameInstance.isDev) this.initCheckbox();
   }
+
+  public init(): void {}
 
   private initCheckbox(): void {
     this.flagsContainer = document.createElement("div");
@@ -112,4 +116,6 @@ export default class UIManager {
     this.startGameContainer.style = `display: none;`;
     this.startGameContainer.innerHTML = "";
   }
+
+  public destroy(): void {}
 }

@@ -1,20 +1,17 @@
-import { DEFAULT_SETTINGS, type Settings } from "../config/settings";
+import { DEFAULT_SETTINGS, KEY_SETTINGS, type Settings } from "../config/settings";
 import type GameInstance from "../GameInstance";
 import type { DeepPartial } from "../types/DeepPartial";
 import { GameState } from "../types/GameState";
 import { mergeDeep } from "../utils/mergeDeep";
+import { AManager } from "./abstract/AManager";
 
-const KEY_SETTINGS = "game-manager-key-settings";
-
-export default class GameManager {
-  // @ts-expect-error Unused
-  private gameInstance: GameInstance;
+export default class GameManager extends AManager {
   private gameState: GameState = GameState.INITIALIZING;
   private prePauseState: GameState | undefined = undefined;
   private gameSettings: Settings = DEFAULT_SETTINGS;
 
   constructor(gameInstance: GameInstance) {
-    this.gameInstance = gameInstance;
+    super(gameInstance);
 
     // Settings persistence
     const storedSettings = localStorage.getItem(KEY_SETTINGS);
@@ -29,6 +26,8 @@ export default class GameManager {
 
     this.stateSetLoading();
   }
+
+  public init(): void {}
 
   private stateSetLoading(): void {
     this.gameState = GameState.LOADING;
@@ -83,4 +82,6 @@ export default class GameManager {
   public isPaused(): boolean {
     return this.gameState === GameState.PAUSED;
   }
+
+  public destroy(): void {}
 }

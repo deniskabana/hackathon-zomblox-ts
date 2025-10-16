@@ -1,0 +1,11 @@
+export enum GameControls {
+  MOVE_UP = "MOVE_UP",
+  MOVE_DOWN = "MOVE_DOWN",
+  MOVE_LEFT = "MOVE_LEFT",
+  MOVE_RIGHT = "MOVE_RIGHT",
+  SHOOT = "SHOOT",
+  RELOAD = "RELOAD",
+  PAUSE = "PAUSE",
+  CHANGE_WEAPON = "CHANGE_WEAPON",
+  BUILD_MENU = "BUILD_MENU",
+}

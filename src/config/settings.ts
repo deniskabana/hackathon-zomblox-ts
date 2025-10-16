@@ -1,6 +1,8 @@
 import type { LevelState } from "../types/LevelState";
 import type { Weapon } from "./weapons";
 
+export const KEY_SETTINGS = "game-manager-key-settings";
+
 export const DEFAULT_SETTINGS = {
   volume: { master: 1, music: 1, effects: 1 },
   debug: { enableFlowFieldRender: false },

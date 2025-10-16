@@ -2,12 +2,12 @@ import { DEF_ASSETS_AUDIO, DEF_ASSETS_IMAGE, type AssetAudioName, type AssetImag
 import assertNever from "../utils/assertNever";
 import viteConfig from "../../vite.config";
 import type GameInstance from "../GameInstance";
+import { AManager } from "./abstract/AManager";
 
 export type AssetAudio = HTMLAudioElement;
 export type AssetImage = HTMLImageElement;
 
-export default class AssetManager {
-  private gameInstance: GameInstance;
+export default class AssetManager extends AManager {
   private assetsAudioMap: Map<AssetAudioName, AssetAudio> = new Map();
   private assetsImageMap: Map<AssetImageName, AssetImage> = new Map();
 
@@ -17,8 +17,10 @@ export default class AssetManager {
   public playingAudioTracks: AssetAudioName[] = [];
 
   constructor(gameInstance: GameInstance) {
-    this.gameInstance = gameInstance;
+    super(gameInstance);
   }
+
+  public init(): void {}
 
   public async preloadAssets(): Promise<void> {
     this.isAssetsLoading = true;
@@ -113,5 +115,10 @@ export default class AssetManager {
 
   public getIsReady(): boolean {
     return this.isReady && !this.isAssetsLoading;
+  }
+
+  public destroy(): void {
+    this.assetsAudioMap.clear();
+    this.assetsImageMap.clear();
   }
 }

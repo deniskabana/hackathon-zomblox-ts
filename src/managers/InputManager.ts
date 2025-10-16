@@ -1,26 +1,9 @@
 import type GameInstance from "../GameInstance";
-
-export interface ScreenPosition {
-  x: number;
-  y: number;
-}
+import type { ScreenPosition } from "../types/ScreenPosition";
+import { AManager } from "./abstract/AManager";
 
 // TODO: Implement input controls
-export enum GameControl {
-  MOVE_UP = "MOVE_UP",
-  MOVE_DOWN = "MOVE_DOWN",
-  MOVE_LEFT = "MOVE_LEFT",
-  MOVE_RIGHT = "MOVE_RIGHT",
-  SHOOT = "SHOOT",
-  RELOAD = "RELOAD",
-  PAUSE = "PAUSE",
-  CHANGE_WEAPON = "CHANGE_WEAPON",
-  BUILD_MENU = "BUILD_MENU",
-}
-
-export default class InputManager {
-  private gameInstance: GameInstance;
-
+export default class InputManager extends AManager {
   // Mouse
   public mouseScreenPos: ScreenPosition = { x: 0, y: 0 };
   private isMousePressed: boolean = false;
@@ -29,7 +12,7 @@ export default class InputManager {
   private keysPressed: Set<string> = new Set();
 
   constructor(gameInstance: GameInstance) {
-    this.gameInstance = gameInstance;
+    super(gameInstance);
 
     document.addEventListener("mousedown", this.onMouseDown.bind(this));
     document.addEventListener("mouseup", this.onMouseUp.bind(this));
@@ -39,6 +22,8 @@ export default class InputManager {
     document.addEventListener("keyup", this.onKeyUp.bind(this));
     document.addEventListener("keypress", this.onKeyPress.bind(this));
   }
+
+  public init(): void {}
 
   // Event handles
   // --------------------------------------------------

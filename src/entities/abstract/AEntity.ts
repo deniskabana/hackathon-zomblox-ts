@@ -1,4 +1,4 @@
-import { type WorldPosition, type GridPosition, worldToGrid } from "../config/gameGrid";
+import { type WorldPosition, type GridPosition, worldToGrid } from "../../config/gameGrid";
 
 export default abstract class AEntity {
   public worldPos: WorldPosition;

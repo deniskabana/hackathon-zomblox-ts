@@ -1,15 +1,15 @@
 import { GRID_CONFIG, gridToWorld, worldToGrid, type GridPosition, type WorldPosition } from "../config/gameGrid";
 import type GameInstance from "../GameInstance";
-import { ZIndex } from "../managers/DrawManager";
 import { GridTileState } from "../types/Grid";
 import type { Vector } from "../types/Vector";
+import { ZIndex } from "../types/ZIndex";
 import isInsideGrid from "../utils/grid/isInsideGrid";
 import { clamp } from "../utils/math/clamp";
 import getDirectionalAngle from "../utils/math/getDirectionalAngle";
 import getVectorDistance from "../utils/math/getVectorDistance";
 import radialLerp from "../utils/math/radialLerp";
 import radiansToVector from "../utils/math/radiansToVector";
-import AEntity from "./AEntity";
+import AEntity from "./abstract/AEntity";
 
 // TODO: Implement zombie behavior
 export enum ZombieBehavior {

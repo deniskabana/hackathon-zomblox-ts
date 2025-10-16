@@ -1,23 +1,7 @@
 import type GameInstance from "../GameInstance";
+import type { DrawCommand } from "../types/DrawCommand";
+import { ZIndex } from "../types/ZIndex";
 import { AManager } from "./abstract/AManager";
-
-export enum ZIndex {
-  GROUND = 0,
-  BLOCKS = 100,
-  ENTITIES = 200,
-  EFFECTS = 300,
-}
-
-export interface DrawCommand {
-  image: HTMLImageElement;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  rotation?: number;
-  alpha?: number;
-  zIndex: number;
-}
 
 export default class DrawManager extends AManager {
   private canvas: HTMLCanvasElement;
