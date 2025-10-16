@@ -5,11 +5,14 @@ import AEntity from "./AEntity";
 
 export default class BlockWood extends AEntity {
   private gameInstance: GameInstance;
-  public health: number = 100;
+  public health: number;
 
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     super(gridToWorld(gridPos), entityId, false);
     this.gameInstance = gameInstance;
+
+    const settings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.blocks;
+    this.health = settings.woodStartHealth;
   }
 
   update(_deltaTime: number) {}
@@ -30,6 +33,9 @@ export default class BlockWood extends AEntity {
   }
 
   damage(amount: number) {
+    const settings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
+    if (!settings.enableBlocksDestruction) return;
+
     this.health -= amount;
     if (this.health <= 0) {
       this.gameInstance.MANAGERS.AssetManager.playAudioAsset("ABlockWoodDestroyed", "sound");

@@ -6,6 +6,7 @@ import InputManager from "./managers/InputManager";
 import LevelManager from "./managers/LevelManager";
 import UIManager from "./managers/UIManager";
 import VFXManager from "./managers/VFXManager";
+import { GameState } from "./types/GameState";
 
 export default class GameInstance {
   public isDev: boolean;
@@ -29,6 +30,7 @@ export default class GameInstance {
 
   init() {
     this.canvas = this.createCanvas();
+
     this.MANAGERS = {
       AssetManager: new AssetManager(this),
       CameraManager: new CameraManager(this),
@@ -58,7 +60,8 @@ export default class GameInstance {
   public update(_deltaTime: number): void {
     const { GameManager, CameraManager, AssetManager } = this.MANAGERS;
     if (!GameManager.isPlaying() && !AssetManager.getIsReady()) return;
-    CameraManager.followPlayer(this.MANAGERS.LevelManager.player.worldPos);
+    const player = this.MANAGERS.LevelManager.player;
+    if (player) return CameraManager.followPlayer(player.worldPos);
     this.MANAGERS.LevelManager.drawEntities(_deltaTime);
     this.MANAGERS.LevelManager.update(_deltaTime);
   }
@@ -70,6 +73,8 @@ export default class GameInstance {
   }
 
   private startGame(): void {
+    if (this.MANAGERS.GameManager.getState() !== GameState.READY) return;
+
     this.MANAGERS.DrawManager.startRenderLoop();
     this.MANAGERS.UIManager.hideStartGameContainer();
     this.MANAGERS.GameManager.stateSetPlaying();

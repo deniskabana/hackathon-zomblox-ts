@@ -17,27 +17,27 @@ import getVectorDistance from "../utils/getVectorDistance";
 import normalizeVector from "../utils/normalizeVector";
 import AEntity from "./AEntity";
 
-export enum PlayerSpeed {
-  WALK = 200,
-  RUN = 12,
-}
-
 export default class Player extends AEntity {
   private gameInstance: GameInstance;
   private moveDirection: number = 0;
-  private moveSpeed: number = PlayerSpeed.WALK;
+  private moveSpeed: number;
   private isMoving: boolean = false;
 
   private gunCooldown: number = 0;
   private nextWeaponCooldown: number = 0;
   private stepSoundCooldown: number = 0;
 
-  public health: number = 100;
-  public weapon: Weapon = "Revolver";
+  public health: number;
+  public weapon: Weapon;
 
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     super(gridToWorld(gridPos), entityId, true);
     this.gameInstance = gameInstance;
+
+    const settings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.player;
+    this.moveSpeed = settings.movementSpeed;
+    this.health = settings.startHealth;
+    this.weapon = settings.defaultWeapon;
   }
 
   public update(_deltaTime: number) {
@@ -191,6 +191,7 @@ export default class Player extends AEntity {
     ];
 
     const levelGrid = this.gameInstance.MANAGERS.LevelManager.levelGrid;
+    if (!levelGrid) return false;
     for (const gridPos of gridPosList) {
       const { state } = levelGrid[gridPos.x][gridPos.y];
       if (state === GridTileState.BLOCKED) return true;

@@ -21,12 +21,12 @@ export default class LevelManager {
   private gameInstance: GameInstance;
   public worldWidth = WORLD_SIZE.WIDTH;
   public worldHeight = WORLD_SIZE.HEIGHT;
-  public levelState: LevelState;
-  public levelGrid: LevelGrid;
+  public levelState?: LevelState;
+  public levelGrid?: LevelGrid;
   public flowField?: FlowField;
 
   // Entities
-  public player: Player;
+  public player?: Player;
   private lastPlayerGridPos: GridPosition = { x: -99, y: -99 };
   public zombies: Map<number, Zombie> = new Map();
   public blocks: Map<number, BlockWood> = new Map();
@@ -36,11 +36,41 @@ export default class LevelManager {
   private isSpawningZombies: boolean = false;
   private zombieSpawnInterval: number = 1200;
   private spawnTimer: number = 0;
+  private zombieSpawnsLeft: number = 0;
 
   constructor(gameInstance: GameInstance) {
     this.gameInstance = gameInstance;
+  }
+
+  public update(_deltaTime: number) {
+    this.player?.update(_deltaTime);
+
+    for (const zombie of this.zombies.values()) {
+      zombie.update(_deltaTime);
+    }
+
+    if (this.isSpawningZombies) this.spawnTimer += _deltaTime;
+
+    if (this.spawnTimer > this.zombieSpawnInterval / 1000) {
+      this.spawnZombie();
+      this.spawnTimer = 0;
+    }
+
+    if (
+      !(this.lastPlayerGridPos.x === this.player?.gridPos.x && this.lastPlayerGridPos.y === this.player.gridPos.y) ||
+      !this.flowField
+    ) {
+      this.updatePathFindingGrid();
+    }
+  }
+
+  public init(): void {
     this.player = new Player({ x: 2, y: 2 }, this.entityIdCounter++, this.gameInstance);
     this.lastPlayerGridPos = this.player.gridPos;
+
+    const gameSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
+    this.zombieSpawnInterval = gameSettings.zombieSpawnIntervalMs;
+    this.levelState = { phase: gameSettings.startPhase, daysCounter: 0 };
 
     // TODO: Remove, top-left
     this.spawnBlock({ x: 7, y: 4 });
@@ -90,44 +120,17 @@ export default class LevelManager {
     this.spawnBlock({ x: 17, y: 14 });
     this.spawnBlock({ x: 17, y: 13 });
 
-    this.levelState = { phase: "night", daysCounter: 0 };
-
     this.levelGrid = this.generateLevelGrid();
-  }
-
-  public update(_deltaTime: number) {
-    this.player.update(_deltaTime);
-
-    for (const zombie of this.zombies.values()) {
-      zombie.update(_deltaTime);
-    }
-
-    if (this.isSpawningZombies) this.spawnTimer += _deltaTime;
-
-    if (this.spawnTimer > this.zombieSpawnInterval / 1000) {
-      this.spawnZombie();
-      this.spawnTimer = 0;
-    }
-
-    if (
-      !(this.lastPlayerGridPos.x === this.player.gridPos.x && this.lastPlayerGridPos.y === this.player.gridPos.y) ||
-      !this.flowField
-    ) {
-      this.updatePathFindingGrid();
-    }
-  }
-
-  public init(): void {
     this.startSpawningZombies();
   }
 
   public drawEntities(_deltaTime: number): void {
-    this.player.draw(_deltaTime);
+    this.player?.draw(_deltaTime);
 
     for (const zombie of this.zombies.values()) zombie.draw();
     for (const block of this.blocks.values()) block.draw();
 
-    this.levelGrid.forEach((gridRow, x) => {
+    this.levelGrid?.forEach((gridRow, x) => {
       gridRow.forEach((_gridCol, y) => {
         const tileWorldPos = gridToWorld({ x, y });
         const texture = this.gameInstance.MANAGERS.AssetManager.getImageAsset("ITextureGround");
@@ -181,17 +184,21 @@ export default class LevelManager {
   // ==================================================
 
   private startSpawningZombies(): void {
+    const settings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
     this.isSpawningZombies = true;
+    this.zombieSpawnsLeft = settings.zombieSpawnAmount;
   }
 
   public stopSpawningZombies(): void {
     this.isSpawningZombies = false;
+    this.zombieSpawnsLeft = 0;
   }
 
   public spawnZombie(): void {
-    if (this.zombies.size >= 100) return;
+    if (this.zombieSpawnsLeft <= 0) return;
     const entityId = this.entityIdCounter++;
     this.zombies.set(entityId, new Zombie(this.getRandomZombieSpawnPosition(), entityId, this.gameInstance));
+    this.zombieSpawnsLeft--;
   }
 
   private getRandomZombieSpawnPosition(margin: number = 2): WorldPosition {
@@ -230,14 +237,14 @@ export default class LevelManager {
   // ==================================================
 
   public endNight() {
-    if (this.levelState.phase !== "night") return;
+    if (this.levelState?.phase !== "night") return;
     this.levelState.phase = "day";
     this.levelState.daysCounter += 1;
     // TODO: UI and game changes
   }
 
   public endDay() {
-    if (this.levelState.phase !== "day") return;
+    if (this.levelState?.phase !== "day") return;
     this.levelState.phase = "night";
     // TODO: UI and game changes
   }
@@ -256,6 +263,7 @@ export default class LevelManager {
     }
 
     if (!fillWithObjects) return levelGrid;
+    if (!this.player) return levelGrid;
 
     const playerGridPos = this.player.gridPos;
     levelGrid[playerGridPos.x][playerGridPos.y] = {
@@ -345,6 +353,7 @@ export default class LevelManager {
 
   private updatePathFindingGrid(): void {
     this.levelGrid = this.generateLevelGrid();
+    if (!this.player) return;
     this.lastPlayerGridPos = this.player.gridPos;
     this.flowField = generateFlowField(this.levelGrid, this.player.gridPos);
   }

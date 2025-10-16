@@ -1,4 +1,5 @@
 import type { LevelState } from "../types/LevelState";
+import type { Weapon } from "./weapons";
 
 export const DEFAULT_SETTINGS = {
   volume: { master: 1, music: 1, effects: 1 },
@@ -29,6 +30,8 @@ export const DEFAULT_SETTINGS = {
     },
     player: {
       startHealth: 100,
+      movementSpeed: 200,
+      defaultWeapon: "Revolver" as Weapon,
     },
     blocks: {
       woodStartHealth: 100,

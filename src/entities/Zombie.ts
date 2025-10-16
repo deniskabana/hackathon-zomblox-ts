@@ -22,7 +22,7 @@ export default class Zombie extends AEntity {
   private desiredAngle: number | undefined;
   private moveTargetPos: WorldPosition | undefined;
 
-  private randomStopInterval: number = 11;
+  private randomStopInterval: number;
   private randomStopTimer: number = 0;
 
   private clearTargetPosInterval: number = 5;
@@ -32,9 +32,12 @@ export default class Zombie extends AEntity {
     super(gridToWorld(gridPos), entityId, true);
     this.gameInstance = gameInstance;
     this.isWalking = true;
-    this.health = 40 + (Math.random() - 0.5) * 30;
-    this.maxSpeed = 40 + (Math.random() - 0.5) * 30;
+
+    const settings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.zombie;
+    this.health = settings.maxHealth + (Math.random() - 0.5) * settings.healthDeviation;
+    this.maxSpeed = settings.maxSpeed + (Math.random() - 0.5) * settings.speedDeviation;
     this.speed = this.maxSpeed;
+    this.randomStopInterval = settings.randomStopIntervalSec;
   }
 
   public update(_deltaTime: number) {
@@ -44,8 +47,9 @@ export default class Zombie extends AEntity {
     if (!this.isWalking) return;
     if (this.distanceFromPlayer < GRID_CONFIG.TILE_SIZE * 1.5) return;
 
+    const settings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.zombie;
     this.applyMovement(_deltaTime);
-    this.applyErraticMovement(_deltaTime);
+    if (settings.enableErraticBehavior) this.applyErraticBehavior(_deltaTime);
   }
 
   public draw() {
@@ -102,6 +106,7 @@ export default class Zombie extends AEntity {
 
   private checkHasCollisions(futurePos: WorldPosition): boolean {
     const levelGrid = this.gameInstance.MANAGERS.LevelManager.levelGrid;
+    if (!levelGrid) return false;
     const gridPos = worldToGrid(futurePos);
     // It's a zombie. Just stop it and give it time to rotate
     if (levelGrid[gridPos.x]?.[gridPos.y]?.state === GridTileState.BLOCKED) return true;
@@ -136,6 +141,8 @@ export default class Zombie extends AEntity {
     const player = this.gameInstance.MANAGERS.LevelManager.player;
     const isInsideGrid = this.gameInstance.MANAGERS.LevelManager.isInsideGrid(this.gridPos);
 
+    if (!player) return;
+
     if (isInsideGrid && this.moveTargetPos) {
       const targetGridPos = worldToGrid(this.moveTargetPos);
       if (targetGridPos.x === this.gridPos.x && targetGridPos.y === this.gridPos.y) this.moveTargetPos = undefined;
@@ -144,7 +151,7 @@ export default class Zombie extends AEntity {
       if (this.moveTargetPos && !isTargetPlayer) return;
     }
 
-    const playerPos = this.gameInstance.MANAGERS.LevelManager.player.worldPos;
+    const playerPos = player.worldPos;
     this.distanceFromPlayer = getVectorDistance(this.worldPos, playerPos);
     const flowField = this.gameInstance.MANAGERS.LevelManager.flowField;
 
@@ -165,7 +172,7 @@ export default class Zombie extends AEntity {
     }
   }
 
-  private applyErraticMovement(_deltaTime: number): void {
+  private applyErraticBehavior(_deltaTime: number): void {
     if (this.randomStopTimer > 0) {
       this.randomStopTimer -= _deltaTime;
     } else {

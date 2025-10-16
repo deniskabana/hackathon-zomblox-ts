@@ -90,10 +90,10 @@ export default class UIManager {
 </div>
 `;
 
-    const health = this.gameInstance.MANAGERS.LevelManager.player.health;
+    const health = this.gameInstance.MANAGERS.LevelManager.player?.health ?? 1;
     this.debugTextHealth.innerHTML = `
 <div class="${styles.contentContainer}">
-  <div class="${styles.uiText}">${(100 / health) * 100}%</div>
+  <div class="${styles.uiText}">${health} / ${health}</div>
   <div class="${styles.uiTitle}">Health:</div>
 </div>
 `;
