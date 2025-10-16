@@ -1,7 +1,6 @@
 import type GameInstance from "../GameInstance";
 import styles from "../styles/UIManager.module.css";
 
-// TODO: Refactor this into style.css and stop over-engineering shit
 export default class UIManager {
   private gameInstance: GameInstance;
   private fpsContainer: HTMLDivElement;
@@ -39,7 +38,7 @@ export default class UIManager {
     this.debugContainer.appendChild(this.debugTextHealth);
     document.body.appendChild(this.debugContainer);
 
-    this.initCheckbox();
+    if (gameInstance.isDev) this.initCheckbox();
   }
 
   private initCheckbox(): void {

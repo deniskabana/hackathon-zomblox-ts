@@ -285,7 +285,11 @@ export default class LevelManager {
   // Grid :: Raycasting
   // ==================================================
 
-  // Shamelessly put together from pieces, apparently this is called DDA (Digital Differential Analyzer)
+  /*
+   * Raycasting
+   * NOTE: Shamelessly put together from pieces, apparently this is called DDA (Digital Differential Analyzer)
+   * This solution is not optimal but I lack the time and knowledge to make it better for an MVP
+   */
   public raycastShot(from: WorldPosition, angleRad: number, maxDistance: number): null | GridTileRef {
     const MAX_RANGE = 100;
 
@@ -315,7 +319,9 @@ export default class LevelManager {
         break;
       }
 
+      // BUG: This does not work well in real-world and causes a lot of misses!
       for (const [_id, zombie] of this.zombies) {
+        // TODO: collection of zombies can only be created once and then iterated as a static ref
         if (zombie.gridPos.x === currentX && zombie.gridPos.y === currentY) {
           raycastHit = zombie;
           break;
@@ -335,6 +341,9 @@ export default class LevelManager {
     if (raycastHit && getVectorDistance(from, raycastHit.worldPos) > maxDistance) return null;
     return raycastHit;
   }
+
+  // Grid :: Pathfinding
+  // ==================================================
 
   private updatePathFindingGrid(): void {
     this.levelGrid = this.fillLevelGrid();

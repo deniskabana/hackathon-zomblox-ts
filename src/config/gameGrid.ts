@@ -2,7 +2,7 @@ export const GRID_CONFIG = {
   /** px */
   TILE_SIZE: 48,
   /** tiles */
-  GRID_WIDTH: 20,
+  GRID_WIDTH: 30,
   /** tiles */
   GRID_HEIGHT: 20,
 } as const;

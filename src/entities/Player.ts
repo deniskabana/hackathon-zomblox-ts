@@ -49,6 +49,7 @@ export default class Player extends AEntity {
       x: this.worldPos.x + movementVector.x * _deltaTime * this.moveSpeed,
       y: this.worldPos.y + movementVector.y * _deltaTime * this.moveSpeed,
     };
+    // TODO: This also restricts diagonal movement if only one axis causes a collision
     if (!this.checkHasCollisions(futurePos)) this.setWorldPosition(futurePos);
 
     if (this.gunCooldown > 0) this.gunCooldown -= _deltaTime;
