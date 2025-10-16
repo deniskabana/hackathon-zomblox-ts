@@ -2,6 +2,7 @@ import { DEFAULT_SETTINGS, type Settings } from "../config/settings";
 import type GameInstance from "../GameInstance";
 import type { DeepPartial } from "../types/DeepPartial";
 import { GameState } from "../types/GameState";
+import { mergeDeep } from "../utils/mergeDeep";
 
 const KEY_SETTINGS = "game-manager-key-settings";
 
@@ -15,12 +16,15 @@ export default class GameManager {
   constructor(gameInstance: GameInstance) {
     this.gameInstance = gameInstance;
 
+    // Settings persistence
     const storedSettings = localStorage.getItem(KEY_SETTINGS);
     if (storedSettings !== null) {
-      const settings = JSON.parse(storedSettings);
-      if (!settings) return;
-      this.setSettings(settings);
+      try {
+        const settings = JSON.parse(storedSettings);
+        if (settings) this.setSettings(settings);
+      } catch { /* Swallow */ }
     }
+
     this.stateSetLoading();
   }
 
@@ -61,12 +65,7 @@ export default class GameManager {
   }
 
   public setSettings(settings: DeepPartial<Settings>): void {
-    const newSettings: typeof this.gameSettings = {
-      ...this.gameSettings,
-      ...settings,
-      volume: { ...this.gameSettings.volume, ...settings.volume },
-      debug: { ...this.gameSettings.debug, ...settings.debug },
-    };
+    const newSettings: typeof this.gameSettings = mergeDeep({ ...this.gameSettings }, settings);
     this.gameSettings = newSettings;
     localStorage.setItem(KEY_SETTINGS, JSON.stringify(this.gameSettings));
   }

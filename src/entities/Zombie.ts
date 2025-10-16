@@ -25,7 +25,7 @@ export default class Zombie extends AEntity {
   private randomStopInterval: number = 11;
   private randomStopTimer: number = 0;
 
-  private clearTargetPosInterval: number = 6;
+  private clearTargetPosInterval: number = 5;
   private clearTargetPosTimer: number = 0;
 
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
@@ -171,7 +171,6 @@ export default class Zombie extends AEntity {
     } else {
       if (Math.random() > 0.3) this.speed *= 0.2 + Math.random();
       this.randomStopTimer = this.randomStopInterval * (0.3 + Math.random() * 0.7);
-      this.angle += (0.5 - Math.random()) * (40 * Math.PI / 180);
       setTimeout(() => { this.speed = this.maxSpeed }, clamp(200, Math.random() * 80 * this.distanceFromPlayer, this.randomStopTimer * 0.5));
     }
   }
