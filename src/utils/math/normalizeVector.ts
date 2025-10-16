@@ -1,4 +1,4 @@
-import type { Vector } from "../types/Vector";
+import type { Vector } from "../../types/Vector";
 
 export default function normalizeVector<T extends Vector>(vector: T): T {
   let x = vector.x;

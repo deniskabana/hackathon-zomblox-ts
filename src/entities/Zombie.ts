@@ -3,12 +3,12 @@ import type GameInstance from "../GameInstance";
 import { ZIndex } from "../managers/DrawManager";
 import { GridTileState } from "../types/Grid";
 import type { Vector } from "../types/Vector";
-import { clamp } from "../utils/clamp";
-import getDirectionalAngle from "../utils/getDirectionalAngle";
-import getVectorDistance from "../utils/getVectorDistance";
 import isInsideGrid from "../utils/grid/isInsideGrid";
-import radialLerp from "../utils/radialLerp";
-import radiansToVector from "../utils/radiansToVector";
+import { clamp } from "../utils/math/clamp";
+import getDirectionalAngle from "../utils/math/getDirectionalAngle";
+import getVectorDistance from "../utils/math/getVectorDistance";
+import radialLerp from "../utils/math/radialLerp";
+import radiansToVector from "../utils/math/radiansToVector";
 import AEntity from "./AEntity";
 
 // TODO: Implement zombie behavior

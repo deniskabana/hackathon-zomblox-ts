@@ -1,6 +1,6 @@
 import type { WorldPosition } from "../config/gameGrid";
 import type GameInstance from "../GameInstance";
-import radiansToVector from "../utils/radiansToVector";
+import radiansToVector from "../utils/math/radiansToVector";
 
 export interface EffectShootLine {
   from: WorldPosition;

@@ -1,7 +1,7 @@
 import { GRID_CONFIG, worldToGrid, type WorldPosition } from "../../config/gameGrid";
 import { GridTileState, type GridTileRef, type LevelGrid } from "../../types/Grid";
-import getVectorDistance from "../getVectorDistance";
-import radiansToVector from "../radiansToVector";
+import getVectorDistance from "../math/getVectorDistance";
+import radiansToVector from "../math/radiansToVector";
 import isInsideGrid from "./isInsideGrid";
 
 const MAX_RANGE = 100;

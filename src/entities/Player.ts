@@ -12,9 +12,9 @@ import type GameInstance from "../GameInstance";
 import type { AssetImage } from "../managers/AssetManager";
 import { ZIndex } from "../managers/DrawManager";
 import { GridTileState } from "../types/Grid";
-import getDirectionalAngle from "../utils/getDirectionalAngle";
-import getVectorDistance from "../utils/getVectorDistance";
-import normalizeVector from "../utils/normalizeVector";
+import getDirectionalAngle from "../utils/math/getDirectionalAngle";
+import getVectorDistance from "../utils/math/getVectorDistance";
+import normalizeVector from "../utils/math/normalizeVector";
 import AEntity from "./AEntity";
 
 export default class Player extends AEntity {

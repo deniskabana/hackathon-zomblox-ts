@@ -9,7 +9,7 @@ import fillLevelGrid from "../utils/grid/fillLevelGrid";
 import generateEmptyLevelGrid from "../utils/grid/generateEmptyLevelGrid";
 import generateFlowField, { type FlowField } from "../utils/grid/generateFlowFieldMap";
 import raycast2D from "../utils/grid/raycast2D";
-import areVectorsEqual from "../utils/math/isVectorEqual";
+import areVectorsEqual from "../utils/math/areVectorsEqual";
 import { AManager } from "./abstract/AManager";
 import { ZIndex } from "./DrawManager";
 

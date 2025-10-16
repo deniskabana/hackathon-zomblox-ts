@@ -1,4 +1,4 @@
-import type { Vector } from "../types/Vector";
+import type { Vector } from "../../types/Vector";
 
 export default function getDirectionalAngle<T extends Vector>(pos1: T, pos2: T): number {
   const dx = pos1.x - pos2.x;
