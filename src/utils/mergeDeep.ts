@@ -1,5 +1,5 @@
 function isObject(item: unknown): boolean {
-  return (!!item && typeof item === 'object' && !Array.isArray(item));
+  return !!item && typeof item === "object" && !Array.isArray(item);
 }
 
 type IndexableObject = { [key: string]: IndexableObject | unknown };

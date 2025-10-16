@@ -1,11 +1,11 @@
-import type { LevelState } from '../types/LevelState'
+import type { LevelState } from "../types/LevelState";
 
 export const DEFAULT_SETTINGS = {
   volume: { master: 1, music: 1, effects: 1 },
   debug: { enableFlowFieldRender: false },
   rules: {
     game: {
-      startPhase: "night" as LevelState['phase'],
+      startPhase: "night" as LevelState["phase"],
       startCurrency: 0,
       enableRewardAutoCollect: true,
       rewardCoef: 1,
@@ -33,8 +33,8 @@ export const DEFAULT_SETTINGS = {
     blocks: {
       woodStartHealth: 100,
       concreteStartHealth: 1000,
-    }
-  }
+    },
+  },
 };
 
 export type Settings = typeof DEFAULT_SETTINGS;

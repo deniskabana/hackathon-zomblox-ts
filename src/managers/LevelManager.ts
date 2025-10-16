@@ -317,7 +317,10 @@ export default class LevelManager {
     for (let i = 0; i < MAX_RANGE; i++) {
       if (!this.isInsideGrid({ x: currentX, y: currentY })) break;
 
-      const { ref, state } = levelGridWithZombies?.[currentX]?.[currentY] ?? { ref: null, state: GridTileState.AVAILABLE };
+      const { ref, state } = levelGridWithZombies?.[currentX]?.[currentY] ?? {
+        ref: null,
+        state: GridTileState.AVAILABLE,
+      };
       if (state === GridTileState.BLOCKED) {
         raycastHit = ref;
         break;

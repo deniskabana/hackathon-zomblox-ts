@@ -134,7 +134,7 @@ export default class Zombie extends AEntity {
     }
 
     const player = this.gameInstance.MANAGERS.LevelManager.player;
-    const isInsideGrid = this.gameInstance.MANAGERS.LevelManager.isInsideGrid(this.gridPos)
+    const isInsideGrid = this.gameInstance.MANAGERS.LevelManager.isInsideGrid(this.gridPos);
 
     if (isInsideGrid && this.moveTargetPos) {
       const targetGridPos = worldToGrid(this.moveTargetPos);
@@ -171,7 +171,12 @@ export default class Zombie extends AEntity {
     } else {
       if (Math.random() > 0.3) this.speed *= 0.2 + Math.random();
       this.randomStopTimer = this.randomStopInterval * (0.3 + Math.random() * 0.7);
-      setTimeout(() => { this.speed = this.maxSpeed }, clamp(200, Math.random() * 80 * this.distanceFromPlayer, this.randomStopTimer * 0.5));
+      setTimeout(
+        () => {
+          this.speed = this.maxSpeed;
+        },
+        clamp(200, Math.random() * 80 * this.distanceFromPlayer, this.randomStopTimer * 0.5),
+      );
     }
   }
 }

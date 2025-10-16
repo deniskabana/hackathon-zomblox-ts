@@ -22,7 +22,9 @@ export default class GameManager {
       try {
         const settings = JSON.parse(storedSettings);
         if (settings) this.setSettings(settings);
-      } catch { /* Swallow */ }
+      } catch {
+        /* Swallow */
+      }
     }
 
     this.stateSetLoading();
