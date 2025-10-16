@@ -7,15 +7,15 @@ export interface ScreenPosition {
 
 // TODO: Implement input controls
 export enum GameControl {
-  MOVE_UP = 'MOVE_UP',
-  MOVE_DOWN = 'MOVE_DOWN',
-  MOVE_LEFT = 'MOVE_LEFT',
-  MOVE_RIGHT = 'MOVE_RIGHT',
-  SHOOT = 'SHOOT',
-  RELOAD = 'RELOAD',
-  PAUSE = 'PAUSE',
-  CHANGE_WEAPON = 'CHANGE_WEAPON',
-  BUILD_MENU = 'BUILD_MENU',
+  MOVE_UP = "MOVE_UP",
+  MOVE_DOWN = "MOVE_DOWN",
+  MOVE_LEFT = "MOVE_LEFT",
+  MOVE_RIGHT = "MOVE_RIGHT",
+  SHOOT = "SHOOT",
+  RELOAD = "RELOAD",
+  PAUSE = "PAUSE",
+  CHANGE_WEAPON = "CHANGE_WEAPON",
+  BUILD_MENU = "BUILD_MENU",
 }
 
 export default class InputManager {

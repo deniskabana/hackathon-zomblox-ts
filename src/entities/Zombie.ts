@@ -12,10 +12,10 @@ import AEntity from "./AEntity";
 
 // TODO: Implement zombie behavior
 export enum ZombieBehavior {
-  NORMAL = 'NORMAL',
-  STUPID = 'STUPID',
-  AGGRESSIVE = 'AGGRESSIVE',
-  WAITING = 'WAITING',
+  NORMAL = "NORMAL",
+  STUPID = "STUPID",
+  AGGRESSIVE = "AGGRESSIVE",
+  WAITING = "WAITING",
 }
 
 export default class Zombie extends AEntity {

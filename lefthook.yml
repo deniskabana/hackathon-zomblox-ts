@@ -1,0 +1,11 @@
+pre-commit:
+  parallel: true
+  jobs:
+    - name: format
+      run: yarn format
+
+pre-push:
+  parallel: true
+  jobs:
+    - name: build
+      run: yarn build
