@@ -3,6 +3,7 @@ import type GameInstance from "../GameInstance";
 import { ZIndex } from "../managers/DrawManager";
 import { GridTileState } from "../types/Grid";
 import type { Vector } from "../types/Vector";
+import { clamp } from "../utils/clamp";
 import getDirectionalAngle from "../utils/getDirectionalAngle";
 import getVectorDistance from "../utils/getVectorDistance";
 import radialLerp from "../utils/radialLerp";
@@ -15,53 +16,36 @@ export default class Zombie extends AEntity {
 
   private isWalking: boolean;
   private speed: number;
+  private maxSpeed: number;
   private distanceFromPlayer: number = Infinity;
   private angle: number = 0;
   private desiredAngle: number | undefined;
   private moveTargetPos: WorldPosition | undefined;
+
+  private randomStopInterval: number = 11;
+  private randomStopTimer: number = 0;
+
+  private clearTargetPosInterval: number = 6;
+  private clearTargetPosTimer: number = 0;
 
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     super(gridToWorld(gridPos), entityId, true);
     this.gameInstance = gameInstance;
     this.isWalking = true;
     this.health = 40 + (Math.random() - 0.5) * 30;
-    this.speed = 40 + (Math.random() - 0.5) * 30;
+    this.maxSpeed = 40 + (Math.random() - 0.5) * 30;
+    this.speed = this.maxSpeed;
   }
 
-  // TODO: Obstacle avoidance / collision handling
   public update(_deltaTime: number) {
+    this.applyRotation(_deltaTime);
+    this.updateMoveTarget(_deltaTime);
+
     if (!this.isWalking) return;
-
-    const playerPos = this.gameInstance.MANAGERS.LevelManager.player.worldPos;
-    this.distanceFromPlayer = getVectorDistance(this.worldPos, playerPos);
-
     if (this.distanceFromPlayer < GRID_CONFIG.TILE_SIZE * 1.5) return;
 
-    const flowField = this.gameInstance.MANAGERS.LevelManager.flowField;
-
-    if (this.gameInstance.MANAGERS.LevelManager.isInsideGrid(this.gridPos) && flowField) {
-      const fieldCell = flowField[this.gridPos.x][this.gridPos.y];
-
-      const bestValueNeighbor = fieldCell.neighbors.reduce<Vector>((acc, val) => {
-        if (!acc || flowField[val.x][val.y].distance < flowField[acc.x][acc.y].distance) return val;
-        return acc;
-      }, this.gridPos); // BUG: Known issue - if zombie's gridPos enters a block, it panics af
-
-      this.moveTargetPos = gridToWorld(bestValueNeighbor, true);
-    } else {
-      this.moveTargetPos = playerPos;
-    }
-
-    // Apply movement
-    const vector = radiansToVector(this.angle); // TODO: Calculate less times
-    this.desiredAngle = getDirectionalAngle(this.moveTargetPos, this.worldPos);
-    if (this.angle !== this.desiredAngle)
-      this.angle = radialLerp(this.angle, this.desiredAngle, Math.min(1, _deltaTime * 3.5));
-    const futurePos = {
-      x: this.worldPos.x + vector.x * this.speed * _deltaTime,
-      y: this.worldPos.y + vector.y * this.speed * _deltaTime,
-    };
-    if (!this.checkHasCollisions(futurePos)) this.setWorldPosition(futurePos);
+    this.applyMovement(_deltaTime);
+    this.applyErraticMovement(_deltaTime);
   }
 
   public draw() {
@@ -84,13 +68,22 @@ export default class Zombie extends AEntity {
       this.gameInstance.MANAGERS.LevelManager.isInsideGrid(this.gridPos) &&
       settings.debug.enableFlowFieldRender
     ) {
+      const safeWorldPos = gridToWorld(this.gridPos);
+
       this.gameInstance.MANAGERS.DrawManager.drawRectOutline(
-        gridToWorld(this.gridPos).x,
-        gridToWorld(this.gridPos).y,
+        safeWorldPos.x,
+        safeWorldPos.y,
         GRID_CONFIG.TILE_SIZE,
         GRID_CONFIG.TILE_SIZE,
         "#00aaeeaa",
-        1,
+      );
+
+      this.gameInstance.MANAGERS.DrawManager.drawLine(
+        safeWorldPos.x + GRID_CONFIG.TILE_SIZE / 2,
+        safeWorldPos.y + GRID_CONFIG.TILE_SIZE / 2,
+        this.moveTargetPos.x,
+        this.moveTargetPos.y,
+        "#00aaeeaa",
       );
     }
   }
@@ -114,5 +107,72 @@ export default class Zombie extends AEntity {
     if (levelGrid[gridPos.x]?.[gridPos.y]?.state === GridTileState.BLOCKED) return true;
 
     return false;
+  }
+
+  private applyRotation(_deltaTime: number): void {
+    if (this.moveTargetPos) {
+      this.desiredAngle = getDirectionalAngle(this.moveTargetPos, this.worldPos);
+      if (this.angle !== this.desiredAngle)
+        this.angle = radialLerp(this.angle, this.desiredAngle, Math.min(1, _deltaTime * 3.5));
+    }
+  }
+
+  private applyMovement(_deltaTime: number): void {
+    const vector = radiansToVector(this.angle); // TODO: Calculate less times if zombie amount scaling becomes perf bottleneck
+    const futurePos = {
+      x: this.worldPos.x + vector.x * this.speed * _deltaTime,
+      y: this.worldPos.y + vector.y * this.speed * _deltaTime,
+    };
+    if (!this.checkHasCollisions(futurePos)) this.setWorldPosition(futurePos);
+  }
+
+  private updateMoveTarget(_deltaTime: number): void {
+    if (this.clearTargetPosTimer > 0) this.clearTargetPosTimer -= _deltaTime;
+    else {
+      this.clearTargetPosTimer = this.clearTargetPosInterval;
+      this.moveTargetPos = undefined;
+    }
+
+    const player = this.gameInstance.MANAGERS.LevelManager.player;
+    const isInsideGrid = this.gameInstance.MANAGERS.LevelManager.isInsideGrid(this.gridPos)
+
+    if (isInsideGrid && this.moveTargetPos) {
+      const targetGridPos = worldToGrid(this.moveTargetPos);
+      if (targetGridPos.x === this.gridPos.x && targetGridPos.y === this.gridPos.y) this.moveTargetPos = undefined;
+
+      const isTargetPlayer = targetGridPos.x === player.gridPos.x && targetGridPos.y === player.gridPos.y;
+      if (this.moveTargetPos && !isTargetPlayer) return;
+    }
+
+    const playerPos = this.gameInstance.MANAGERS.LevelManager.player.worldPos;
+    this.distanceFromPlayer = getVectorDistance(this.worldPos, playerPos);
+    const flowField = this.gameInstance.MANAGERS.LevelManager.flowField;
+
+    if (isInsideGrid && flowField) {
+      const fieldCell = flowField[this.gridPos.x][this.gridPos.y];
+
+      const bestValueNeighbor = fieldCell.neighbors.reduce<Vector>((acc, val) => {
+        if (!acc || flowField[val.x][val.y].distance < flowField[acc.x][acc.y].distance) return val;
+        return acc;
+      }, this.gridPos); // BUG: Known issue - if zombie's gridPos enters a block, it panics; solved by stopping zombie, lol
+
+      this.moveTargetPos = gridToWorld(bestValueNeighbor, true);
+      // Add deviation for zombie-like walking
+      this.moveTargetPos.x += (0.5 - Math.random()) * GRID_CONFIG.TILE_SIZE * 0.6;
+      this.moveTargetPos.y += (0.5 - Math.random()) * GRID_CONFIG.TILE_SIZE * 0.6;
+    } else {
+      this.moveTargetPos = playerPos;
+    }
+  }
+
+  private applyErraticMovement(_deltaTime: number): void {
+    if (this.randomStopTimer > 0) {
+      this.randomStopTimer -= _deltaTime;
+    } else {
+      if (Math.random() > 0.3) this.speed *= 0.2 + Math.random();
+      this.randomStopTimer = this.randomStopInterval * (0.3 + Math.random() * 0.7);
+      this.angle += (0.5 - Math.random()) * (40 * Math.PI / 180);
+      setTimeout(() => { this.speed = this.maxSpeed }, clamp(200, Math.random() * 80 * this.distanceFromPlayer, this.randomStopTimer * 0.5));
+    }
   }
 }
