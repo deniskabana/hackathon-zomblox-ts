@@ -67,7 +67,7 @@ export default class GameManager {
   }
 
   public setSettings(settings: DeepPartial<Settings>): void {
-    const newSettings: typeof this.gameSettings = mergeDeep({ ...this.gameSettings }, settings);
+    const newSettings = mergeDeep({ ...this.gameSettings }, settings);
     this.gameSettings = newSettings;
     localStorage.setItem(KEY_SETTINGS, JSON.stringify(this.gameSettings));
   }

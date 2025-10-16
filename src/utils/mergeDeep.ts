@@ -6,10 +6,11 @@ type IndexableObject = { [key: string]: IndexableObject | unknown };
 
 /**
  * Deep merge two objects recursively.
+ * TODO: Remove typecasts if TS perf isn't hurt too bad. Otherwise delete this comment.
  * WARN: Will cause infinite recursion in circular references!
  */
-export function mergeDeep<T extends IndexableObject>(target: T, ...sources: IndexableObject[]): T & IndexableObject {
-  if (!sources.length) return target;
+export function mergeDeep<T extends IndexableObject, S extends undefined | IndexableObject>(target: T, ...sources: S[]): T & S {
+  if (!sources.length) return target as T & S;
   const source = sources.shift();
 
   if (isObject(target) && isObject(source)) {
