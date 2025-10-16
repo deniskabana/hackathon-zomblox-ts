@@ -92,7 +92,7 @@ export default class LevelManager {
 
     this.levelState = { phase: "night", daysCounter: 0 };
 
-    this.levelGrid = this.generateEmptyLevelGrid();
+    this.levelGrid = this.generateLevelGrid();
   }
 
   public update(_deltaTime: number) {
@@ -245,7 +245,7 @@ export default class LevelManager {
   // Grid :: Utils
   // ==================================================
 
-  private generateEmptyLevelGrid(): LevelGrid {
+  private generateLevelGrid(fillWithObjects: boolean = true): LevelGrid {
     const levelGrid: LevelGrid = [];
     for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
       const columns: LevelGrid[number] = [];
@@ -254,26 +254,23 @@ export default class LevelManager {
       }
       levelGrid.push(columns);
     }
-    return levelGrid;
-  }
 
-  private fillLevelGrid(): LevelGrid {
-    const grid = this.generateEmptyLevelGrid();
+    if (!fillWithObjects) return levelGrid;
 
     const playerGridPos = this.player.gridPos;
-    grid[playerGridPos.x][playerGridPos.y] = {
+    levelGrid[playerGridPos.x][playerGridPos.y] = {
       state: GridTileState.PLAYER,
       ref: this.player,
       pos: this.player.gridPos,
     };
 
     for (const block of this.blocks.values()) {
-      grid[block.gridPos.x][block.gridPos.y] = { state: GridTileState.BLOCKED, ref: block, pos: block.gridPos };
+      levelGrid[block.gridPos.x][block.gridPos.y] = { state: GridTileState.BLOCKED, ref: block, pos: block.gridPos };
     }
 
     // TODO: Map tiles
 
-    return grid;
+    return levelGrid;
   }
 
   public isInsideGrid(gridPos: GridPosition): boolean {
@@ -309,7 +306,7 @@ export default class LevelManager {
     let currentY = startGrid.y;
     let raycastHit: null | GridTileRef = null;
 
-    const levelGridWithZombies = this.fillLevelGrid();
+    const levelGridWithZombies = this.generateLevelGrid();
 
     for (const [_id, zombie] of this.zombies) {
       if (!this.isInsideGrid(zombie.gridPos)) continue;
@@ -344,7 +341,7 @@ export default class LevelManager {
   // ==================================================
 
   private updatePathFindingGrid(): void {
-    this.levelGrid = this.fillLevelGrid();
+    this.levelGrid = this.generateLevelGrid();
     this.lastPlayerGridPos = this.player.gridPos;
     this.flowField = generateFlowField(this.levelGrid, this.player.gridPos);
   }
