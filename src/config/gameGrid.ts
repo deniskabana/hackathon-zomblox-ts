@@ -1,11 +1,10 @@
 export const GRID_CONFIG = {
-  /** px */
-  TILE_SIZE: 48,
-  /** tiles */
+  TILE_SIZE: 48, // px
   GRID_WIDTH: 30,
-  /** tiles */
   GRID_HEIGHT: 20,
-} as const;
+};
+
+export type GridConfig = typeof GRID_CONFIG;
 
 export const WORLD_SIZE = {
   WIDTH: GRID_CONFIG.TILE_SIZE * GRID_CONFIG.GRID_WIDTH,

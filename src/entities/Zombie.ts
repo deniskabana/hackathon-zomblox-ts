@@ -6,6 +6,7 @@ import type { Vector } from "../types/Vector";
 import { clamp } from "../utils/clamp";
 import getDirectionalAngle from "../utils/getDirectionalAngle";
 import getVectorDistance from "../utils/getVectorDistance";
+import isInsideGrid from "../utils/grid/isInsideGrid";
 import radialLerp from "../utils/radialLerp";
 import radiansToVector from "../utils/radiansToVector";
 import AEntity from "./AEntity";
@@ -16,6 +17,7 @@ export enum ZombieBehavior {
   STUPID = "STUPID",
   AGGRESSIVE = "AGGRESSIVE",
   WAITING = "WAITING",
+  ATTACKING = "ATTACKING",
 }
 
 export default class Zombie extends AEntity {
@@ -75,11 +77,7 @@ export default class Zombie extends AEntity {
     );
 
     const settings = this.gameInstance.MANAGERS.GameManager.getSettings();
-    if (
-      this.moveTargetPos &&
-      this.gameInstance.MANAGERS.LevelManager.isInsideGrid(this.gridPos) &&
-      settings.debug.enableFlowFieldRender
-    ) {
+    if (this.moveTargetPos && isInsideGrid(this.gridPos) && settings.debug.enableFlowFieldRender) {
       const safeWorldPos = gridToWorld(this.gridPos);
 
       this.gameInstance.MANAGERS.DrawManager.drawRectOutline(
@@ -147,11 +145,11 @@ export default class Zombie extends AEntity {
     }
 
     const player = this.gameInstance.MANAGERS.LevelManager.player;
-    const isInsideGrid = this.gameInstance.MANAGERS.LevelManager.isInsideGrid(this.gridPos);
+    const isInside = isInsideGrid(this.gridPos);
 
     if (!player) return;
 
-    if (isInsideGrid && this.moveTargetPos) {
+    if (isInside && this.moveTargetPos) {
       const targetGridPos = worldToGrid(this.moveTargetPos);
       if (targetGridPos.x === this.gridPos.x && targetGridPos.y === this.gridPos.y) this.moveTargetPos = undefined;
 
@@ -163,7 +161,7 @@ export default class Zombie extends AEntity {
     this.distanceFromPlayer = getVectorDistance(this.worldPos, playerPos);
     const flowField = this.gameInstance.MANAGERS.LevelManager.flowField;
 
-    if (isInsideGrid && flowField) {
+    if (isInside && flowField) {
       const fieldCell = flowField[this.gridPos.x][this.gridPos.y];
 
       const bestValueNeighbor = fieldCell.neighbors.reduce<Vector>((acc, val) => {

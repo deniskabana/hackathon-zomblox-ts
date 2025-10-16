@@ -22,6 +22,8 @@ export default class GameInstance {
     VFXManager: VFXManager;
   };
 
+  gameLogicInterval: number | null = null;
+
   constructor() {
     this.isDev = import.meta.env.NODE_ENV === "development" || !!location.hash.match("debug");
     this.canvas = document.createElement("canvas"); // Fake in constructor
@@ -30,7 +32,6 @@ export default class GameInstance {
 
   init() {
     this.canvas = this.createCanvas();
-
     this.MANAGERS = {
       AssetManager: new AssetManager(this),
       CameraManager: new CameraManager(this),
@@ -43,8 +44,8 @@ export default class GameInstance {
     };
 
     document.addEventListener("click", this.startGame.bind(this));
-
     this.loadAndPrepareGame();
+    for (const manager of Object.values(this.MANAGERS)) if ("init" in manager) manager.init();
   }
 
   private createCanvas(): HTMLCanvasElement {
@@ -61,8 +62,7 @@ export default class GameInstance {
     const { GameManager, CameraManager, AssetManager } = this.MANAGERS;
     if (!GameManager.isPlaying() && !AssetManager.getIsReady()) return;
     const player = this.MANAGERS.LevelManager.player;
-    if (player) return CameraManager.followPlayer(player.worldPos);
-    this.MANAGERS.LevelManager.drawEntities(_deltaTime);
+    if (player) CameraManager.followPlayer(player.worldPos);
     this.MANAGERS.LevelManager.update(_deltaTime);
   }
 
@@ -74,13 +74,17 @@ export default class GameInstance {
 
   private startGame(): void {
     if (this.MANAGERS.GameManager.getState() !== GameState.READY) return;
+    document.removeEventListener("click", this.startGame);
 
-    this.MANAGERS.DrawManager.startRenderLoop();
-    this.MANAGERS.UIManager.hideStartGameContainer();
-    this.MANAGERS.GameManager.stateSetPlaying();
     this.MANAGERS.LevelManager.init();
 
+    this.MANAGERS.DrawManager.init();
+    this.MANAGERS.DrawManager.startRenderLoop();
+
+    this.MANAGERS.UIManager.hideStartGameContainer();
+    this.MANAGERS.GameManager.stateSetPlaying();
+
     this.MANAGERS.AssetManager.playAudioAsset("AMusicBackground", "music");
-    this.MANAGERS.AssetManager.playAudioAsset("AFXZombieAmbience", "music", 0.5);
+    this.MANAGERS.AssetManager.playAudioAsset("AFXZombieAmbience", "music", 0.4);
   }
 }

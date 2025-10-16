@@ -52,7 +52,7 @@ export default class Player extends AEntity {
     if (this.gameInstance.MANAGERS.InputManager.isKeyDown("Tab")) this.chooseNextWeapon();
   }
 
-  public draw(_deltaTime: number) {
+  public draw() {
     const playerSprite = this.getPlayerSprite();
     if (!playerSprite) return;
 
@@ -196,6 +196,7 @@ export default class Player extends AEntity {
       x: this.worldPos.x + movementVector.x * _deltaTime * this.moveSpeed,
       y: this.worldPos.y + movementVector.y * _deltaTime * this.moveSpeed,
     };
+
     // BUG: Movement is restricted if diagonal and ANY axis collides
     if (!this.checkHasCollisions(futurePos)) this.setWorldPosition(futurePos);
 

@@ -1,4 +1,5 @@
 import type GameInstance from "../GameInstance";
+import { AManager } from "./abstract/AManager";
 
 export enum ZIndex {
   GROUND = 0,
@@ -13,16 +14,14 @@ export interface DrawCommand {
   y: number;
   width: number;
   height: number;
-  /** radians */
   rotation?: number;
   alpha?: number;
   zIndex: number;
 }
 
-export default class DrawManager {
-  private gameInstance: GameInstance;
+export default class DrawManager extends AManager {
   private canvas: HTMLCanvasElement;
-  private ctx: CanvasRenderingContext2D;
+  private ctx?: CanvasRenderingContext2D;
 
   private drawQueue: Record<number, DrawCommand[]> = {};
   private rafId: number | null = null;
@@ -32,17 +31,19 @@ export default class DrawManager {
   private fps: number = 0;
 
   constructor(gameInstance: GameInstance, canvas: HTMLCanvasElement) {
-    this.gameInstance = gameInstance;
+    super(gameInstance);
     this.canvas = canvas;
+  }
 
+  public init(): void {
     const ctx = this.canvas.getContext("2d");
     if (!ctx) throw new Error("Failed to get 2D context from canvas");
     this.ctx = ctx;
-
     window.addEventListener("resize", this.updateCanvasSize.bind(this));
   }
 
   // Canvas
+  // ==================================================
 
   private updateCanvasSize(): void {
     this.canvas.width = window.innerWidth;
@@ -52,10 +53,12 @@ export default class DrawManager {
   }
 
   private clearCanvas(): void {
+    if (!this.ctx) return;
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
   // Render loop
+  // ==================================================
 
   public startRenderLoop(): void {
     if (this.isRunning) return;
@@ -82,16 +85,18 @@ export default class DrawManager {
     this.fps = Math.round(1 / deltaTime);
 
     this.clearCanvas();
-    this.gameInstance.update(deltaTime);
+    this.gameInstance.update(deltaTime); // TODO: Extract update from render loop when I have time
     this.renderDrawQueue();
     this.gameInstance.MANAGERS.UIManager.drawFps(this.fps);
     this.gameInstance.MANAGERS.UIManager.drawDebug();
     this.gameInstance.MANAGERS.VFXManager.draw();
+    this.gameInstance.MANAGERS.LevelManager.drawEntities();
 
     this.rafId = requestAnimationFrame(this.renderLoop.bind(this));
   }
 
   // Draw queue
+  // ==================================================
 
   private renderDrawQueue(): void {
     Object.entries(this.drawQueue)
@@ -106,6 +111,7 @@ export default class DrawManager {
   }
 
   private drawCommand(cmd: DrawCommand): void {
+    if (!this.ctx) return;
     this.ctx.save();
 
     if (cmd.alpha !== undefined) this.ctx.globalAlpha = cmd.alpha;
@@ -121,7 +127,8 @@ export default class DrawManager {
     this.ctx.restore();
   }
 
-  // Drawing methods
+  // Direct draw methods
+  // ==================================================
 
   public queueDraw(
     worldX: number,
@@ -160,6 +167,7 @@ export default class DrawManager {
     color: string,
     lineWidth: number = 1,
   ): void {
+    if (!this.ctx) return;
     this.ctx.save();
     this.ctx.strokeStyle = color;
     this.ctx.lineWidth = lineWidth;
@@ -169,6 +177,7 @@ export default class DrawManager {
   }
 
   public drawLine(x1: number, y1: number, x2: number, y2: number, color: string, lineWidth: number = 1): void {
+    if (!this.ctx) return;
     this.ctx.save();
     this.ctx.strokeStyle = color;
     this.ctx.lineWidth = lineWidth;
@@ -191,6 +200,7 @@ export default class DrawManager {
     fontFamily: string = "Arial",
     align: CanvasTextAlign = "left",
   ): void {
+    if (!this.ctx) return;
     this.ctx.save();
     this.ctx.fillStyle = color;
     this.ctx.font = `${fontSize}px ${fontFamily}`;
@@ -200,7 +210,8 @@ export default class DrawManager {
     this.ctx.restore();
   }
 
-  // Maintenance
+  // Utils
+  // ==================================================
 
   public getSize(): { width: number; height: number } {
     return { width: this.canvas.width, height: this.canvas.height };
