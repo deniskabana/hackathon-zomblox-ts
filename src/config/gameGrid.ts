@@ -28,7 +28,7 @@ export function gridToWorld(gridPos: GridPosition, center?: boolean): WorldPosit
   };
 }
 
-/** WARN: Floors values, since grids are integers! */
+/** Floors values, since grids are integers */
 export function worldToGrid(worldPos: WorldPosition): GridPosition {
   return {
     x: Math.floor(worldPos.x / GRID_CONFIG.TILE_SIZE),

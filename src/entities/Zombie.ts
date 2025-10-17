@@ -249,12 +249,13 @@ export default class Zombie extends AEntity {
     }
 
     if (isInsideGrid(this.gridPos) && this.distanceFromPlayer >= this.minDistanceFromPlayer && !!flowField) {
-      const bestValueNeighbor = flowField[this.gridPos.x][this.gridPos.y].neighbors.reduce<Vector>((acc, val) => {
+      const lowestDistanceNeighbor = flowField[this.gridPos.x][this.gridPos.y].neighbors.reduce<Vector>((acc, val) => {
+        if (Math.random() > 0.99) return val; // Randomly skip tiles when checking, it's a zombie
         if (!acc || flowField[val.x][val.y].distance < flowField[acc.x][acc.y].distance) return val;
         return acc;
       }, this.gridPos);
 
-      this.moveTargetPos = gridToWorld(bestValueNeighbor, true);
+      this.moveTargetPos = gridToWorld(lowestDistanceNeighbor, true);
     } else {
       this.moveTargetPos = { ...player.worldPos };
     }
@@ -270,21 +271,20 @@ export default class Zombie extends AEntity {
     const flowField = this.gameInstance.MANAGERS.LevelManager.flowField;
     if (!flowField) return;
 
-    const { x, y } = this.gridPos;
-    if (x <= 0 || x >= GRID_CONFIG.GRID_WIDTH - 1 || y <= 0 || y >= GRID_CONFIG.GRID_HEIGHT - 1) {
-      const offsetX = x <= 0 ? -1 : x >= GRID_CONFIG.GRID_WIDTH - 1 ? 1 : 0;
-      const offsetY = y <= 0 ? -1 : y >= GRID_CONFIG.GRID_HEIGHT - 1 ? 1 : 0;
-      this.moveTargetPos = gridToWorld({ x: x + offsetX, y: y + offsetY }, true);
-      return;
-    }
-
-    if (!isInsideGrid(this.gridPos)) {
+    if (!isInsideGrid(this.gridPos, GRID_CONFIG, -3)) {
       this.zombieState = ZombieState.WAITING;
       return;
     }
 
+    const { x, y } = this.gridPos;
+    if (x <= 0 || x >= GRID_CONFIG.GRID_WIDTH - 1 || y <= 0 || y >= GRID_CONFIG.GRID_HEIGHT - 1) {
+      const offsetX = x <= 0 ? -3 : x >= GRID_CONFIG.GRID_WIDTH - 1 ? 3 : 0;
+      const offsetY = y <= 0 ? -3 : y >= GRID_CONFIG.GRID_HEIGHT - 1 ? 3 : 0;
+      this.moveTargetPos = gridToWorld({ x: x + offsetX, y: y + offsetY }, true);
+      return;
+    }
+
     const lowestDistanceNeighbor = flowField[this.gridPos.x][this.gridPos.y].neighbors.reduce<Vector>((acc, val) => {
-      if (flowField[val.x][val.y].distance === Infinity) return acc;
       if (!acc || flowField[val.x][val.y].distance < flowField[acc.x][acc.y].distance) return val;
       return acc;
     }, this.gridPos);
@@ -312,7 +312,8 @@ export default class Zombie extends AEntity {
 
   private drawDebug(): void {
     const settings = this.gameInstance.MANAGERS.GameManager.getSettings();
-    if (this.moveTargetPos && isInsideGrid(this.gridPos) && settings.debug.enableFlowFieldRender) {
+
+    if (this.moveTargetPos && isInsideGrid(this.gridPos) && settings.debug.showZombieTarget) {
       const safeWorldPos = gridToWorld(this.gridPos);
 
       this.gameInstance.MANAGERS.DrawManager.drawRectOutline(
@@ -329,6 +330,18 @@ export default class Zombie extends AEntity {
         this.moveTargetPos.x,
         this.moveTargetPos.y,
         "#00aaeeaa",
+      );
+    }
+
+    if (settings.debug.showZombieState) {
+      this.gameInstance.MANAGERS.DrawManager.drawText(
+        this.zombieState,
+        this.worldPos.x,
+        this.worldPos.y - GRID_CONFIG.TILE_SIZE / 2,
+        "#fff",
+        10,
+        "Arial",
+        "center",
       );
     }
   }

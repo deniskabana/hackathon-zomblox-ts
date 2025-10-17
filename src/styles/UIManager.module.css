@@ -62,8 +62,8 @@
   font-size: 12px;
   margin: 0;
   font-weight: bolder;
-  border-top: 1px solid #6a6a6a;
-  margin-top: 3px;
+  border-bottom: 1px solid #6a6a6a;
+  margin-bottom: 3px;
 }
 
 .contentContainer {
@@ -72,6 +72,8 @@
   border-radius: 4px;
   box-shadow: 0 0 12px rgba(0, 0, 0, 0.8);
   padding: 3px 6px;
+  display: flex;
+  flex-direction: column;
 }
 
 .devDebugContainer {
@@ -83,5 +85,4 @@
   align-items: flex-end;
   flex-direction: row-reverse;
   gap: 10px;
-  pointer-events: none;
 }

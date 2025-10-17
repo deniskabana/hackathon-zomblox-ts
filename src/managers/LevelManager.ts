@@ -367,7 +367,7 @@ export default class LevelManager extends AManager {
   }
 
   public raycastShot(from: WorldPosition, angleRad: number, maxDistance: number): null | GridTileRef {
-    const levelGrid = this.generateLevelGrid(true, true);
+    const levelGrid = this.generateLevelGrid(true, true, true);
     return raycast2D(from, angleRad, maxDistance, levelGrid);
   }
 

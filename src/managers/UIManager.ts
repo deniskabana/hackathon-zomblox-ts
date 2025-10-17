@@ -5,40 +5,29 @@ import { AManager } from "./abstract/AManager";
 
 // Do not waste time on this manager
 export default class UIManager extends AManager {
-  private fpsContainer: HTMLDivElement;
-  private fpsText: HTMLParagraphElement;
-
   private startGameContainer: HTMLDivElement;
-
-  private debugContainer: HTMLDivElement;
-  private debugTextTracks: HTMLDivElement;
-  private debugTextZombies: HTMLDivElement;
-  private debugTextHealth: HTMLDivElement;
-
-  private debugSettingsContainer: HTMLDivElement;
-
   private nightOverlay: HTMLDivElement;
 
   private uiControls: UiControls;
+
+  private debugContainer: HTMLDivElement;
+  private debugTextFps: HTMLDivElement;
+  private debugTextZombies: HTMLDivElement;
+  private debugTextHealth: HTMLDivElement;
+  private debugSettingsContainer: HTMLDivElement;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
 
     this.uiControls = getUiControls(this.gameInstance);
-
     this.startGameContainer = document.createElement("div");
-
-    this.fpsContainer = document.createElement("div");
-    this.fpsText = document.createElement("p");
+    this.nightOverlay = document.createElement("div");
 
     this.debugContainer = document.createElement("div");
-    this.debugTextTracks = document.createElement("div");
+    this.debugTextFps = document.createElement("div");
     this.debugTextZombies = document.createElement("div");
     this.debugTextHealth = document.createElement("div");
-
     this.debugSettingsContainer = document.createElement("div");
-
-    this.nightOverlay = document.createElement("div");
   }
 
   public init(): void {
@@ -49,25 +38,18 @@ export default class UIManager extends AManager {
     document.body.appendChild(this.nightOverlay);
 
     if (!this.gameInstance.isDev) return;
-    this.fpsContainer.className = styles.devUiContainer + " " + styles.contentContainer;
-    this.fpsText.className = styles.uiText;
-    this.fpsContainer.appendChild(this.fpsText);
-    document.body.appendChild(this.fpsContainer);
 
     this.debugContainer.className = styles.devUiContainer + " " + styles.devDebugContainer;
-    this.debugContainer.appendChild(this.debugTextTracks);
+    if (this.gameInstance.isDev) this.initDebugSettings();
+    this.debugContainer.appendChild(this.debugTextFps);
     this.debugContainer.appendChild(this.debugTextZombies);
     this.debugContainer.appendChild(this.debugTextHealth);
     document.body.appendChild(this.debugContainer);
-
-    if (this.gameInstance.isDev) this.initCheckbox();
   }
 
   public draw(fps: number): void {
     this.uiControlsDraw();
-
-    this.drawFps(fps);
-    this.drawDebug();
+    this.drawDebug(fps);
   }
 
   public showNightOverlay(): void {
@@ -78,62 +60,64 @@ export default class UIManager extends AManager {
     this.nightOverlay.style.opacity = "0";
   }
 
-  private initCheckbox(): void {
+  private initDebugSettings(): void {
     this.debugSettingsContainer.className =
       styles.devUiContainer + " " + styles.flagsContainer + " " + styles.contentContainer;
     const debugSettings = this.gameInstance.MANAGERS.GameManager.getSettings().debug;
 
-    const checkboxLabel = document.createElement("label");
+    const wrapper = document.createElement("div");
+    wrapper.className = styles.contentContainer;
 
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.checked = debugSettings.enableFlowFieldRender;
-    checkbox.addEventListener("change", (event) => {
-      const target = event.target as HTMLInputElement;
-      this.gameInstance.MANAGERS.GameManager.setSettings({
-        debug: { enableFlowFieldRender: target.checked },
+    let setting: keyof typeof debugSettings;
+    for (setting in debugSettings) {
+      const checkboxLabel = document.createElement("label");
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = debugSettings[setting];
+      checkbox.name = setting;
+      checkbox.addEventListener("change", (event) => {
+        const target = event.target as HTMLInputElement;
+        this.gameInstance.MANAGERS.GameManager.setSettings({
+          debug: { [target.name]: target.checked },
+        });
       });
-    });
-    checkboxLabel.appendChild(checkbox);
+      checkboxLabel.appendChild(checkbox);
 
-    const checkboxText = document.createElement("span");
-    checkboxText.className = styles.uiText;
-    checkboxText.innerText = "Debug flow field";
-    checkboxLabel.appendChild(checkboxText);
+      const checkboxText = document.createElement("span");
+      checkboxText.className = styles.uiText;
+      checkboxText.innerText = setting;
+      checkboxLabel.appendChild(checkboxText);
 
-    this.debugSettingsContainer.appendChild(checkboxLabel);
-    document.body.appendChild(this.debugSettingsContainer);
+      wrapper.appendChild(checkboxLabel);
+    }
+
+    this.debugContainer.appendChild(wrapper);
   }
 
-  public drawFps(fps: number): void {
-    if (!this.gameInstance.isDev) return;
-    this.fpsText.innerText = `${fps} FPS`;
-  }
-
-  public drawDebug(): void {
+  public drawDebug(fps: number): void {
     if (!this.gameInstance.isDev) return;
 
-    const playingTracks = [...this.gameInstance.MANAGERS.AssetManager.playingAudioTracks];
-    this.debugTextTracks.innerHTML = `
+    this.debugTextFps.innerHTML = `
 <div class="${styles.contentContainer}">
-  ${playingTracks.map((track) => `<div class="${styles.uiText}">${track}</div>`).join("")}
-  <div class="${styles.uiTitle}">Tracks playing:</div>
+  <div class="${styles.uiTitle}">FPS:</div>
+  <div class="${styles.uiText}">${fps}</div>
 </div>
     `;
 
     const zombiesAmount = this.gameInstance.MANAGERS.LevelManager.zombies.size;
     this.debugTextZombies.innerHTML = `
 <div class="${styles.contentContainer}">
-  <div class="${styles.uiText}">${zombiesAmount}</div>
   <div class="${styles.uiTitle}">Zombies:</div>
+  <div class="${styles.uiText}">${zombiesAmount}</div>
 </div>
 `;
 
     const health = this.gameInstance.MANAGERS.LevelManager.player?.health ?? 1;
     this.debugTextHealth.innerHTML = `
 <div class="${styles.contentContainer}">
-  <div class="${styles.uiText}">${health} / ${health}</div>
   <div class="${styles.uiTitle}">Health:</div>
+  <div class="${styles.uiText}">${health} / ${health}</div>
 </div>
 `;
   }
@@ -157,13 +141,12 @@ export default class UIManager extends AManager {
   }
 
   public destroy(): void {
-    this.fpsContainer.remove();
-    this.fpsText.remove();
     this.startGameContainer.remove();
     this.debugContainer.remove();
-    this.debugTextTracks.remove();
+    this.debugTextFps.remove();
     this.debugTextZombies.remove();
     this.debugTextHealth.remove();
     this.debugSettingsContainer.remove();
+    this.nightOverlay.remove();
   }
 }
