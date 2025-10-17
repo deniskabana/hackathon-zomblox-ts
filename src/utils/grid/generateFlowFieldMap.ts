@@ -24,7 +24,7 @@ export default function generateFlowField(levelGrid: LevelGrid, ...startPoints: 
   }
 
   // BFS from player position
-  const queue: Vector[] = []
+  const queue: Vector[] = [];
   for (const from of startPoints) {
     queue.push(from);
     flowField[from.x][from.y].distance = 0;
@@ -60,4 +60,3 @@ export default function generateFlowField(levelGrid: LevelGrid, ...startPoints: 
 
   return flowField;
 }
-

@@ -351,7 +351,11 @@ export default class LevelManager extends AManager {
   // Grid
   // ==================================================
 
-  private generateLevelGrid(fillPlayer: boolean = true, fillWithStaticObjects: boolean = true, fillWithZombies: boolean = false): LevelGrid {
+  private generateLevelGrid(
+    fillPlayer: boolean = true,
+    fillWithStaticObjects: boolean = true,
+    fillWithZombies: boolean = false,
+  ): LevelGrid {
     const levelGrid: LevelGrid = generateEmptyLevelGrid(GRID_CONFIG);
     if (!this.player) return levelGrid;
     fillLevelGrid(
@@ -369,7 +373,7 @@ export default class LevelManager extends AManager {
 
   private updatePathFindingGrid(): void {
     this.levelGrid = this.generateLevelGrid();
-    if (this.levelState?.phase === "day") return
+    if (this.levelState?.phase === "day") return;
     if (!this.player) return;
     this.lastPlayerGridPos = this.player.gridPos;
     this.flowField = generateFlowField(this.levelGrid, this.player.gridPos);

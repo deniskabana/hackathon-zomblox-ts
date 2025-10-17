@@ -22,7 +22,7 @@ export default class AssetManager extends AManager {
     super(gameInstance);
   }
 
-  public init(): void { }
+  public init(): void {}
 
   public async preloadAssets(): Promise<void> {
     this.isAssetsLoading = true;
@@ -140,7 +140,7 @@ export default class AssetManager extends AManager {
         const setNewVolume = () => {
           audio.volume = Math.min(volume, (0.05 + audio.volume) * 1.03);
           if (audio.volume < volume) setTimeout(setNewVolume, 96);
-          console.log(audio.volume)
+          console.log(audio.volume);
         };
         setNewVolume();
       },

@@ -181,7 +181,7 @@ export default class Zombie extends AEntity {
       .sort((a, b) => {
         const distA = flowField[a.x][a.y].distance;
         const distB = flowField[b.x][b.y].distance;
-        return distA - distB
+        return distA - distB;
       });
 
     if (validNeighbors.length > 1) {
