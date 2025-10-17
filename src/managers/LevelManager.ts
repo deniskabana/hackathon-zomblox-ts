@@ -288,7 +288,10 @@ export default class LevelManager extends AManager {
     this.gameInstance.MANAGERS.UIManager.showNightOverlay();
 
     this.updatePathFindingGrid();
-    for (const [_, zombie] of this.zombies) zombie.startChasingPlayer();
+    for (const [_, zombie] of this.zombies) {
+      zombie.setWorldPosition(this.getRandomZombieSpawnPosition());
+      zombie.startChasingPlayer();
+    }
 
     const gameSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
     this.nightEndCounter = gameSettings.nightDurationSec;
