@@ -45,7 +45,6 @@ export default class GameInstance {
 
     document.addEventListener("click", this.startGame.bind(this));
     this.loadAndPrepareGame();
-    for (const manager of Object.values(this.MANAGERS)) if ("init" in manager) manager.init();
   }
 
   private createCanvas(): HTMLCanvasElement {
@@ -69,7 +68,11 @@ export default class GameInstance {
   private async loadAndPrepareGame(): Promise<void> {
     this.MANAGERS.AssetManager.init();
     await this.MANAGERS.AssetManager.preloadAssets();
+
+    this.MANAGERS.GameManager.init();
     this.MANAGERS.GameManager.stateSetReady();
+
+    this.MANAGERS.UIManager.init();
     this.MANAGERS.UIManager.drawStartGameContainer();
   }
 
@@ -80,10 +83,8 @@ export default class GameInstance {
     // Asset manager was initialized in loadAndPrepareGame()
     this.MANAGERS.CameraManager.init();
     this.MANAGERS.DrawManager.init();
-    this.MANAGERS.GameManager.init();
     this.MANAGERS.InputManager.init();
     this.MANAGERS.LevelManager.init();
-    this.MANAGERS.UIManager.init();
     this.MANAGERS.VFXManager.init();
 
     this.MANAGERS.DrawManager.startRenderLoop();

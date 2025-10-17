@@ -45,6 +45,10 @@ export default class UIManager extends AManager {
     this.startGameContainer.className = styles.startGameContainer;
     document.body.appendChild(this.startGameContainer);
 
+    this.nightOverlay.className = styles.nightOverlay;
+    document.body.appendChild(this.nightOverlay);
+
+    if (!this.gameInstance.isDev) return;
     this.fpsContainer.className = styles.devUiContainer + " " + styles.contentContainer;
     this.fpsText.className = styles.uiText;
     this.fpsContainer.appendChild(this.fpsText);
@@ -57,9 +61,6 @@ export default class UIManager extends AManager {
     document.body.appendChild(this.debugContainer);
 
     if (this.gameInstance.isDev) this.initCheckbox();
-
-    this.nightOverlay.className = styles.nightOverlay;
-    document.body.appendChild(this.nightOverlay);
   }
 
   public draw(fps: number): void {

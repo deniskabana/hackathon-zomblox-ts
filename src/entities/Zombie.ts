@@ -27,7 +27,6 @@ export default class Zombie extends AEntity {
   private isWalking: boolean;
   private speed: number;
   private maxSpeed: number;
-  private distanceFromPlayer: number = Infinity;
   private angle: number = 0;
   private desiredAngle: number | undefined;
   private moveTargetPos: WorldPosition | undefined;
@@ -38,10 +37,14 @@ export default class Zombie extends AEntity {
   private clearTargetPosInterval: number = 5;
   private clearTargetPosTimer: number = 0;
 
+  private distanceFromPlayer: number = Infinity;
+  private minDistanceFromPlayer: number;
+
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     super(gridToWorld(gridPos), entityId, true);
     this.gameInstance = gameInstance;
     this.isWalking = true;
+    this.minDistanceFromPlayer = GRID_CONFIG.TILE_SIZE * 1.5;
 
     const settings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.zombie;
     this.health = settings.maxHealth + (Math.random() - 0.5) * settings.healthDeviation;
@@ -52,11 +55,18 @@ export default class Zombie extends AEntity {
 
   public update(_deltaTime: number) {
     this.applyRotation(_deltaTime);
-    this.updateMoveTarget(_deltaTime);
+
+    const player = this.gameInstance.MANAGERS.LevelManager.player;
+    if (player) this.distanceFromPlayer = getVectorDistance(this.worldPos, player.worldPos);
 
     if (!this.isWalking) return;
-    if (this.distanceFromPlayer < GRID_CONFIG.TILE_SIZE * 1.5) return;
+    if (this.distanceFromPlayer < this.minDistanceFromPlayer) {
+      this.moveTargetPos = this.gameInstance.MANAGERS.LevelManager.player?.worldPos;
+      this.clearTargetPosTimer = 0;
+      return;
+    }
 
+    this.updateMoveTarget(_deltaTime);
     const settings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.zombie;
     this.applyMovement(_deltaTime);
     if (settings.enableErraticBehavior) this.applyErraticBehavior(_deltaTime);
@@ -158,10 +168,9 @@ export default class Zombie extends AEntity {
     }
 
     const playerPos = player.worldPos;
-    this.distanceFromPlayer = getVectorDistance(this.worldPos, playerPos);
     const flowField = this.gameInstance.MANAGERS.LevelManager.flowField;
 
-    if (isInside && flowField) {
+    if (isInside && flowField && this.distanceFromPlayer >= this.minDistanceFromPlayer) {
       const fieldCell = flowField[this.gridPos.x][this.gridPos.y];
 
       const bestValueNeighbor = fieldCell.neighbors.reduce<Vector>((acc, val) => {
