@@ -41,9 +41,10 @@ export default class Zombie extends AEntity {
   private minDistanceFromPlayer: number;
 
   private stuckTimer: number = 0;
-  private stuckThreshold: number = 1.5;
+  private stuckThreshold: number = 1;
   private lastGridPos: GridPosition = { x: -1, y: -1 };
   private gridPosChangeTimer: number = 0;
+  private retreatFlowFieldIndex: number = 0;
 
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     super(gameInstance, gridToWorld(gridPos), entityId, true);
@@ -111,6 +112,10 @@ export default class Zombie extends AEntity {
     this.zombieState = ZombieState.REATREATING;
     const zombieSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.zombie;
     this.speed = zombieSettings.maxSpeed * 3;
+
+    const retreatFlowFields = this.gameInstance.MANAGERS.LevelManager.retreatFlowFields;
+    if (!retreatFlowFields) return;
+    this.retreatFlowFieldIndex = Math.floor(Math.random() * retreatFlowFields.length + 1);
   }
 
   public getHealth(): number {
@@ -231,6 +236,7 @@ export default class Zombie extends AEntity {
   private zombieChasePlayer(_deltaTime: number): void {
     const player = this.gameInstance.MANAGERS.LevelManager.player;
     const flowField = this.gameInstance.MANAGERS.LevelManager.flowField;
+    const gameSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules;
     if (!player) return;
 
     if (this.clearTargetPosTimer > 0) {
@@ -250,7 +256,7 @@ export default class Zombie extends AEntity {
 
     if (isInsideGrid(this.gridPos) && this.distanceFromPlayer >= this.minDistanceFromPlayer && !!flowField) {
       const lowestDistanceNeighbor = flowField[this.gridPos.x][this.gridPos.y].neighbors.reduce<Vector>((acc, val) => {
-        if (Math.random() > 0.99) return val; // Randomly skip tiles when checking, it's a zombie
+        if (gameSettings.zombie.enableErraticBehavior && Math.random() > 0.987) return val; // Randomly skip tiles when checking, it's a zombie
         if (!acc || flowField[val.x][val.y].distance < flowField[acc.x][acc.y].distance) return val;
         return acc;
       }, this.gridPos);
@@ -268,10 +274,11 @@ export default class Zombie extends AEntity {
   }
 
   private zombieRetreat(_deltaTime: number): void {
-    const flowField = this.gameInstance.MANAGERS.LevelManager.flowField;
+    const retreatFlowFields = this.gameInstance.MANAGERS.LevelManager.retreatFlowFields;
+    const flowField = retreatFlowFields?.[this.retreatFlowFieldIndex];
     if (!flowField) return;
 
-    if (!isInsideGrid(this.gridPos, GRID_CONFIG, -3)) {
+    if (!isInsideGrid(this.gridPos, GRID_CONFIG)) {
       this.zombieState = ZombieState.WAITING;
       return;
     }
@@ -282,6 +289,11 @@ export default class Zombie extends AEntity {
       const offsetY = y <= 0 ? -3 : y >= GRID_CONFIG.GRID_HEIGHT - 1 ? 3 : 0;
       this.moveTargetPos = gridToWorld({ x: x + offsetX, y: y + offsetY }, true);
       return;
+    }
+
+    if (!flowField[this.gridPos.x]?.[this.gridPos.y]?.neighbors) {
+      console.log(flowField, this.gridPos);
+      throw new Error("FUCK");
     }
 
     const lowestDistanceNeighbor = flowField[this.gridPos.x][this.gridPos.y].neighbors.reduce<Vector>((acc, val) => {
@@ -300,6 +312,7 @@ export default class Zombie extends AEntity {
       this.randomStopTimer = this.randomStopInterval * (0.3 + Math.random() * 0.7);
       setTimeout(
         () => {
+          if (this.zombieState !== ZombieState.CHASING_PLAYER) return;
           this.speed = this.maxSpeed;
         },
         clamp(200, Math.random() * 80 * this.distanceFromPlayer, this.randomStopTimer * 0.5),

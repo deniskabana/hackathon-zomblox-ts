@@ -20,13 +20,13 @@ export default class LevelManager extends AManager {
   public levelState?: LevelState;
   public levelGrid?: LevelGrid;
   public flowField?: FlowField;
+  public retreatFlowFields?: FlowField[];
 
   // Entities
   private entityIdCounter: number = 0;
   public player?: Player;
   private lastPlayerGridPos: GridPosition = { x: -99, y: -99 };
   public zombies: Map<number, Zombie> = new Map();
-  private zombieEdgeGoals: GridPosition[] = [];
   public blocks: Map<number, BlockWood> = new Map();
 
   // Gameplay
@@ -264,13 +264,13 @@ export default class LevelManager extends AManager {
     switch (Math.floor(Math.random() * 4)) {
       default:
       case 0:
-        return { x: Math.random() * GRID_CONFIG.GRID_WIDTH, y: -margin };
+        return { x: Math.random() * (GRID_CONFIG.GRID_WIDTH - 1), y: -margin };
       case 1:
-        return { x: GRID_CONFIG.GRID_WIDTH + margin, y: Math.random() * GRID_CONFIG.GRID_HEIGHT };
+        return { x: GRID_CONFIG.GRID_WIDTH - 1 + margin, y: Math.random() * (GRID_CONFIG.GRID_HEIGHT - 1) };
       case 2:
-        return { x: Math.random() * GRID_CONFIG.GRID_WIDTH, y: WORLD_SIZE.HEIGHT + margin };
+        return { x: Math.random() * (GRID_CONFIG.GRID_WIDTH - 1), y: WORLD_SIZE.HEIGHT - 1 + margin };
       case 3:
-        return { x: -margin, y: Math.random() * GRID_CONFIG.GRID_HEIGHT };
+        return { x: -margin, y: Math.random() * (GRID_CONFIG.GRID_HEIGHT - 1) };
     }
   }
 
@@ -288,10 +288,7 @@ export default class LevelManager extends AManager {
     this.gameInstance.MANAGERS.UIManager.showNightOverlay();
 
     this.updatePathFindingGrid();
-    for (const [_, zombie] of this.zombies) {
-      zombie.setWorldPosition(this.getRandomZombieSpawnPosition());
-      zombie.startChasingPlayer();
-    }
+    for (const [_, zombie] of this.zombies) zombie.startChasingPlayer();
 
     const gameSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
     this.nightEndCounter = gameSettings.nightDurationSec;
@@ -323,12 +320,23 @@ export default class LevelManager extends AManager {
 
   public startDay(): void {
     if (!this.levelState) return;
-    this.flowField = generateFlowField(this.generateLevelGrid(false), ...this.zombieEdgeGoals);
+
+    this.retreatFlowFields = [];
+    const amount = Math.max(20, this.zombies.size / 4);
+    for (let i = 0; i < amount; i++) {
+      this.retreatFlowFields.push(
+        generateFlowField(
+          this.generateLevelGrid(false),
+          ...this.getRandomEdgePositions(),
+          ...this.getRandomEdgePositions(),
+        ),
+      );
+    }
+
     this.levelState.phase = "day";
     this.levelState.daysCounter += 1;
     this.gameInstance.MANAGERS.UIManager.hideNightOverlay();
     this.stopSpawningZombies();
-    this.randomizeZombieEdgePos();
 
     for (const [_, zombie] of this.zombies) zombie.startRetreating();
 
@@ -385,25 +393,16 @@ export default class LevelManager extends AManager {
   // Utils
   // ==================================================
 
-  private randomizeZombieEdgePos(): void {
-    this.zombieEdgeGoals = [
+  private getRandomEdgePositions(): GridPosition[] {
+    return [
       // Top edge
-      { x: Math.floor(GRID_CONFIG.GRID_WIDTH * 0.25), y: 0 },
-      { x: Math.floor(GRID_CONFIG.GRID_WIDTH * 0.5), y: 0 },
-      { x: Math.floor(GRID_CONFIG.GRID_WIDTH * 0.75), y: 0 },
-
+      { x: Math.floor(GRID_CONFIG.GRID_WIDTH * Math.random()), y: 0 },
       // Bottom edge
-      { x: Math.floor(GRID_CONFIG.GRID_WIDTH * 0.25), y: GRID_CONFIG.GRID_HEIGHT - 1 },
-      { x: Math.floor(GRID_CONFIG.GRID_WIDTH * 0.5), y: GRID_CONFIG.GRID_HEIGHT - 1 },
-      { x: Math.floor(GRID_CONFIG.GRID_WIDTH * 0.75), y: GRID_CONFIG.GRID_HEIGHT - 1 },
-
+      { x: Math.floor(GRID_CONFIG.GRID_WIDTH * Math.random()), y: GRID_CONFIG.GRID_HEIGHT - 1 },
       // Left edge
-      { x: 0, y: Math.floor(GRID_CONFIG.GRID_HEIGHT * 0.33) },
-      { x: 0, y: Math.floor(GRID_CONFIG.GRID_HEIGHT * 0.66) },
-
+      { x: 0, y: Math.floor(GRID_CONFIG.GRID_HEIGHT * Math.random()) },
       // Right edge
-      { x: GRID_CONFIG.GRID_WIDTH - 1, y: Math.floor(GRID_CONFIG.GRID_HEIGHT * 0.33) },
-      { x: GRID_CONFIG.GRID_WIDTH - 1, y: Math.floor(GRID_CONFIG.GRID_HEIGHT * 0.66) },
+      { x: GRID_CONFIG.GRID_WIDTH - 1, y: Math.floor(GRID_CONFIG.GRID_HEIGHT * Math.random()) },
     ];
   }
 

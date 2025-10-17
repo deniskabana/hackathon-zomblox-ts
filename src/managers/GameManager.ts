@@ -74,8 +74,6 @@ export default class GameManager extends AManager {
     const { rules: _, ...safeSettings } = this.gameSettings;
     localStorage.setItem(KEY_SETTINGS, JSON.stringify(safeSettings));
 
-    console.log("new settings", settings);
-
     if (settings?.volume) this.gameInstance.MANAGERS.AssetManager.updateMusicVolume();
   }
 

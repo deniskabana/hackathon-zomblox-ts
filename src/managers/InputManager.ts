@@ -18,6 +18,11 @@ export default class InputManager extends AManager {
     document.addEventListener("mouseup", this.onMouseUp.bind(this));
     document.addEventListener("mousemove", this.onMouseMove.bind(this));
 
+    document.addEventListener("touchstart", this.genericPreventDefault.bind(this));
+    document.addEventListener("touchmove", this.genericPreventDefault.bind(this));
+    document.addEventListener("touchend", this.genericPreventDefault.bind(this));
+    document.addEventListener("touchcancel", this.genericPreventDefault.bind(this));
+
     document.addEventListener("keydown", this.onKeyDown.bind(this));
     document.addEventListener("keyup", this.onKeyUp.bind(this));
     document.addEventListener("keypress", this.onKeyPress.bind(this));
@@ -27,6 +32,10 @@ export default class InputManager extends AManager {
 
   // Event handles
   // --------------------------------------------------
+
+  private genericPreventDefault(event: Event): void {
+    event.preventDefault();
+  }
 
   private onMouseDown(): void {
     this.isMousePressed = true;
@@ -79,5 +88,9 @@ export default class InputManager extends AManager {
     document.removeEventListener("mousemove", this.onMouseMove);
     document.removeEventListener("keydown", this.onKeyDown);
     document.removeEventListener("keyup", this.onKeyUp);
+    document.removeEventListener("touchstart", this.genericPreventDefault);
+    document.removeEventListener("touchmove", this.genericPreventDefault);
+    document.removeEventListener("touchend", this.genericPreventDefault);
+    document.removeEventListener("touchcancel", this.genericPreventDefault);
   }
 }

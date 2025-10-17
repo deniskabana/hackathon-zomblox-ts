@@ -1,6 +1,7 @@
 import { GRID_CONFIG, type GridPosition } from "../../config/gameGrid";
 import { GridTileState, type LevelGrid } from "../../types/Grid";
 import type { Vector } from "../../types/Vector";
+import { clamp } from "../math/clamp";
 
 export interface FlowFieldCell {
   distance: number;
@@ -27,7 +28,7 @@ export default function generateFlowField(levelGrid: LevelGrid, ...startPoints: 
   const queue: Vector[] = [];
   for (const from of startPoints) {
     queue.push(from);
-    flowField[from.x][from.y].distance = 0;
+    flowField[clamp(0, from.x, GRID_CONFIG.GRID_WIDTH - 1)][clamp(0, from.y, GRID_CONFIG.GRID_HEIGHT - 1)].distance = 0;
   }
 
   while (queue.length > 0) {
