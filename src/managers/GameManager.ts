@@ -69,6 +69,8 @@ export default class GameManager extends AManager {
     const newSettings = mergeDeep({ ...this.gameSettings }, settings);
     this.gameSettings = newSettings;
     localStorage.setItem(KEY_SETTINGS, JSON.stringify(this.gameSettings));
+
+    if (settings?.volume) this.gameInstance.MANAGERS.AssetManager.updateMusicVolume();
   }
 
   public getSettings(): Settings {

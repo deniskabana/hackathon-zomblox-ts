@@ -15,6 +15,7 @@ export default class AssetManager extends AManager {
   private isReady: boolean = false;
 
   public playingAudioTracks: AssetAudioName[] = [];
+  public playingMusic: Map<HTMLAudioElement, number> = new Map();
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
@@ -89,7 +90,6 @@ export default class AssetManager extends AManager {
     switch (type) {
       case "music":
         if (this.playingAudioTracks.includes(assetName)) return;
-        audio.volume = volumeSettings.music * volumeSettings.master * volume;
         audio.loop = true;
         break;
 
@@ -106,11 +106,31 @@ export default class AssetManager extends AManager {
     if (loop !== undefined) audio.loop = loop;
 
     this.playingAudioTracks.push(assetName);
+    if (type === "music") this.playingMusic.set(audio, volume);
+
     audio.onended = () => {
+      this.playingMusic.delete(audio);
       const index = this.playingAudioTracks.findIndex((name) => name === assetName);
       if (index !== -1) this.playingAudioTracks.splice(index);
     };
+
     audio.play();
+    this.updateMusicVolume();
+  }
+
+  public pauseAllMusic(): void {
+    for (const [track] of this.playingMusic) track.pause();
+  }
+
+  public resumeAllMusic(): void {
+    for (const [track] of this.playingMusic) track.play();
+    this.updateMusicVolume();
+  }
+
+  public updateMusicVolume(): void {
+    const volumeSettings = this.gameInstance.MANAGERS.GameManager.getSettings().volume;
+    for (const [track, volume] of this.playingMusic)
+      track.volume = volumeSettings.music * volumeSettings.master * volume;
   }
 
   public getIsReady(): boolean {

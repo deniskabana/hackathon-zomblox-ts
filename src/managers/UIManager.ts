@@ -1,5 +1,6 @@
 import type GameInstance from "../GameInstance";
 import styles from "../styles/UIManager.module.css";
+import getUiControls, { type UiControls } from "../ui/uiControls";
 import { AManager } from "./abstract/AManager";
 
 // Do not waste time on this manager
@@ -16,8 +17,14 @@ export default class UIManager extends AManager {
 
   private debugSettingsContainer: HTMLDivElement;
 
+  private nightOverlay: HTMLDivElement;
+
+  private uiControls: UiControls;
+
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
+
+    this.uiControls = getUiControls(this.gameInstance);
 
     this.startGameContainer = document.createElement("div");
 
@@ -30,6 +37,8 @@ export default class UIManager extends AManager {
     this.debugTextHealth = document.createElement("div");
 
     this.debugSettingsContainer = document.createElement("div");
+
+    this.nightOverlay = document.createElement("div");
   }
 
   public init(): void {
@@ -48,6 +57,23 @@ export default class UIManager extends AManager {
     document.body.appendChild(this.debugContainer);
 
     if (this.gameInstance.isDev) this.initCheckbox();
+
+    this.nightOverlay.className = styles.nightOverlay;
+  }
+
+  public draw(fps: number): void {
+    this.uiControlsDraw();
+
+    this.drawFps(fps);
+    this.drawDebug();
+  }
+
+  public drawNightOverlay(): void {
+    this.nightOverlay.style.opacity = "1";
+  }
+
+  public hideNightOverlay(): void {
+    this.nightOverlay.style.opacity = "0";
   }
 
   private initCheckbox(): void {
@@ -122,6 +148,10 @@ export default class UIManager extends AManager {
   public hideStartGameContainer(): void {
     this.startGameContainer.style = `display: none;`;
     this.startGameContainer.innerHTML = "";
+  }
+
+  private uiControlsDraw(): void {
+    for (const control of Object.values(this.uiControls)) control.draw();
   }
 
   public destroy(): void {

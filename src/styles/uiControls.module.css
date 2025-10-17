@@ -1,0 +1,28 @@
+.uiControl {
+  position: fixed;
+  z-index: 9;
+  background: #1f1f4a59;
+  border: 1px solid #999999af;
+  border-radius: 1rem;
+  padding: 1rem;
+  font-size: 1.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #ffffffc0;
+  width: 2rem;
+  height: 2rem;
+
+  backdrop-filter: blur(4px);
+  box-shadow: 2px 2px 6px rgba(10, 10, 20, 0.15);
+  transition: all 0.2s ease;
+}
+
+.uiControl:hover {
+  background: #3c4c7f6f;
+}
+
+.masterVolumeToggleButton {
+  top: 1rem;
+  right: 1rem;
+}

@@ -71,8 +71,7 @@ export default class DrawManager extends AManager {
     this.clearCanvas();
     this.gameInstance.update(deltaTime); // TODO: Extract update from render loop when I have time
     this.renderDrawQueue();
-    this.gameInstance.MANAGERS.UIManager.drawFps(this.fps);
-    this.gameInstance.MANAGERS.UIManager.drawDebug();
+    this.gameInstance.MANAGERS.UIManager.draw(this.fps);
     this.gameInstance.MANAGERS.VFXManager.draw();
     this.gameInstance.MANAGERS.LevelManager.drawEntities();
 

@@ -32,6 +32,7 @@ export default class LevelManager extends AManager {
   private zombieSpawnInterval: number = 1200;
   private spawnTimer: number = 0;
   private zombieSpawnsLeft: number = 0;
+  private nightEndCounter: number = 0;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
@@ -42,9 +43,13 @@ export default class LevelManager extends AManager {
     for (const zombie of this.zombies.values()) zombie.update(_deltaTime);
     this.applyZombieSpawn(_deltaTime);
 
-    // Apply movement
     const hasPlayerMoved = !this.player || !areVectorsEqual(this.lastPlayerGridPos, this.player.gridPos);
     if (hasPlayerMoved || !this.flowField) this.updatePathFindingGrid();
+
+    if (this.levelState?.phase === "night") {
+      this.nightEndCounter -= _deltaTime;
+      if (this.nightEndCounter <= 0) this.startDay();
+    }
   }
 
   public init(): void {
@@ -208,16 +213,16 @@ export default class LevelManager extends AManager {
   // Day and night
   // ==================================================
 
-  public endNight() {
-    if (this.levelState?.phase !== "night") return;
-    this.levelState.phase = "day";
-    this.levelState.daysCounter += 1;
+  public startNight() {
+    if (!this.levelState || this.levelState?.phase === "night") return;
+    this.levelState.phase = "night";
     // TODO: UI and game changes
   }
 
-  public endDay() {
-    if (this.levelState?.phase !== "day") return;
-    this.levelState.phase = "night";
+  public startDay() {
+    if (!this.levelState || this.levelState?.phase === "day") return;
+    this.levelState.phase = "day";
+    this.levelState.daysCounter += 1;
     // TODO: UI and game changes
   }
 

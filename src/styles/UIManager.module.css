@@ -4,7 +4,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: #2a2a2ab8;
+  background: #2a2a2af8;
   z-index: 10;
   display: flex;
   place-items: center;
@@ -16,6 +16,18 @@
   font-weight: bold;
   width: 100%;
   font-size: 21px;
+}
+
+.nightOverlay {
+  display: block;
+  position: fixed;
+  z-index: 4;
+  background: #1a1a1a8f;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  transition: opacity ease-in 0.8s;
 }
 
 .devUiContainer {
