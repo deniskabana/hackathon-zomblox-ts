@@ -1,5 +1,6 @@
 import type GameInstance from "../GameInstance";
 import styles from "../styles//uiControls.module.css";
+import assertNever from "../utils/assertNever";
 import cx from "../utils/cx";
 
 export interface UiControls {
@@ -9,8 +10,18 @@ export interface UiControls {
 export default function getUiControls(gameInstance: GameInstance): UiControls {
   const masterVolumeToggleButton = getMasterVolumeToggleButton(gameInstance);
 
+  const touchControlArrLeft = getTouchControlArrows(gameInstance, "left");
+  const touchControlArrTop = getTouchControlArrows(gameInstance, "top");
+  const touchControlArrRight = getTouchControlArrows(gameInstance, "right");
+  const touchControlArrBottom = getTouchControlArrows(gameInstance, "bottom");
+
   return {
     masterVolumeToggleButton,
+
+    touchControlArrLeft,
+    touchControlArrTop,
+    touchControlArrRight,
+    touchControlArrBottom,
   };
 }
 
@@ -37,5 +48,58 @@ function getMasterVolumeToggleButton(gameInstance: GameInstance): UiControls[str
       const label = volumeSettings.master === 0 ? "🔇" : "🔊";
       if (buttonEl.innerText !== label) buttonEl.innerText = label;
     },
+  };
+}
+
+function getTouchControlArrows(
+  gameInstance: GameInstance,
+  dir: "left" | "top" | "right" | "bottom",
+): UiControls[string] {
+  const buttonEl = document.createElement("div");
+  document.body.appendChild(buttonEl);
+  buttonEl.className = cx(styles.uiControl);
+
+  let label = "";
+  let charCode = ""; // TODO: Rewrite this once GameControls are being used!
+
+  switch (dir) {
+    case "left":
+      label = "←";
+      charCode = "KeyA";
+      buttonEl.classList.add(styles.touchControlArrLeft);
+      break;
+    case "top":
+      label = "↑";
+      charCode = "KeyW";
+      buttonEl.classList.add(styles.touchControlArrTop);
+      break;
+    case "right":
+      label = "→";
+      charCode = "KeyD";
+      buttonEl.classList.add(styles.touchControlArrRight);
+      break;
+    case "bottom":
+      label = "↓";
+      charCode = "KeyS";
+      buttonEl.classList.add(styles.touchControlArrBottom);
+      break;
+    default:
+      assertNever(dir);
+  }
+
+  const onKeyPress = () => {
+    gameInstance.MANAGERS.InputManager.onKeyDown(new KeyboardEvent("keypress", { code: charCode }));
+  };
+
+  const onKeyUp = () => {
+    gameInstance.MANAGERS.InputManager.onKeyUp(new KeyboardEvent("keyup", { code: charCode }));
+  };
+
+  buttonEl.innerText = label;
+  buttonEl.addEventListener("mousedown", onKeyPress);
+  document.addEventListener("mouseup", onKeyUp);
+
+  return {
+    draw: () => {},
   };
 }

@@ -40,17 +40,17 @@ export default class InputManager extends AManager {
     this.updateMousePosition(event);
   }
 
-  private onKeyDown(event: KeyboardEvent): void {
+  public onKeyDown(event: KeyboardEvent): void {
     event.preventDefault();
     this.keysPressed.add(event.code);
   }
 
-  private onKeyUp(event: KeyboardEvent): void {
+  public onKeyUp(event: KeyboardEvent): void {
     event.preventDefault();
     this.keysPressed.delete(event.code);
   }
 
-  private onKeyPress(event: KeyboardEvent): void {
+  public onKeyPress(event: KeyboardEvent): void {
     event.preventDefault();
   }
 
