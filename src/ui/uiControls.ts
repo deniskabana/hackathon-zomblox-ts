@@ -32,7 +32,7 @@ function getMasterVolumeToggleButton(gameInstance: GameInstance): UiControls[str
   document.body.appendChild(buttonEl);
   buttonEl.className = cx(styles.uiControl, styles.masterVolumeToggleButton);
 
-  buttonEl.onclick = () => {
+  const handleClick = () => {
     const volumeSettings = gameInstance.MANAGERS.GameManager.getSettings().volume;
 
     if (volumeSettings.master === 1) {
@@ -43,6 +43,9 @@ function getMasterVolumeToggleButton(gameInstance: GameInstance): UiControls[str
       gameInstance.MANAGERS.AssetManager.resumeAllMusic();
     }
   };
+
+  buttonEl.addEventListener("click", handleClick);
+  buttonEl.addEventListener("touchend", handleClick);
 
   return {
     draw: () => {
@@ -59,11 +62,14 @@ function getSleepUntilNightButton(gameInstance: GameInstance): UiControls[string
   buttonEl.className = cx(styles.uiControl, styles.sleepUntilNightButton);
   buttonEl.innerHTML = "🛏️";
 
-  buttonEl.onclick = () => {
+  const handleClick = () => {
     const isDay = gameInstance.MANAGERS.LevelManager.getIsDay();
     if (!isDay) return;
     gameInstance.MANAGERS.LevelManager.startNight();
   };
+
+  buttonEl.addEventListener("click", handleClick);
+  buttonEl.addEventListener("touchend", handleClick);
 
   return {
     draw: () => {
