@@ -51,7 +51,8 @@ export default class UIManager extends AManager {
   }
 
   private initCheckbox(): void {
-    this.debugSettingsContainer.className = styles.devUiContainer + " " + styles.flagsContainer + " " + styles.contentContainer;
+    this.debugSettingsContainer.className =
+      styles.devUiContainer + " " + styles.flagsContainer + " " + styles.contentContainer;
     const debugSettings = this.gameInstance.MANAGERS.GameManager.getSettings().debug;
 
     const checkboxLabel = document.createElement("label");
