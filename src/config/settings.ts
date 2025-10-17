@@ -17,9 +17,9 @@ export const DEFAULT_SETTINGS = {
       zombieSpawnCoef: 1.2,
       nightDurationSec: 30,
       enableBlocksDestruction: true,
+      startZombiesAmount: 5,
     },
     zombie: {
-      startZombiesAmount: 5,
       enableErraticBehavior: true,
       enableErraticNavOffset: true,
       swimChanceNilToOne: 1,

@@ -71,7 +71,7 @@ export default class UIManager extends AManager {
   }
 
   public showNightOverlay(): void {
-    this.nightOverlay.style.opacity = "0.6";
+    this.nightOverlay.style.opacity = "0.4";
   }
 
   public hideNightOverlay(): void {

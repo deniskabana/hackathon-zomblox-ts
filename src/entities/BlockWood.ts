@@ -4,12 +4,10 @@ import { ZIndex } from "../types/ZIndex";
 import AEntity from "./abstract/AEntity";
 
 export default class BlockWood extends AEntity {
-  private gameInstance: GameInstance;
   public health: number;
 
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
-    super(gridToWorld(gridPos), entityId, false);
-    this.gameInstance = gameInstance;
+    super(gameInstance, gridToWorld(gridPos), entityId, false);
 
     const settings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.blocks;
     this.health = settings.woodStartHealth;

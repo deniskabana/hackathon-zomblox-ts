@@ -42,10 +42,11 @@ export default function generateFlowField(levelGrid: LevelGrid, from: GridPositi
 
         if (!levelGrid?.[nx]?.[ny]) continue;
         if (levelGrid[nx][ny].state !== GridTileState.AVAILABLE) continue;
-        if (dx !== 0 && dy !== 0) continue; // Force only 4-way scanning
 
         // WARN: Keep neighbors calculation here instead of in Zombie class due to "limitless" zombies
         flowField[current.x][current.y].neighbors.push(next);
+
+        if (dx !== 0 && dy !== 0) continue; // Force only 4-way scanning
 
         if (flowField[nx][ny].distance === Infinity) {
           flowField[nx][ny].distance = currentDist + 1;

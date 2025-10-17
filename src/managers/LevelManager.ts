@@ -178,6 +178,13 @@ export default class LevelManager extends AManager {
     const settings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
     this.isSpawningZombies = true;
     this.zombieSpawnsLeft = settings.zombieSpawnAmount;
+
+    for (let i = 0; i < settings.startZombiesAmount; i++) {
+      if (this.zombieSpawnsLeft <= 0) return;
+      const entityId = this.entityIdCounter++;
+      this.zombies.set(entityId, new Zombie(this.getRandomZombieSpawnPosition(), entityId, this.gameInstance));
+      this.zombieSpawnsLeft--;
+    }
   }
 
   public stopSpawningZombies(): void {
@@ -224,10 +231,13 @@ export default class LevelManager extends AManager {
     if (!this.levelState) return;
     this.levelState.phase = "night";
     this.gameInstance.MANAGERS.UIManager.showNightOverlay();
-    this.startSpawningZombies();
+
+    this.updatePathFindingGrid();
+    for (const [_, zombie] of this.zombies) zombie.startChasingPlayer();
 
     const gameSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
     this.nightEndCounter = gameSettings.nightDurationSec;
+    this.startSpawningZombies();
   }
 
   public startDay(): void {
@@ -236,6 +246,9 @@ export default class LevelManager extends AManager {
     this.levelState.daysCounter += 1;
     this.gameInstance.MANAGERS.UIManager.hideNightOverlay();
     this.stopSpawningZombies();
+
+    this.updatePathFindingGrid();
+    for (const [_, zombie] of this.zombies) zombie.startRetreating();
   }
 
   public getIsDay(): boolean {

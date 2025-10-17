@@ -18,7 +18,6 @@ import normalizeVector from "../utils/math/normalizeVector";
 import AEntity from "./abstract/AEntity";
 
 export default class Player extends AEntity {
-  private gameInstance: GameInstance;
   private moveDirection: number = 0;
   private moveSpeed: number;
   private isMoving: boolean = false;
@@ -33,8 +32,7 @@ export default class Player extends AEntity {
   private stepSoundCooldownTimer: number = 0;
 
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
-    super(gridToWorld(gridPos), entityId, true);
-    this.gameInstance = gameInstance;
+    super(gameInstance, gridToWorld(gridPos), entityId, true);
 
     const settings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.player;
     this.moveSpeed = settings.movementSpeed;
