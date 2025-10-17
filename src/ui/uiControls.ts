@@ -96,8 +96,12 @@ function getTouchControlArrows(
   };
 
   buttonEl.innerText = label;
+
   buttonEl.addEventListener("mousedown", onKeyPress);
   document.addEventListener("mouseup", onKeyUp);
+
+  buttonEl.addEventListener("touchstart", onKeyPress);
+  document.addEventListener("touchend", onKeyUp);
 
   return {
     draw: () => {},
