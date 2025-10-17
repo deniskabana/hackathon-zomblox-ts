@@ -44,6 +44,7 @@ export default class GameInstance {
     };
 
     document.addEventListener("click", this.startGame.bind(this));
+    document.addEventListener("touchend", this.startGame.bind(this));
     this.loadAndPrepareGame();
   }
 

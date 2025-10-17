@@ -280,6 +280,8 @@ export default class Zombie extends AEntity {
 
     if (!isInsideGrid(this.gridPos, GRID_CONFIG)) {
       this.zombieState = ZombieState.WAITING;
+      this.gridPos.x = Math.floor(Math.random() * (GRID_CONFIG.GRID_WIDTH - 1));
+      this.gridPos.y = Math.floor(Math.random() * (GRID_CONFIG.GRID_HEIGHT - 1));
       return;
     }
 
