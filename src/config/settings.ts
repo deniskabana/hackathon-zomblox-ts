@@ -19,6 +19,7 @@ export const DEFAULT_SETTINGS = {
       enableBlocksDestruction: true,
     },
     zombie: {
+      startZombiesAmount: 5,
       enableErraticBehavior: true,
       enableErraticNavOffset: true,
       swimChanceNilToOne: 1,

@@ -2,6 +2,7 @@ import type GameInstance from "../GameInstance";
 import styles from "../styles/UIManager.module.css";
 import { AManager } from "./abstract/AManager";
 
+// Do not waste time on this manager
 export default class UIManager extends AManager {
   private fpsContainer: HTMLDivElement;
   private fpsText: HTMLParagraphElement;
@@ -13,46 +14,51 @@ export default class UIManager extends AManager {
   private debugTextZombies: HTMLDivElement;
   private debugTextHealth: HTMLDivElement;
 
-  private flagsContainer: HTMLDivElement | undefined;
+  private debugSettingsContainer: HTMLDivElement;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
 
-    this.gameInstance = gameInstance;
     this.startGameContainer = document.createElement("div");
+
+    this.fpsContainer = document.createElement("div");
+    this.fpsText = document.createElement("p");
+
+    this.debugContainer = document.createElement("div");
+    this.debugTextTracks = document.createElement("div");
+    this.debugTextZombies = document.createElement("div");
+    this.debugTextHealth = document.createElement("div");
+
+    this.debugSettingsContainer = document.createElement("div");
+  }
+
+  public init(): void {
     this.startGameContainer.className = styles.startGameContainer;
     document.body.appendChild(this.startGameContainer);
 
-    this.fpsContainer = document.createElement("div");
     this.fpsContainer.className = styles.devUiContainer + " " + styles.contentContainer;
-    this.fpsText = document.createElement("p");
     this.fpsText.className = styles.uiText;
     this.fpsContainer.appendChild(this.fpsText);
     document.body.appendChild(this.fpsContainer);
 
-    this.debugContainer = document.createElement("div");
     this.debugContainer.className = styles.devUiContainer + " " + styles.devDebugContainer;
-    this.debugTextTracks = document.createElement("div");
-    this.debugTextZombies = document.createElement("div");
-    this.debugTextHealth = document.createElement("div");
     this.debugContainer.appendChild(this.debugTextTracks);
     this.debugContainer.appendChild(this.debugTextZombies);
     this.debugContainer.appendChild(this.debugTextHealth);
     document.body.appendChild(this.debugContainer);
 
-    if (gameInstance.isDev) this.initCheckbox();
+    if (this.gameInstance.isDev) this.initCheckbox();
   }
 
-  public init(): void {}
-
   private initCheckbox(): void {
-    this.flagsContainer = document.createElement("div");
-    this.flagsContainer.className = styles.devUiContainer + " " + styles.flagsContainer + " " + styles.contentContainer;
+    this.debugSettingsContainer.className = styles.devUiContainer + " " + styles.flagsContainer + " " + styles.contentContainer;
+    const debugSettings = this.gameInstance.MANAGERS.GameManager.getSettings().debug;
 
     const checkboxLabel = document.createElement("label");
 
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
+    checkbox.checked = debugSettings.enableFlowFieldRender;
     checkbox.addEventListener("change", (event) => {
       const target = event.target as HTMLInputElement;
       this.gameInstance.MANAGERS.GameManager.setSettings({
@@ -66,8 +72,8 @@ export default class UIManager extends AManager {
     checkboxText.innerText = "Debug flow field";
     checkboxLabel.appendChild(checkboxText);
 
-    this.flagsContainer.appendChild(checkboxLabel);
-    document.body.appendChild(this.flagsContainer);
+    this.debugSettingsContainer.appendChild(checkboxLabel);
+    document.body.appendChild(this.debugSettingsContainer);
   }
 
   public drawFps(fps: number): void {
@@ -117,5 +123,14 @@ export default class UIManager extends AManager {
     this.startGameContainer.innerHTML = "";
   }
 
-  public destroy(): void {}
+  public destroy(): void {
+    this.fpsContainer.remove();
+    this.fpsText.remove();
+    this.startGameContainer.remove();
+    this.debugContainer.remove();
+    this.debugTextTracks.remove();
+    this.debugTextZombies.remove();
+    this.debugTextHealth.remove();
+    this.debugSettingsContainer.remove();
+  }
 }

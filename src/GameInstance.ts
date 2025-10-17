@@ -67,6 +67,7 @@ export default class GameInstance {
   }
 
   private async loadAndPrepareGame(): Promise<void> {
+    this.MANAGERS.AssetManager.init();
     await this.MANAGERS.AssetManager.preloadAssets();
     this.MANAGERS.GameManager.stateSetReady();
     this.MANAGERS.UIManager.drawStartGameContainer();
@@ -76,9 +77,15 @@ export default class GameInstance {
     if (this.MANAGERS.GameManager.getState() !== GameState.READY) return;
     document.removeEventListener("click", this.startGame);
 
-    this.MANAGERS.LevelManager.init();
-
+    // Asset manager was initialized in loadAndPrepareGame()
+    this.MANAGERS.CameraManager.init();
     this.MANAGERS.DrawManager.init();
+    this.MANAGERS.GameManager.init();
+    this.MANAGERS.InputManager.init();
+    this.MANAGERS.LevelManager.init();
+    this.MANAGERS.UIManager.init();
+    this.MANAGERS.VFXManager.init();
+
     this.MANAGERS.DrawManager.startRenderLoop();
 
     this.MANAGERS.UIManager.hideStartGameContainer();
@@ -86,5 +93,21 @@ export default class GameInstance {
 
     this.MANAGERS.AssetManager.playAudioAsset("AMusicBackground", "music");
     this.MANAGERS.AssetManager.playAudioAsset("AFXZombieAmbience", "music", 0.4);
+  }
+
+  public stopAndQuiteGame(): void {
+    this.MANAGERS.GameManager.stateSetPaused(true);
+    this.destroy();
+  }
+
+  private destroy(): void {
+    this.MANAGERS.AssetManager.destroy();
+    this.MANAGERS.CameraManager.destroy();
+    this.MANAGERS.DrawManager.destroy();
+    this.MANAGERS.GameManager.destroy();
+    this.MANAGERS.InputManager.destroy();
+    this.MANAGERS.LevelManager.destroy();
+    this.MANAGERS.UIManager.destroy();
+    this.MANAGERS.VFXManager.destroy();
   }
 }

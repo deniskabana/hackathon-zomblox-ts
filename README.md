@@ -29,3 +29,10 @@ $ yarn dev
 ```
 
 Open http://localhost:5173/ to start development.
+
+### More info
+
+<div align="center">
+  <img src="screenshot-flowfield.jpg" alt="Screenshot - Flow field pathfinding" />
+  <p>Flow field pathfinding</p>
+</div>
