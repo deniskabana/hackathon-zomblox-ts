@@ -59,6 +59,7 @@ export default class UIManager extends AManager {
     if (this.gameInstance.isDev) this.initCheckbox();
 
     this.nightOverlay.className = styles.nightOverlay;
+    document.body.appendChild(this.nightOverlay);
   }
 
   public draw(fps: number): void {
@@ -68,8 +69,8 @@ export default class UIManager extends AManager {
     this.drawDebug();
   }
 
-  public drawNightOverlay(): void {
-    this.nightOverlay.style.opacity = "1";
+  public showNightOverlay(): void {
+    this.nightOverlay.style.opacity = "0.6";
   }
 
   public hideNightOverlay(): void {

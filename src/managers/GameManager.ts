@@ -18,7 +18,10 @@ export default class GameManager extends AManager {
     if (storedSettings !== null) {
       try {
         const settings = JSON.parse(storedSettings);
-        if (settings) this.setSettings(settings);
+        if (settings) {
+          const { rules: _, ...safeSettings } = settings;
+          this.setSettings(safeSettings);
+        }
       } catch {
         /* Swallow */
       }
@@ -68,7 +71,8 @@ export default class GameManager extends AManager {
   public setSettings(settings: DeepPartial<Settings>): void {
     const newSettings = mergeDeep({ ...this.gameSettings }, settings);
     this.gameSettings = newSettings;
-    localStorage.setItem(KEY_SETTINGS, JSON.stringify(this.gameSettings));
+    const { rules: _, ...safeSettings } = this.gameSettings;
+    localStorage.setItem(KEY_SETTINGS, JSON.stringify(safeSettings));
 
     if (settings?.volume) this.gameInstance.MANAGERS.AssetManager.updateMusicVolume();
   }

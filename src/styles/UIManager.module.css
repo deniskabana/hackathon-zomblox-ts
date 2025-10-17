@@ -21,8 +21,8 @@
 .nightOverlay {
   display: block;
   position: fixed;
-  z-index: 4;
-  background: #1a1a1a8f;
+  z-index: 1;
+  background: #030403;
   left: 0;
   top: 0;
   width: 100%;

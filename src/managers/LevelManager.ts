@@ -32,6 +32,7 @@ export default class LevelManager extends AManager {
   private zombieSpawnInterval: number = 1200;
   private spawnTimer: number = 0;
   private zombieSpawnsLeft: number = 0;
+
   private nightEndCounter: number = 0;
 
   constructor(gameInstance: GameInstance) {
@@ -40,7 +41,9 @@ export default class LevelManager extends AManager {
 
   public update(_deltaTime: number) {
     this.player?.update(_deltaTime);
+
     for (const zombie of this.zombies.values()) zombie.update(_deltaTime);
+
     this.applyZombieSpawn(_deltaTime);
 
     const hasPlayerMoved = !this.player || !areVectorsEqual(this.lastPlayerGridPos, this.player.gridPos);
@@ -58,7 +61,7 @@ export default class LevelManager extends AManager {
 
     const gameSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
     this.zombieSpawnInterval = gameSettings.zombieSpawnIntervalMs;
-    this.levelState = { phase: gameSettings.startPhase, daysCounter: 1 };
+    this.levelState = { phase: "day", daysCounter: 1 };
 
     // TODO: Remove, top-left
     this.spawnBlock({ x: 7, y: 4 });
@@ -109,7 +112,6 @@ export default class LevelManager extends AManager {
     this.spawnBlock({ x: 17, y: 13 });
 
     this.levelGrid = this.generateLevelGrid();
-    this.startSpawningZombies();
   }
 
   public drawEntities(): void {
@@ -213,17 +215,31 @@ export default class LevelManager extends AManager {
   // Day and night
   // ==================================================
 
-  public startNight() {
-    if (!this.levelState || this.levelState?.phase === "night") return;
-    this.levelState.phase = "night";
-    // TODO: UI and game changes
+  public startGame(): void {
+    if (this.levelState?.phase === "day") this.startDay();
+    else this.startNight();
   }
 
-  public startDay() {
-    if (!this.levelState || this.levelState?.phase === "day") return;
+  public startNight(): void {
+    if (!this.levelState) return;
+    this.levelState.phase = "night";
+    this.gameInstance.MANAGERS.UIManager.showNightOverlay();
+    this.startSpawningZombies();
+
+    const gameSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
+    this.nightEndCounter = gameSettings.nightDurationSec;
+  }
+
+  public startDay(): void {
+    if (!this.levelState) return;
     this.levelState.phase = "day";
     this.levelState.daysCounter += 1;
-    // TODO: UI and game changes
+    this.gameInstance.MANAGERS.UIManager.hideNightOverlay();
+    this.stopSpawningZombies();
+  }
+
+  public getIsDay(): boolean {
+    return this.levelState?.phase === "day";
   }
 
   // Grid

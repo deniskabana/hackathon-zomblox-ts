@@ -8,6 +8,7 @@ export interface UiControls {
 }
 
 export default function getUiControls(gameInstance: GameInstance): UiControls {
+  const sleepUntilNightButton = getSleepUntilNightButton(gameInstance);
   const masterVolumeToggleButton = getMasterVolumeToggleButton(gameInstance);
 
   const touchControlArrLeft = getTouchControlArrows(gameInstance, "left");
@@ -16,6 +17,7 @@ export default function getUiControls(gameInstance: GameInstance): UiControls {
   const touchControlArrBottom = getTouchControlArrows(gameInstance, "bottom");
 
   return {
+    sleepUntilNightButton,
     masterVolumeToggleButton,
 
     touchControlArrLeft,
@@ -47,6 +49,26 @@ function getMasterVolumeToggleButton(gameInstance: GameInstance): UiControls[str
       const volumeSettings = gameInstance.MANAGERS.GameManager.getSettings().volume;
       const label = volumeSettings.master === 0 ? "🔇" : "🔊";
       if (buttonEl.innerText !== label) buttonEl.innerText = label;
+    },
+  };
+}
+
+function getSleepUntilNightButton(gameInstance: GameInstance): UiControls[string] {
+  const buttonEl = document.createElement("div");
+  document.body.appendChild(buttonEl);
+  buttonEl.className = cx(styles.uiControl, styles.sleepUntilNightButton);
+  buttonEl.innerHTML = "🛏️";
+
+  buttonEl.onclick = () => {
+    const isDay = gameInstance.MANAGERS.LevelManager.getIsDay();
+    if (!isDay) return;
+    gameInstance.MANAGERS.LevelManager.startNight();
+  };
+
+  return {
+    draw: () => {
+      const isDay = gameInstance.MANAGERS.LevelManager.getIsDay();
+      buttonEl.style.opacity = isDay ? "1" : "0";
     },
   };
 }

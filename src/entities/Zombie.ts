@@ -12,12 +12,12 @@ import radiansToVector from "../utils/math/radiansToVector";
 import AEntity from "./abstract/AEntity";
 
 // TODO: Implement zombie behavior
-export enum ZombieBehavior {
-  NORMAL = "NORMAL",
-  STUPID = "STUPID",
-  AGGRESSIVE = "AGGRESSIVE",
-  WAITING = "WAITING",
+export enum ZombieState {
+  CHASING_PLAYER = "CHASING_PLAYER",
+  WANDERING = "WANDERING", // TBD
   ATTACKING = "ATTACKING",
+  REATREATING = "RETREATING",
+  WAITING = "WAITING",
 }
 
 export default class Zombie extends AEntity {
