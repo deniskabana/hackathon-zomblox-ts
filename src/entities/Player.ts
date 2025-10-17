@@ -196,7 +196,8 @@ export default class Player extends AEntity {
     };
 
     // BUG: Movement is restricted if diagonal and ANY axis collides
-    if (!this.checkHasCollisions(futurePos)) this.setWorldPosition(futurePos);
+    if (this.checkHasCollisions(futurePos)) this.isMoving = false;
+    else this.setWorldPosition(futurePos);
 
     // Play step sound
     if (this.isMoving && this.stepSoundCooldownTimer <= 0) {

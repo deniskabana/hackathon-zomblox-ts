@@ -3,6 +3,7 @@ import assertNever from "../utils/assertNever";
 import viteConfig from "../../vite.config";
 import type GameInstance from "../GameInstance";
 import { AManager } from "./abstract/AManager";
+import type { AudioControl } from "../types/AudioControl";
 
 export type AssetAudio = HTMLAudioElement;
 export type AssetImage = HTMLImageElement;
@@ -80,7 +81,13 @@ export default class AssetManager extends AManager {
     return this.assetsImageMap.get(assetName);
   }
 
-  public playAudioAsset(assetName: AssetAudioName, type: "music" | "sound", volume: number = 1, loop?: boolean): void {
+  public playAudioAsset(
+    assetName: AssetAudioName,
+    type: "music" | "sound",
+    volume: number = 1,
+    loop?: boolean,
+    autoplay?: boolean,
+  ): AudioControl | undefined {
     const asset = this.getAudioAsset(assetName);
     const audio = type === "music" ? asset : new Audio(asset?.src);
     if (!asset || !audio) return;
@@ -114,8 +121,37 @@ export default class AssetManager extends AManager {
       if (index !== -1) this.playingAudioTracks.splice(index);
     };
 
-    audio.play();
+    if (autoplay !== false) audio.play();
     this.updateMusicVolume();
+
+    return {
+      pause: () => {
+        audio.pause();
+      },
+      resume: () => {
+        audio.play();
+        this.updateMusicVolume();
+      },
+      fadeIn: () => {
+        audio.volume = 0;
+        audio.play();
+        const setNewVolume = () => {
+          audio.volume = Math.min(volume, (0.05 + audio.volume) * 1.02);
+          if (audio.volume < volume) setTimeout(setNewVolume, 90);
+        };
+        setNewVolume();
+      },
+      fadeOut: () => {
+        if (audio.paused) return;
+        audio.volume = volume;
+        const setNewVolume = () => {
+          audio.volume = Math.max(0, (audio.volume - 0.05) * 0.98);
+          if (audio.volume > 0) setTimeout(setNewVolume, 90);
+          else audio.pause();
+        };
+        setNewVolume();
+      },
+    };
   }
 
   public pauseAllMusic(): void {

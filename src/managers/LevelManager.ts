@@ -3,6 +3,7 @@ import BlockWood from "../entities/BlockWood";
 import Player from "../entities/Player";
 import Zombie from "../entities/Zombie";
 import type GameInstance from "../GameInstance";
+import type { AudioControl } from "../types/AudioControl";
 import { type GridTileRef, type LevelGrid } from "../types/Grid";
 import type { LevelState } from "../types/LevelState";
 import { ZIndex } from "../types/ZIndex";
@@ -34,6 +35,10 @@ export default class LevelManager extends AManager {
   private zombieSpawnsLeft: number = 0;
 
   private nightEndCounter: number = 0;
+
+  // Music
+  private musicDay: AudioControl[] = [];
+  private musicNight: AudioControl[] = [];
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
@@ -238,6 +243,29 @@ export default class LevelManager extends AManager {
     const gameSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
     this.nightEndCounter = gameSettings.nightDurationSec;
     this.startSpawningZombies();
+
+    if (!this.musicNight.length) {
+      const musicNight = this.gameInstance.MANAGERS.AssetManager.playAudioAsset(
+        "AMusicBackgroundNight",
+        "music",
+        1,
+        true,
+        false,
+      );
+      if (musicNight) this.musicNight.push(musicNight);
+
+      const ambienceNight = this.gameInstance.MANAGERS.AssetManager.playAudioAsset(
+        "AFXZombieAmbience",
+        "music",
+        0.4,
+        true,
+        false,
+      );
+      if (ambienceNight) this.musicNight.push(ambienceNight);
+    }
+
+    for (const track of this.musicDay) track.fadeOut();
+    for (const track of this.musicNight) track.fadeIn();
   }
 
   public startDay(): void {
@@ -249,6 +277,20 @@ export default class LevelManager extends AManager {
 
     this.updatePathFindingGrid();
     for (const [_, zombie] of this.zombies) zombie.startRetreating();
+
+    if (!this.musicDay.length) {
+      const musicDay = this.gameInstance.MANAGERS.AssetManager.playAudioAsset(
+        "AMusicBackgroundDay",
+        "music",
+        1,
+        true,
+        false,
+      );
+      if (musicDay) this.musicDay.push(musicDay);
+    }
+
+    for (const track of this.musicDay) track.fadeIn();
+    for (const track of this.musicNight) track.fadeOut();
   }
 
   public getIsDay(): boolean {

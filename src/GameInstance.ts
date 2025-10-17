@@ -92,9 +92,6 @@ export default class GameInstance {
     this.MANAGERS.UIManager.hideStartGameContainer();
     this.MANAGERS.GameManager.stateSetPlaying();
 
-    this.MANAGERS.AssetManager.playAudioAsset("AMusicBackground", "music");
-    this.MANAGERS.AssetManager.playAudioAsset("AFXZombieAmbience", "music", 0.4);
-
     this.MANAGERS.LevelManager.startGame();
   }
 
