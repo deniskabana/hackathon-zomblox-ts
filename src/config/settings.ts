@@ -23,7 +23,7 @@ export const DEFAULT_SETTINGS = {
       enableErraticBehavior: true,
       enableErraticNavOffset: true,
       swimChanceNilToOne: 1,
-      maxSpeed: 50,
+      maxSpeed: 70,
       speedDeviation: 30,
       maxHealth: 50,
       healthDeviation: 20,
@@ -37,8 +37,8 @@ export const DEFAULT_SETTINGS = {
       defaultWeapon: "Revolver" as Weapon,
     },
     blocks: {
-      woodStartHealth: 100,
-      concreteStartHealth: 1000,
+      woodStartHealth: 50,
+      concreteStartHealth: 500,
     },
   },
 };

@@ -181,7 +181,7 @@ export default class Zombie extends AEntity {
       .sort((a, b) => {
         const distA = flowField[a.x][a.y].distance;
         const distB = flowField[b.x][b.y].distance;
-        return this.zombieState === ZombieState.CHASING_PLAYER ? distA - distB : distB - distA;
+        return distA - distB
       });
 
     if (validNeighbors.length > 1) {
@@ -283,14 +283,13 @@ export default class Zombie extends AEntity {
       return;
     }
 
-    // Look for highest distance and RUN towards the first edge of display
-    const highestDistanceNeighbor = flowField[this.gridPos.x][this.gridPos.y].neighbors.reduce<Vector>((acc, val) => {
-      if (flowField[val.x][val.y].distance === Infinity) return acc; // Exclude Infinity (meaning a block)
-      if (!acc || flowField[val.x][val.y].distance > flowField[acc.x][acc.y].distance) return val;
+    const lowestDistanceNeighbor = flowField[this.gridPos.x][this.gridPos.y].neighbors.reduce<Vector>((acc, val) => {
+      if (flowField[val.x][val.y].distance === Infinity) return acc;
+      if (!acc || flowField[val.x][val.y].distance < flowField[acc.x][acc.y].distance) return val;
       return acc;
     }, this.gridPos);
 
-    this.moveTargetPos = gridToWorld(highestDistanceNeighbor, true);
+    this.moveTargetPos = gridToWorld(lowestDistanceNeighbor, true);
   }
 
   private applyErraticBehavior(_deltaTime: number): void {

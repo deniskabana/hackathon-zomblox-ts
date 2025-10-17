@@ -22,7 +22,7 @@ export default class AssetManager extends AManager {
     super(gameInstance);
   }
 
-  public init(): void {}
+  public init(): void { }
 
   public async preloadAssets(): Promise<void> {
     this.isAssetsLoading = true;
@@ -115,11 +115,13 @@ export default class AssetManager extends AManager {
     this.playingAudioTracks.push(assetName);
     if (type === "music") this.playingMusic.set(audio, volume);
 
-    audio.onended = () => {
-      this.playingMusic.delete(audio);
-      const index = this.playingAudioTracks.findIndex((name) => name === assetName);
-      if (index !== -1) this.playingAudioTracks.splice(index);
-    };
+    if (!audio.loop) {
+      audio.onended = () => {
+        this.playingMusic.delete(audio);
+        const index = this.playingAudioTracks.findIndex((name) => name === assetName);
+        if (index !== -1) this.playingAudioTracks.splice(index);
+      };
+    }
 
     if (autoplay !== false) audio.play();
     this.updateMusicVolume();
@@ -136,8 +138,9 @@ export default class AssetManager extends AManager {
         audio.volume = 0;
         audio.play();
         const setNewVolume = () => {
-          audio.volume = Math.min(volume, (0.05 + audio.volume) * 1.02);
-          if (audio.volume < volume) setTimeout(setNewVolume, 90);
+          audio.volume = Math.min(volume, (0.05 + audio.volume) * 1.03);
+          if (audio.volume < volume) setTimeout(setNewVolume, 96);
+          console.log(audio.volume)
         };
         setNewVolume();
       },
@@ -145,9 +148,8 @@ export default class AssetManager extends AManager {
         if (audio.paused) return;
         audio.volume = volume;
         const setNewVolume = () => {
-          audio.volume = Math.max(0, (audio.volume - 0.05) * 0.98);
-          if (audio.volume > 0) setTimeout(setNewVolume, 90);
-          else audio.pause();
+          audio.volume = Math.max(0, (audio.volume - 0.05) * 0.97);
+          if (audio.volume > 0) setTimeout(setNewVolume, 60);
         };
         setNewVolume();
       },

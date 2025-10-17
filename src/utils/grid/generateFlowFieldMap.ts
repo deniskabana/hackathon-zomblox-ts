@@ -14,19 +14,21 @@ export type FlowField = FlowFieldCell[][];
  * Uses "Dijkstra's map" (or flow-field state map) to map every tile's distance from the player (breadth first search)
  * @link https://www.redblobgames.com/pathfinding/tower-defense/
  */
-export default function generateFlowField(levelGrid: LevelGrid, from: GridPosition): FlowField {
+export default function generateFlowField(levelGrid: LevelGrid, ...startPoints: GridPosition[]): FlowField {
   const flowField: FlowField = [];
   for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
     flowField[x] = [];
-
     for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
       flowField[x][y] = { distance: Infinity, cameFrom: { x: 0, y: 0 }, neighbors: [] };
     }
   }
 
   // BFS from player position
-  const queue: Vector[] = [from];
-  flowField[from.x][from.y].distance = 0;
+  const queue: Vector[] = []
+  for (const from of startPoints) {
+    queue.push(from);
+    flowField[from.x][from.y].distance = 0;
+  }
 
   while (queue.length > 0) {
     const current = queue.shift()!;
@@ -42,11 +44,10 @@ export default function generateFlowField(levelGrid: LevelGrid, from: GridPositi
 
         if (!levelGrid?.[nx]?.[ny]) continue;
         if (levelGrid[nx][ny].state !== GridTileState.AVAILABLE) continue;
+        if (dx !== 0 && dy !== 0) continue; // Force only 4-way scanning
 
         // WARN: Keep neighbors calculation here instead of in Zombie class due to "limitless" zombies
         flowField[current.x][current.y].neighbors.push(next);
-
-        if (dx !== 0 && dy !== 0) continue; // Force only 4-way scanning
 
         if (flowField[nx][ny].distance === Infinity) {
           flowField[nx][ny].distance = currentDist + 1;
@@ -59,3 +60,4 @@ export default function generateFlowField(levelGrid: LevelGrid, from: GridPositi
 
   return flowField;
 }
+
