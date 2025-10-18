@@ -6,7 +6,7 @@ export const DEF_ASSETS_AUDIO = {
   // Player
   APlayerStep: "/audio/st1-footstep-sfx-323053.mp3", // https://pixabay.com/users/data_pion-49620193/
   APlayerHurt: "/audio/male_hurt7-48124.mp3", // https://pixabay.com/users/freesound_community-46691455/
-  APlayerDie: "/audio/man-death-scream-186763.mp3", // https://pixabay.com/users/u_r7cny11q7r-41888232/
+  APlayerDie: "/audio/man-scream-121085.mp3", // https://pixabay.com/users/universfield-28281460/
   // Gun
   AGunRevolver: "/audio/gunfire-single-shot-colt-peacemaker-94951.mp3", // https://pixabay.com/users/freesound_community-46691455/
   AGunShotgun: "/audio/shotgun-sound-effect-384451.mp3", // https://pixabay.com/users/ken_williams-32445584/

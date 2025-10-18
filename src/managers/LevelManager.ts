@@ -55,7 +55,7 @@ export default class LevelManager extends AManager {
     const hasPlayerMoved = !this.player || !areVectorsEqual(this.lastPlayerGridPos, this.player.gridPos);
     if (hasPlayerMoved || !this.flowField) this.updatePathFindingGrid();
 
-    if (this.levelState?.phase === "night") {
+    if (this.levelState?.phase === "night" && !!this.player) {
       this.nightEndCounter -= _deltaTime;
       if (this.nightEndCounter <= 0) this.startDay();
     }
@@ -219,6 +219,7 @@ export default class LevelManager extends AManager {
 
   public destroyPlayer(): void {
     this.player = undefined;
+    for (const [_id, zombie] of this.zombies) zombie.startWandering();
   }
 
   // Blocks

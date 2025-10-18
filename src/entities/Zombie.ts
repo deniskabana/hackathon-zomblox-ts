@@ -124,6 +124,11 @@ export default class Zombie extends AEntity {
     this.retreatFlowFieldIndex = Math.floor(Math.random() * retreatFlowFields.length + 1);
   }
 
+  public startWandering(): void {
+    // this.zombieState = ZombieState.WANDERING;
+    this.zombieState = ZombieState.REATREATING;
+  }
+
   public getHealth(): number {
     return this.health;
   }
@@ -253,32 +258,30 @@ export default class Zombie extends AEntity {
     const player = this.gameInstance.MANAGERS.LevelManager.player;
     const zombieSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.zombie;
 
-    if (!player) return;
-    this.distanceFromPlayer = getVectorDistance(this.worldPos, player.worldPos);
-
-    if (!this.isWalking) return;
-    this.detectAndHandleStuck(_deltaTime);
-
-    if (this.attackCooldownTimer > 0) this.attackCooldownTimer -= _deltaTime;
+    if (this.zombieState === ZombieState.REATREATING) {
+      this.zombieRetreat(_deltaTime);
+      this.moveIfPossible(_deltaTime);
+    }
 
     if (this.zombieState === ZombieState.CHASING_PLAYER) {
+      if (!player) return;
+      if (!this.isWalking) return;
+
+      this.distanceFromPlayer = getVectorDistance(this.worldPos, player.worldPos);
+      this.detectAndHandleStuck(_deltaTime);
+
+      if (this.attackCooldownTimer > 0) this.attackCooldownTimer -= _deltaTime;
+
       this.zombieChasePlayer(_deltaTime);
       if (zombieSettings.enableErraticBehavior) this.applyErraticBehavior(_deltaTime);
 
-      // Attack player if close enough!
       if (this.distanceFromPlayer < this.minDistanceFromPlayer) {
         this.moveTargetPos = { ...player.worldPos };
         this.clearTargetPosTimer = 0;
         this.startAttacking();
-        return;
       } else {
         this.moveIfPossible(_deltaTime);
       }
-    }
-
-    if (this.zombieState === ZombieState.REATREATING) {
-      this.zombieRetreat(_deltaTime);
-      this.moveIfPossible(_deltaTime);
     }
   }
 
