@@ -90,7 +90,7 @@ export default class Player extends AEntity {
   }
 
   public shoot(): void {
-    if (this.gameInstance.MANAGERS.LevelManager.levelState?.phase !== "day") return;
+    if (this.gameInstance.MANAGERS.LevelManager.levelState?.phase === "day") return;
     if (this.gunCooldownTimer > 0) return;
 
     const weaponSound = this.getWeaponSound();

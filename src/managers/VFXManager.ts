@@ -1,12 +1,13 @@
-import type { WorldPosition } from "../config/gameGrid";
+import { GRID_CONFIG, type WorldPosition } from "../config/gameGrid";
 import type GameInstance from "../GameInstance";
-import type { EffectShootLine } from "../types/EffectShootLine";
+import type { Effect } from "../types/Effects";
+import { ZIndex } from "../types/ZIndex";
 import radiansToVector from "../utils/math/radiansToVector";
 import { AManager } from "./abstract/AManager";
 
 export default class VFXManager extends AManager {
-  private startTimes: number[] = [];
-  private effects: EffectShootLine[] = [];
+  private effectIdCount: number = 0;
+  private effects: Map<number, Effect> = new Map();
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
@@ -15,39 +16,60 @@ export default class VFXManager extends AManager {
   public init(): void {}
 
   public draw(): void {
-    for (const shootLine of this.effects) {
-      this.gameInstance.MANAGERS.DrawManager.drawLine(
-        shootLine.from.x,
-        shootLine.from.y,
-        shootLine.to.x,
-        shootLine.to.y,
-        shootLine.color,
-      );
-    }
-
-    const startTimes = this.startTimes;
-    startTimes.forEach((since, index) => {
-      if (since + this.effects[index].duration <= Date.now()) {
-        this.startTimes.splice(index);
-        this.effects.splice(index);
+    for (const [id, effect] of this.effects) {
+      if (effect.startTime + effect.duration * 1000 < Date.now()) {
+        this.effects.delete(id);
+        continue;
       }
-    });
+      effect.render();
+    }
   }
 
   public drawShootLine(
     vectorFrom: WorldPosition,
     direction: number,
     length: number = 2000,
-    color: string = "#d0d000",
-    duration: number = 0.33, // BUG: This does not work! It only draws to a single frame and gets overwritten the next
+    color: string = "#d0d000a0",
+    duration: number = 0.06,
   ): void {
-    this.startTimes.push(Date.now());
     const vectorTo = radiansToVector(direction);
     vectorTo.x *= length;
     vectorTo.y *= length;
     vectorTo.x += vectorFrom.x;
     vectorTo.y += vectorFrom.y;
-    this.effects.push({ from: vectorFrom, to: vectorTo, color, duration });
+
+    this.effects.set(this.effectIdCount++, {
+      duration,
+      render: () => {
+        this.gameInstance.MANAGERS.DrawManager.drawLine(vectorFrom.x, vectorFrom.y, vectorTo.x, vectorTo.y, color);
+      },
+      startTime: Date.now(),
+    });
+  }
+
+  public drawBloodPool(pos: WorldPosition, duration: number = 30): void {
+    const alpha = Math.random() * 0.4 + 0.4;
+    const sizeDeviation = 0.5 + Math.random();
+
+    this.effects.set(this.effectIdCount++, {
+      duration,
+      render: () => {
+        const bloodSprite = this.gameInstance.MANAGERS.AssetManager.getImageAsset("IFXBloodSplat");
+        if (!bloodSprite) return;
+
+        this.gameInstance.MANAGERS.DrawManager.queueDraw(
+          pos.x,
+          pos.y,
+          bloodSprite,
+          GRID_CONFIG.TILE_SIZE * sizeDeviation,
+          GRID_CONFIG.TILE_SIZE * sizeDeviation,
+          ZIndex.GROUND_EFFECTS,
+          2 * Math.PI * Math.floor(Math.random()),
+          alpha,
+        );
+      },
+      startTime: Date.now(),
+    });
   }
 
   public destroy(): void {}

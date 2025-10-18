@@ -130,10 +130,13 @@ export default class Zombie extends AEntity {
 
   public damage(amount: number): void {
     this.health -= amount;
-    if (this.health <= 0) {
-      this.gameInstance.MANAGERS.AssetManager.playAudioAsset("AZombieDeath", "sound");
-      this.gameInstance.MANAGERS.LevelManager.destroyEntity(this.entityId, "zombie");
-    }
+    if (this.health <= 0) this.die();
+  }
+
+  private die(): void {
+    this.gameInstance.MANAGERS.AssetManager.playAudioAsset("AZombieDeath", "sound");
+    this.gameInstance.MANAGERS.VFXManager.drawBloodPool(this.worldPos);
+    this.gameInstance.MANAGERS.LevelManager.destroyEntity(this.entityId, "zombie");
   }
 
   // State based actions
