@@ -22,7 +22,7 @@ export default class GameInstance {
     VFXManager: VFXManager;
   };
 
-  gameLogicInterval: number | null = null;
+  gameLogicInterval: number = 50; // 50 ms; TODO: Implement
 
   constructor() {
     this.isDev = import.meta.env.NODE_ENV === "development" || !!location.hash.match("debug");
@@ -80,6 +80,7 @@ export default class GameInstance {
   private startGame(): void {
     if (this.MANAGERS.GameManager.getState() !== GameState.READY) return;
     document.removeEventListener("click", this.startGame);
+    document.removeEventListener("touchend", this.startGame);
 
     // Asset manager was initialized in loadAndPrepareGame()
     this.MANAGERS.CameraManager.init();
@@ -97,8 +98,14 @@ export default class GameInstance {
   }
 
   public stopAndQuiteGame(): void {
-    this.MANAGERS.GameManager.stateSetPaused(true);
     this.destroy();
+  }
+
+  public async restartGame(): Promise<void> {
+    this.stopAndQuiteGame();
+    await this.loadAndPrepareGame();
+    document.addEventListener("click", this.startGame.bind(this));
+    document.addEventListener("touchend", this.startGame.bind(this));
   }
 
   private destroy(): void {

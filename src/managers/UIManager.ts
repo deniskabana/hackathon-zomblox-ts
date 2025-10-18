@@ -16,6 +16,8 @@ export default class UIManager extends AManager {
   private debugTextHealth: HTMLDivElement;
   private debugSettingsContainer: HTMLDivElement;
 
+  private debugSettingsInitialized: boolean = false;
+
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
 
@@ -40,7 +42,7 @@ export default class UIManager extends AManager {
     if (!this.gameInstance.isDev) return;
 
     this.debugContainer.className = styles.devUiContainer + " " + styles.devDebugContainer;
-    if (this.gameInstance.isDev) this.initDebugSettings();
+    if (this.gameInstance.isDev && !this.debugSettingsInitialized) this.initDebugSettings();
     this.debugContainer.appendChild(this.debugTextFps);
     this.debugContainer.appendChild(this.debugTextZombies);
     this.debugContainer.appendChild(this.debugTextHealth);
@@ -93,6 +95,7 @@ export default class UIManager extends AManager {
     }
 
     this.debugContainer.appendChild(wrapper);
+    this.debugSettingsInitialized = true;
   }
 
   public drawDebug(fps: number): void {
@@ -124,6 +127,7 @@ export default class UIManager extends AManager {
 
   public drawStartGameContainer(): void {
     this.startGameContainer.className = styles.startGameContainer;
+    this.startGameContainer.style.display = "flex";
     const text = document.createElement("p");
     text.className = styles.startGameText;
     text.innerHTML =
@@ -132,7 +136,7 @@ export default class UIManager extends AManager {
   }
 
   public hideStartGameContainer(): void {
-    this.startGameContainer.style = `display: none;`;
+    this.startGameContainer.style.display = "none";
     this.startGameContainer.innerHTML = "";
   }
 

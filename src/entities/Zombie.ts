@@ -5,7 +5,6 @@ import type { Vector } from "../types/Vector";
 import { ZIndex } from "../types/ZIndex";
 import assertNever from "../utils/assertNever";
 import isInsideGrid from "../utils/grid/isInsideGrid";
-import { clamp } from "../utils/math/clamp";
 import getDirectionalAngle from "../utils/math/getDirectionalAngle";
 import getVectorDistance from "../utils/math/getVectorDistance";
 import radialLerp from "../utils/math/radialLerp";
@@ -48,7 +47,7 @@ export default class Zombie extends AEntity {
 
   private attackCooldownTimer: number = 0;
   private attackTimer: number = 0;
-  private attackDuration: number = 0.5;
+  private attackDuration: number = 0.4;
   private hasDealtDamage: boolean = false;
 
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
@@ -170,7 +169,12 @@ export default class Zombie extends AEntity {
 
     if (isInsideGrid(this.gridPos) && this.distanceFromPlayer >= this.minDistanceFromPlayer && !!flowField) {
       const lowestDistanceNeighbor = flowField[this.gridPos.x][this.gridPos.y].neighbors.reduce<Vector>((acc, val) => {
-        if (gameSettings.zombie.enableErraticBehavior && Math.random() > 0.987) return val; // Randomly skip tiles when checking, it's a zombie
+        if (
+          gameSettings.zombie.enableErraticNavOffset &&
+          this.distanceFromPlayer > this.minDistanceFromPlayer * 10 &&
+          Math.random() > 0.994
+        )
+          return val; // Randomly skip tiles when checking, it's a zombie
         if (!acc || flowField[val.x][val.y].distance < flowField[acc.x][acc.y].distance) return val;
         return acc;
       }, this.gridPos);
@@ -191,6 +195,8 @@ export default class Zombie extends AEntity {
     const retreatFlowFields = this.gameInstance.MANAGERS.LevelManager.retreatFlowFields;
     const flowField = retreatFlowFields?.[this.retreatFlowFieldIndex];
     if (!flowField) return;
+
+    this.moveTargetPos = undefined;
 
     if (!isInsideGrid(this.gridPos, GRID_CONFIG)) {
       this.zombieState = ZombieState.WAITING_FOR_NIGHT;
@@ -273,7 +279,8 @@ export default class Zombie extends AEntity {
       if (this.attackCooldownTimer > 0) this.attackCooldownTimer -= _deltaTime;
 
       this.zombieChasePlayer(_deltaTime);
-      if (zombieSettings.enableErraticBehavior) this.applyErraticBehavior(_deltaTime);
+      if (zombieSettings.enableErraticBehavior && this.distanceFromPlayer > this.minDistanceFromPlayer * 10)
+        this.applyErraticBehavior(_deltaTime);
 
       if (this.distanceFromPlayer < this.minDistanceFromPlayer) {
         this.moveTargetPos = { ...player.worldPos };
@@ -358,15 +365,7 @@ export default class Zombie extends AEntity {
     if (this.randomStopTimer > 0) {
       this.randomStopTimer -= _deltaTime;
     } else {
-      if (Math.random() > 0.3) this.speed *= 0.2 + Math.random();
       this.randomStopTimer = this.randomStopInterval * (0.3 + Math.random() * 0.7);
-      setTimeout(
-        () => {
-          if (this.zombieState !== ZombieState.CHASING_PLAYER) return;
-          this.speed = this.maxSpeed;
-        },
-        clamp(200, Math.random() * 80 * this.distanceFromPlayer, this.randomStopTimer * 0.5),
-      );
     }
   }
 

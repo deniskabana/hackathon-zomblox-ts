@@ -22,7 +22,7 @@ export const DEF_WEAPONS = {
     shots: 1,
     radius: 3,
     cooldown: 0.5,
-    damage: 13,
+    damage: 10,
     reloadTimeSec: 4,
     cost: 0,
     ammoCost: 10,

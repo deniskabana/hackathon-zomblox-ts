@@ -222,5 +222,7 @@ export default class Player extends AEntity {
     this.gameInstance.MANAGERS.VFXManager.drawBloodOnScreen();
     this.gameInstance.MANAGERS.AssetManager.playAudioAsset("APlayerDie", "sound");
     this.gameInstance.MANAGERS.LevelManager.destroyPlayer();
+
+    setTimeout(this.gameInstance.restartGame.bind(this.gameInstance), 5000);
   }
 }

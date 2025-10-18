@@ -176,6 +176,7 @@ export default class AssetManager extends AManager {
   }
 
   public destroy(): void {
+    this.pauseAllMusic();
     this.assetsAudioMap.clear();
     this.assetsImageMap.clear();
   }

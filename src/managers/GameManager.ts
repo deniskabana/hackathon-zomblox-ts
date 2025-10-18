@@ -37,10 +37,6 @@ export default class GameManager extends AManager {
   }
 
   public stateSetReady(): void {
-    if (this.gameState !== GameState.LOADING) {
-      console.warn("Cannot set READY from state:", this.gameState);
-      return;
-    }
     this.gameState = GameState.READY;
   }
 
