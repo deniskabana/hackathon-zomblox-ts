@@ -15,6 +15,7 @@ import { ZIndex } from "../types/ZIndex";
 import getDirectionalAngle from "../utils/math/getDirectionalAngle";
 import getVectorDistance from "../utils/math/getVectorDistance";
 import normalizeVector from "../utils/math/normalizeVector";
+import radiansToVector from "../utils/math/radiansToVector";
 import AEntity from "./abstract/AEntity";
 
 export default class Player extends AEntity {
@@ -89,7 +90,9 @@ export default class Player extends AEntity {
   }
 
   public shoot(): void {
+    if (this.gameInstance.MANAGERS.LevelManager.levelState?.phase !== "day") return;
     if (this.gunCooldownTimer > 0) return;
+
     const weaponSound = this.getWeaponSound();
     if (weaponSound) this.gameInstance.MANAGERS.AssetManager.playAudioAsset(weaponSound, "sound");
 
@@ -204,5 +207,16 @@ export default class Player extends AEntity {
       this.gameInstance.MANAGERS.AssetManager.playAudioAsset("APlayerStep", "sound");
       this.stepSoundCooldownTimer = 0.35;
     }
+  }
+
+  public applyPushback(direction: number, strength: number = 1): void {
+    const movementVector = radiansToVector(direction);
+    const futurePos = {
+      x: this.worldPos.x + movementVector.x * strength,
+      y: this.worldPos.y + movementVector.y * strength,
+    };
+
+    if (this.checkHasCollisions(futurePos)) return;
+    else this.setWorldPosition(futurePos);
   }
 }

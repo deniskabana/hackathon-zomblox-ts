@@ -53,20 +53,18 @@ export default class Zombie extends AEntity {
 
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     super(gameInstance, gridToWorld(gridPos), entityId, true);
+    const zombieSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.zombie;
 
     this.isWalking = true;
-    this.minDistanceFromPlayer = GRID_CONFIG.TILE_SIZE * 1;
+    this.minDistanceFromPlayer = zombieSettings.minDistanceFromPlayer;
 
-    const settings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.zombie;
-    this.health = settings.maxHealth + (Math.random() - 0.5) * settings.healthDeviation;
-    this.maxSpeed = settings.maxSpeed + (Math.random() - 0.5) * settings.speedDeviation;
+    this.health = zombieSettings.maxHealth + (Math.random() - 0.5) * zombieSettings.healthDeviation;
+    this.maxSpeed = zombieSettings.maxSpeed + (Math.random() - 0.5) * zombieSettings.speedDeviation;
     this.speed = this.maxSpeed;
-    this.randomStopInterval = settings.randomStopIntervalSec;
+    this.randomStopInterval = zombieSettings.randomStopIntervalSec;
   }
 
   public update(_deltaTime: number) {
-    this.applyRotation(_deltaTime);
-
     switch (this.zombieState) {
       case ZombieState.CHASING_PLAYER:
       case ZombieState.REATREATING:
@@ -78,6 +76,8 @@ export default class Zombie extends AEntity {
         break;
 
       case ZombieState.ATTACKING:
+        if (this.gameInstance.MANAGERS.LevelManager.player)
+          this.applyRotation(_deltaTime, this.gameInstance.MANAGERS.LevelManager.player.worldPos);
         this.zombieAttackPlayer(_deltaTime);
         break;
 
@@ -102,6 +102,7 @@ export default class Zombie extends AEntity {
       GRID_CONFIG.TILE_SIZE,
       ZIndex.ENTITIES,
       this.angle + Math.PI / 2,
+      this.zombieState === ZombieState.ATTACKING ? 0.5 : 1,
     );
   }
 
@@ -216,6 +217,7 @@ export default class Zombie extends AEntity {
         this.distanceFromPlayer = getVectorDistance(this.worldPos, player.worldPos);
         if (this.distanceFromPlayer < this.minDistanceFromPlayer) {
           player.damage(zombieSettings.attackDamage);
+          player.applyPushback(getDirectionalAngle(player.worldPos, this.worldPos), zombieSettings.attackPushbackStr);
           this.hasDealtDamage = true;
         }
       }
@@ -243,6 +245,8 @@ export default class Zombie extends AEntity {
   // ==================================================
 
   private applyChaseAndRetreat(_deltaTime: number): void {
+    if (this.moveTargetPos) this.applyRotation(_deltaTime, this.moveTargetPos);
+
     const player = this.gameInstance.MANAGERS.LevelManager.player;
     const zombieSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.zombie;
 
@@ -321,13 +325,11 @@ export default class Zombie extends AEntity {
     return false;
   }
 
-  private applyRotation(_deltaTime: number): void {
-    if (this.moveTargetPos) {
-      this.desiredAngle = getDirectionalAngle(this.moveTargetPos, this.worldPos);
-      if (this.angle !== this.desiredAngle) {
-        const rotationSpeed = this.zombieState === ZombieState.CHASING_PLAYER ? _deltaTime * 4.5 : _deltaTime * 19;
-        this.angle = radialLerp(this.angle, this.desiredAngle, Math.min(1, rotationSpeed));
-      }
+  private applyRotation(_deltaTime: number, targetPos: WorldPosition): void {
+    this.desiredAngle = getDirectionalAngle(targetPos, this.worldPos);
+    if (this.angle !== this.desiredAngle) {
+      const rotationSpeed = this.zombieState === ZombieState.CHASING_PLAYER ? _deltaTime * 4.5 : _deltaTime * 19;
+      this.angle = radialLerp(this.angle, this.desiredAngle, Math.min(1, rotationSpeed));
     }
   }
 

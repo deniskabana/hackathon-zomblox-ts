@@ -1,4 +1,5 @@
 import type { LevelState } from "../types/LevelState";
+import { GRID_CONFIG } from "./gameGrid";
 import type { Weapon } from "./weapons";
 
 export const KEY_SETTINGS = "game-manager-key-settings";
@@ -32,7 +33,9 @@ export const DEFAULT_SETTINGS = {
       damagedSlowdownCoef: 0.5,
       attackDamage: 6,
       attackDamageDeviation: 3,
-      attackCooldownSec: 1.1,
+      attackCooldownSec: 1.2,
+      attackPushbackStr: 8,
+      minDistanceFromPlayer: GRID_CONFIG.TILE_SIZE * 1.1,
     },
     player: {
       startHealth: 100,
