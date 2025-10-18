@@ -41,7 +41,7 @@ export default class Zombie extends AEntity {
   private minDistanceFromPlayer: number;
 
   private stuckTimer: number = 0;
-  private stuckThreshold: number = 1;
+  private stuckThreshold: number = 0.8;
   private lastGridPos: GridPosition = { x: -1, y: -1 };
   private gridPosChangeTimer: number = 0;
   private retreatFlowFieldIndex: number = 0;
@@ -196,11 +196,6 @@ export default class Zombie extends AEntity {
       return;
     }
 
-    if (!flowField[this.gridPos.x]?.[this.gridPos.y]?.neighbors) {
-      console.log(flowField, this.gridPos);
-      throw new Error("FUCK");
-    }
-
     const lowestDistanceNeighbor = flowField[this.gridPos.x][this.gridPos.y].neighbors.reduce<Vector>((acc, val) => {
       if (!acc || flowField[val.x][val.y].distance < flowField[acc.x][acc.y].distance) return val;
       return acc;
@@ -213,6 +208,8 @@ export default class Zombie extends AEntity {
     const zombieSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.zombie;
     this.zombieState = ZombieState.ATTACKING;
     this.attackCooldownTimer = zombieSettings.attackCooldownSec * (Math.random() + 0.5);
+
+    this.gameInstance.MANAGERS.AssetManager.playAudioAsset("AZombieAttack", "sound", 0.85);
   }
 
   // Movement
@@ -282,8 +279,8 @@ export default class Zombie extends AEntity {
       this.moveTargetPos = gridToWorld(alternative, true);
 
       // Add extra deviation to unstick
-      this.moveTargetPos.x += (Math.random() - 0.5) * GRID_CONFIG.TILE_SIZE * 0.8;
-      this.moveTargetPos.y += (Math.random() - 0.5) * GRID_CONFIG.TILE_SIZE * 0.8;
+      this.moveTargetPos.x += (Math.random() - 0.5) * GRID_CONFIG.TILE_SIZE * 1.1;
+      this.moveTargetPos.y += (Math.random() - 0.5) * GRID_CONFIG.TILE_SIZE * 1.1;
     }
   }
 
@@ -367,7 +364,7 @@ export default class Zombie extends AEntity {
         this.zombieState,
         this.worldPos.x,
         this.worldPos.y - GRID_CONFIG.TILE_SIZE / 2,
-        "#fff",
+        "#f89",
         10,
         "Arial",
         "center",

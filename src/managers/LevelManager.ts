@@ -334,7 +334,6 @@ export default class LevelManager extends AManager {
     }
 
     this.levelState.phase = "day";
-    this.levelState.daysCounter += 1;
     this.gameInstance.MANAGERS.UIManager.hideNightOverlay();
     this.stopSpawningZombies();
 
@@ -351,8 +350,13 @@ export default class LevelManager extends AManager {
       if (musicDay) this.musicDay.push(musicDay);
     }
 
+    if (this.levelState.daysCounter > 1)
+      this.gameInstance.MANAGERS.AssetManager.playAudioAsset("AFXMorningRooster", "sound", 0.35);
+
     for (const track of this.musicDay) track.resume();
     for (const track of this.musicNight) track.pause();
+
+    this.levelState.daysCounter += 1;
   }
 
   public getIsDay(): boolean {

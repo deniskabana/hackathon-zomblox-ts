@@ -1,11 +1,9 @@
 pre-commit:
   parallel: true
   jobs:
-    - name: format
-      run: yarn format
-
-pre-push:
-  parallel: true
-  jobs:
+    - name: prettier
+      run: yarn format:prettier
+    - name: lint
+      run: yarn format:lint
     - name: build
       run: yarn build

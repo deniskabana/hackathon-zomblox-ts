@@ -6,7 +6,7 @@ export interface WeaponDefinition {
     radius: number;
     cooldown: number;
     damage: number;
-    reloadSpeed: number;
+    reloadTimeSec: number;
     cost: number;
     ammoCost: number;
     ammoPurchaseAmount: number;
@@ -22,8 +22,8 @@ export const DEF_WEAPONS = {
     shots: 1,
     radius: 3,
     cooldown: 0.5,
-    damage: 16,
-    reloadSpeed: 8,
+    damage: 13,
+    reloadTimeSec: 4,
     cost: 0,
     ammoCost: 10,
     ammoPurchaseAmount: 46,
@@ -36,8 +36,8 @@ export const DEF_WEAPONS = {
     shots: 3,
     radius: 12,
     cooldown: 0.9,
-    damage: 16,
-    reloadSpeed: 8,
+    damage: 12,
+    reloadTimeSec: 5,
     cost: 160,
     ammoCost: 60,
     ammoPurchaseAmount: 24,
@@ -50,8 +50,8 @@ export const DEF_WEAPONS = {
     shots: 1,
     radius: 4,
     cooldown: 0.15,
-    damage: 8,
-    reloadSpeed: 7,
+    damage: 6,
+    reloadTimeSec: 2.4,
     cost: 275,
     ammoCost: 90,
     ammoPurchaseAmount: 62,

@@ -10,18 +10,25 @@ export const DEF_ASSETS_AUDIO = {
   // Gun
   AGunRevolver: "/audio/gunfire-single-shot-colt-peacemaker-94951.mp3", // https://pixabay.com/users/freesound_community-46691455/
   AGunShotgun: "/audio/shotgun-sound-effect-384451.mp3", // https://pixabay.com/users/ken_williams-32445584/
-  AGunSMG: "/audio/gunshot_001-82585.mp3", // https://pixabay.com/users/freesound_community-46691455/
-  AGunRevolverReload: "/audio/gun-full-reload-384507.mp3", // https://pixabay.com/users/melbeebelbee-51535441/
+  AGunSMG: "/audio/22-caliber-with-ricochet-39679.mp3", // https://pixabay.com/users/freesound_community-46691455/
+  AGunRevolverReload: "/audio/clean-revolver-reload-6889.mp3", // https://pixabay.com/users/freesound_community-46691455/
+  AGunShotgunReload: "/audio/shotgun-reload-sfx-36524.mp3", // https://pixabay.com/users/freesound_community-46691455/
+  AGunSMGReload: "/audio/gunreload_9-92134.mp3", // https://pixabay.com/users/freesound_community-46691455/
   // Blocks
   ABlockWoodPlaced: "/audio/put_item-83043.mp3", // https://pixabay.com/users/freesound_community-46691455/
   ABlockWoodDamaged: "/audio/wood-smash-1-170410.mp3", // https://pixabay.com/users/floraphonic-38928062/
   ABlockWoodDestroyed: "/audio/wood-smash-3-170418.mp3", // https://pixabay.com/users/floraphonic-38928062/
   // Zombies
   AZombieAttack: "/audio/zombie-bite-96528.mp3", // https://pixabay.com/users/freesound_community-46691455/
-  AZombieDeath: "/audio/zombie-death-2-95167.mp3", // https://pixabay.com/users/freesound_community-46691455/
+  AZombieDeath: "/audio/small-monster-attack-195712.mp3", // https://pixabay.com/users/daviddumaisaudio-41768500/
+  AZombieNoiseNormal: "/audio/zombie-15965.mp3", // https://pixabay.com/users/vilches86-12269887/
+  AZombieNoiseNormal2: "/audio/zombie-choking-44937.mp3", // https://pixabay.com/users/freesound_community-46691455/
+  AZombieNoiseWandering: "/audio/growling-zombie-104988.mp3", // https://pixabay.com/users/freesound_community-46691455/
+  AZombieNoiseAggressive: "/audio/monster_noise_2-105198.mp3", // https://pixabay.com/users/freesound_community-46691455/
   // FX
   AFXShopPurchase: "/audio/coin-donation-2-180438.mp3", // https://pixabay.com/users/floraphonic-38928062/
   AFXZombieAmbience: "/audio/zombie-sound-224167.mp3", // https://pixabay.com/users/alice_soundz-44907632/
+  AFXMorningRooster: "/audio/rooster-233738.mp3", // https://pixabay.com/users/stefan_grace-8153913/
   // Music
   AMusicBackgroundNight: "/audio/horror-scary-dark-music-413504.mp3", // https://pixabay.com/users/lnplusmusic-47631836/
   AMusicBackgroundDay: "/audio/early-morning-muse-full-version-peaceful-flute-harp-strings-371629.mp3", // https://pixabay.com/users/kaazoom-448850/
