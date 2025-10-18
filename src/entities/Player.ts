@@ -157,9 +157,7 @@ export default class Player extends AEntity {
   public damage(amount: number): void {
     this.health -= amount;
     if (this.health <= 0) {
-      this.gameInstance.MANAGERS.AssetManager.playAudioAsset("APlayerDie", "sound");
-      alert("YOU DED");
-      // TODO: DIE
+      this.die();
     } else {
       this.gameInstance.MANAGERS.AssetManager.playAudioAsset("APlayerHurt", "sound");
     }
@@ -218,5 +216,11 @@ export default class Player extends AEntity {
 
     if (this.checkHasCollisions(futurePos)) return;
     else this.setWorldPosition(futurePos);
+  }
+
+  private die(): void {
+    this.gameInstance.MANAGERS.VFXManager.drawBloodOnScreen();
+    this.gameInstance.MANAGERS.AssetManager.playAudioAsset("APlayerDie", "sound");
+    this.gameInstance.MANAGERS.LevelManager.destroyPlayer();
   }
 }

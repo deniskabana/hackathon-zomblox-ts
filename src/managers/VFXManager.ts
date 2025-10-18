@@ -15,13 +15,13 @@ export default class VFXManager extends AManager {
 
   public init(): void {}
 
-  public draw(): void {
+  public draw(_deltaTime: number): void {
     for (const [id, effect] of this.effects) {
       if (effect.startTime + effect.duration * 1000 < Date.now()) {
         this.effects.delete(id);
         continue;
       }
-      effect.render();
+      effect.render(_deltaTime);
     }
   }
 
@@ -48,8 +48,9 @@ export default class VFXManager extends AManager {
   }
 
   public drawBloodPool(pos: WorldPosition, duration: number = 30): void {
-    const alpha = Math.random() * 0.4 + 0.4;
-    const sizeDeviation = 0.5 + Math.random();
+    const alpha = Math.random() * 0.4 + 0.6;
+    const sizeDeviation = 0.7 + Math.random() * 0.3;
+    const angle = 2 * Math.PI * Math.random();
 
     this.effects.set(this.effectIdCount++, {
       duration,
@@ -64,7 +65,34 @@ export default class VFXManager extends AManager {
           GRID_CONFIG.TILE_SIZE * sizeDeviation,
           GRID_CONFIG.TILE_SIZE * sizeDeviation,
           ZIndex.GROUND_EFFECTS,
-          2 * Math.PI * Math.floor(Math.random()),
+          angle,
+          alpha,
+        );
+      },
+      startTime: Date.now(),
+    });
+  }
+
+  public drawBloodOnScreen(duration: number = 10): void {
+    let alpha = 0;
+
+    this.effects.set(this.effectIdCount++, {
+      duration,
+      render: (_deltaTime) => {
+        const bloodSprite = this.gameInstance.MANAGERS.AssetManager.getImageAsset("IFXBloodScreen");
+        if (!bloodSprite) return;
+
+        if (alpha < 1) alpha += _deltaTime;
+        else alpha = 1;
+
+        this.gameInstance.MANAGERS.DrawManager.queueDraw(
+          0,
+          0,
+          bloodSprite,
+          this.gameInstance.MANAGERS.CameraManager.viewportWidth,
+          this.gameInstance.MANAGERS.CameraManager.viewportHeight,
+          ZIndex.EFFECTS,
+          0,
           alpha,
         );
       },

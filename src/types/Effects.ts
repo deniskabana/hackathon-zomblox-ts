@@ -1,17 +1,5 @@
-import type { WorldPosition } from "../config/gameGrid";
-
 export interface Effect {
   duration: number;
-  render: VoidFunction;
+  render: (_deltaTime: number) => void;
   startTime: number;
-}
-
-export interface EffectShootLine extends Effect {
-  from: WorldPosition;
-  to: WorldPosition;
-  color: string;
-}
-
-export interface EffectBloodPool extends Effect {
-  pos: WorldPosition;
 }

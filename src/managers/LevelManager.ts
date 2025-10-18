@@ -217,6 +217,10 @@ export default class LevelManager extends AManager {
     if (type === "block") this.updatePathFindingGrid();
   }
 
+  public destroyPlayer(): void {
+    this.player = undefined;
+  }
+
   // Blocks
   // ==================================================
 
