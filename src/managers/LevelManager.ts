@@ -67,7 +67,7 @@ export default class LevelManager extends AManager {
 
     const gameSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
     this.zombieSpawnInterval = gameSettings.zombieSpawnIntervalMs;
-    this.levelState = { phase: "day", daysCounter: 1 };
+    this.levelState = { phase: "day", daysCounter: 0 };
 
     // TODO: Remove, top-left
     this.spawnBlock({ x: 8, y: 2 });

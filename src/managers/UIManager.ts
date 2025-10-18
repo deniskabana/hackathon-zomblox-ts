@@ -1,5 +1,6 @@
 import type GameInstance from "../GameInstance";
 import styles from "../styles/UIManager.module.css";
+import hudStyles from "../styles/hud.module.css";
 import getUiControls, { type UiControls } from "../ui/uiControls";
 import { AManager } from "./abstract/AManager";
 
@@ -7,6 +8,8 @@ import { AManager } from "./abstract/AManager";
 export default class UIManager extends AManager {
   private startGameContainer: HTMLDivElement;
   private nightOverlay: HTMLDivElement;
+  private hudContainer: HTMLDivElement;
+  private hudDayCounter: HTMLDivElement;
 
   private uiControls: UiControls;
 
@@ -24,6 +27,8 @@ export default class UIManager extends AManager {
     this.uiControls = getUiControls(this.gameInstance);
     this.startGameContainer = document.createElement("div");
     this.nightOverlay = document.createElement("div");
+    this.hudContainer = document.createElement("div");
+    this.hudDayCounter = document.createElement("div");
 
     this.debugContainer = document.createElement("div");
     this.debugTextFps = document.createElement("div");
@@ -35,6 +40,11 @@ export default class UIManager extends AManager {
   public init(): void {
     this.startGameContainer.className = styles.startGameContainer;
     document.body.appendChild(this.startGameContainer);
+
+    this.hudContainer.className = hudStyles.hudContainer;
+    this.hudDayCounter.className = hudStyles.hudElement;
+    this.hudContainer.appendChild(this.hudDayCounter);
+    document.body.appendChild(this.hudContainer);
 
     this.nightOverlay.className = styles.nightOverlay;
     document.body.appendChild(this.nightOverlay);
@@ -52,6 +62,12 @@ export default class UIManager extends AManager {
   public draw(fps: number): void {
     this.uiControlsDraw();
     this.drawDebug(fps);
+    this.drawHud();
+  }
+
+  private drawHud(): void {
+    const dayNo = this.gameInstance.MANAGERS.LevelManager.levelState?.daysCounter;
+    this.hudDayCounter.innerText = `Day: ${dayNo}`;
   }
 
   public showNightOverlay(): void {

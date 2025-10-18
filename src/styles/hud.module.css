@@ -1,0 +1,17 @@
+.hudContainer {
+  position: fixed;
+  left: 0.35rem;
+  top: 0.35rem;
+  background: #2020209a;
+  border-radius: 0.25rem;
+  border: 1px solid #666;
+  color: white;
+  gap: 0.25rem;
+}
+
+.hudElement {
+  display: flex;
+  padding: 0.5rem;
+  font-size: 11px;
+  font-weight: 600;
+}
