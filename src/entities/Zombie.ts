@@ -17,7 +17,7 @@ export enum ZombieState {
   WANDERING = "WANDERING", // TBD
   ATTACKING = "ATTACKING",
   REATREATING = "RETREATING",
-  WAITING = "WAITING",
+  WAITING_FOR_NIGHT = "WAITING_FOR_NIGHT",
 }
 
 export default class Zombie extends AEntity {
@@ -46,6 +46,8 @@ export default class Zombie extends AEntity {
   private gridPosChangeTimer: number = 0;
   private retreatFlowFieldIndex: number = 0;
 
+  private attackCooldownTimer: number = 0;
+
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     super(gameInstance, gridToWorld(gridPos), entityId, true);
 
@@ -73,11 +75,12 @@ export default class Zombie extends AEntity {
         break;
 
       case ZombieState.ATTACKING:
-        // TODO: Zombie attack
+        if (this.attackCooldownTimer > 0) this.attackCooldownTimer -= _deltaTime;
+        else this.zombieState = ZombieState.CHASING_PLAYER;
         break;
 
-      case ZombieState.WAITING:
-        return; // ... just waiting
+      case ZombieState.WAITING_FOR_NIGHT:
+        return;
 
       default:
         assertNever(this.zombieState);
@@ -130,6 +133,88 @@ export default class Zombie extends AEntity {
     }
   }
 
+  // State based actions
+  // ==================================================
+
+  private zombieChasePlayer(_deltaTime: number): void {
+    const player = this.gameInstance.MANAGERS.LevelManager.player;
+    const flowField = this.gameInstance.MANAGERS.LevelManager.flowField;
+    const gameSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules;
+    if (!player) return;
+
+    if (this.clearTargetPosTimer > 0) {
+      this.clearTargetPosTimer -= _deltaTime;
+    } else {
+      this.clearTargetPosTimer = this.clearTargetPosInterval;
+      this.moveTargetPos = undefined;
+    }
+
+    // Stop chasing the player once they're reached
+    if (isInsideGrid(this.gridPos) && this.moveTargetPos) {
+      const targetGridPos = worldToGrid(this.moveTargetPos);
+      if (targetGridPos.x === this.gridPos.x && targetGridPos.y === this.gridPos.y) this.moveTargetPos = undefined;
+      const isTargetPlayer = targetGridPos.x === player.gridPos.x && targetGridPos.y === player.gridPos.y;
+      if (this.moveTargetPos && !isTargetPlayer) return;
+    }
+
+    if (isInsideGrid(this.gridPos) && this.distanceFromPlayer >= this.minDistanceFromPlayer && !!flowField) {
+      const lowestDistanceNeighbor = flowField[this.gridPos.x][this.gridPos.y].neighbors.reduce<Vector>((acc, val) => {
+        if (gameSettings.zombie.enableErraticBehavior && Math.random() > 0.987) return val; // Randomly skip tiles when checking, it's a zombie
+        if (!acc || flowField[val.x][val.y].distance < flowField[acc.x][acc.y].distance) return val;
+        return acc;
+      }, this.gridPos);
+
+      this.moveTargetPos = gridToWorld(lowestDistanceNeighbor, true);
+    } else {
+      this.moveTargetPos = { ...player.worldPos };
+    }
+
+    // Add deviation for zombie-like walking
+    if (this.moveTargetPos) {
+      this.moveTargetPos.x += (0.5 - Math.random()) * GRID_CONFIG.TILE_SIZE * 0.6;
+      this.moveTargetPos.y += (0.5 - Math.random()) * GRID_CONFIG.TILE_SIZE * 0.6;
+    }
+  }
+
+  private zombieRetreat(_deltaTime: number): void {
+    const retreatFlowFields = this.gameInstance.MANAGERS.LevelManager.retreatFlowFields;
+    const flowField = retreatFlowFields?.[this.retreatFlowFieldIndex];
+    if (!flowField) return;
+
+    if (!isInsideGrid(this.gridPos, GRID_CONFIG)) {
+      this.zombieState = ZombieState.WAITING_FOR_NIGHT;
+      this.gridPos.x = Math.floor(Math.random() * (GRID_CONFIG.GRID_WIDTH - 1));
+      this.gridPos.y = Math.floor(Math.random() * (GRID_CONFIG.GRID_HEIGHT - 1));
+      return;
+    }
+
+    const { x, y } = this.gridPos;
+    if (x <= 0 || x >= GRID_CONFIG.GRID_WIDTH - 1 || y <= 0 || y >= GRID_CONFIG.GRID_HEIGHT - 1) {
+      const offsetX = x <= 0 ? -3 : x >= GRID_CONFIG.GRID_WIDTH - 1 ? 3 : 0;
+      const offsetY = y <= 0 ? -3 : y >= GRID_CONFIG.GRID_HEIGHT - 1 ? 3 : 0;
+      this.moveTargetPos = gridToWorld({ x: x + offsetX, y: y + offsetY }, true);
+      return;
+    }
+
+    if (!flowField[this.gridPos.x]?.[this.gridPos.y]?.neighbors) {
+      console.log(flowField, this.gridPos);
+      throw new Error("FUCK");
+    }
+
+    const lowestDistanceNeighbor = flowField[this.gridPos.x][this.gridPos.y].neighbors.reduce<Vector>((acc, val) => {
+      if (!acc || flowField[val.x][val.y].distance < flowField[acc.x][acc.y].distance) return val;
+      return acc;
+    }, this.gridPos);
+
+    this.moveTargetPos = gridToWorld(lowestDistanceNeighbor, true);
+  }
+
+  private zombieAttackPlayer(): void {
+    const zombieSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.zombie;
+    this.zombieState = ZombieState.ATTACKING;
+    this.attackCooldownTimer = zombieSettings.attackCooldownSec * (Math.random() + 0.5);
+  }
+
   // Movement
   // ==================================================
 
@@ -147,9 +232,11 @@ export default class Zombie extends AEntity {
       this.zombieChasePlayer(_deltaTime);
       if (zombieSettings.enableErraticBehavior) this.applyErraticBehavior(_deltaTime);
 
+      // Attack player if close enough!
       if (this.distanceFromPlayer < this.minDistanceFromPlayer) {
         this.moveTargetPos = { ...player.worldPos };
         this.clearTargetPosTimer = 0;
+        this.zombieAttackPlayer();
         return;
       } else {
         this.moveIfPossible(_deltaTime);
@@ -231,79 +318,6 @@ export default class Zombie extends AEntity {
       this.setWorldPosition(futurePos);
       this.stuckTimer = 0;
     }
-  }
-
-  private zombieChasePlayer(_deltaTime: number): void {
-    const player = this.gameInstance.MANAGERS.LevelManager.player;
-    const flowField = this.gameInstance.MANAGERS.LevelManager.flowField;
-    const gameSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules;
-    if (!player) return;
-
-    if (this.clearTargetPosTimer > 0) {
-      this.clearTargetPosTimer -= _deltaTime;
-    } else {
-      this.clearTargetPosTimer = this.clearTargetPosInterval;
-      this.moveTargetPos = undefined;
-    }
-
-    // Stop chasing the player once they're reached
-    if (isInsideGrid(this.gridPos) && this.moveTargetPos) {
-      const targetGridPos = worldToGrid(this.moveTargetPos);
-      if (targetGridPos.x === this.gridPos.x && targetGridPos.y === this.gridPos.y) this.moveTargetPos = undefined;
-      const isTargetPlayer = targetGridPos.x === player.gridPos.x && targetGridPos.y === player.gridPos.y;
-      if (this.moveTargetPos && !isTargetPlayer) return;
-    }
-
-    if (isInsideGrid(this.gridPos) && this.distanceFromPlayer >= this.minDistanceFromPlayer && !!flowField) {
-      const lowestDistanceNeighbor = flowField[this.gridPos.x][this.gridPos.y].neighbors.reduce<Vector>((acc, val) => {
-        if (gameSettings.zombie.enableErraticBehavior && Math.random() > 0.987) return val; // Randomly skip tiles when checking, it's a zombie
-        if (!acc || flowField[val.x][val.y].distance < flowField[acc.x][acc.y].distance) return val;
-        return acc;
-      }, this.gridPos);
-
-      this.moveTargetPos = gridToWorld(lowestDistanceNeighbor, true);
-    } else {
-      this.moveTargetPos = { ...player.worldPos };
-    }
-
-    // Add deviation for zombie-like walking
-    if (this.moveTargetPos) {
-      this.moveTargetPos.x += (0.5 - Math.random()) * GRID_CONFIG.TILE_SIZE * 0.6;
-      this.moveTargetPos.y += (0.5 - Math.random()) * GRID_CONFIG.TILE_SIZE * 0.6;
-    }
-  }
-
-  private zombieRetreat(_deltaTime: number): void {
-    const retreatFlowFields = this.gameInstance.MANAGERS.LevelManager.retreatFlowFields;
-    const flowField = retreatFlowFields?.[this.retreatFlowFieldIndex];
-    if (!flowField) return;
-
-    if (!isInsideGrid(this.gridPos, GRID_CONFIG)) {
-      this.zombieState = ZombieState.WAITING;
-      this.gridPos.x = Math.floor(Math.random() * (GRID_CONFIG.GRID_WIDTH - 1));
-      this.gridPos.y = Math.floor(Math.random() * (GRID_CONFIG.GRID_HEIGHT - 1));
-      return;
-    }
-
-    const { x, y } = this.gridPos;
-    if (x <= 0 || x >= GRID_CONFIG.GRID_WIDTH - 1 || y <= 0 || y >= GRID_CONFIG.GRID_HEIGHT - 1) {
-      const offsetX = x <= 0 ? -3 : x >= GRID_CONFIG.GRID_WIDTH - 1 ? 3 : 0;
-      const offsetY = y <= 0 ? -3 : y >= GRID_CONFIG.GRID_HEIGHT - 1 ? 3 : 0;
-      this.moveTargetPos = gridToWorld({ x: x + offsetX, y: y + offsetY }, true);
-      return;
-    }
-
-    if (!flowField[this.gridPos.x]?.[this.gridPos.y]?.neighbors) {
-      console.log(flowField, this.gridPos);
-      throw new Error("FUCK");
-    }
-
-    const lowestDistanceNeighbor = flowField[this.gridPos.x][this.gridPos.y].neighbors.reduce<Vector>((acc, val) => {
-      if (!acc || flowField[val.x][val.y].distance < flowField[acc.x][acc.y].distance) return val;
-      return acc;
-    }, this.gridPos);
-
-    this.moveTargetPos = gridToWorld(lowestDistanceNeighbor, true);
   }
 
   private applyErraticBehavior(_deltaTime: number): void {

@@ -26,6 +26,8 @@ export default class InputManager extends AManager {
     document.addEventListener("keydown", this.onKeyDown.bind(this));
     document.addEventListener("keyup", this.onKeyUp.bind(this));
     document.addEventListener("keypress", this.onKeyPress.bind(this));
+
+    window.addEventListener("scroll", (e) => e.preventDefault());
   }
 
   public init(): void {}

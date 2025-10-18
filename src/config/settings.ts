@@ -30,6 +30,9 @@ export const DEFAULT_SETTINGS = {
       randomStopIntervalSec: 11,
       enableDamagedSlowdown: true,
       damagedSlowdownCoef: 0.5,
+      attackDamage: 6,
+      attackDamageDeviation: 3,
+      attackCooldownSec: 0.9,
     },
     player: {
       startHealth: 100,

@@ -322,7 +322,7 @@ export default class LevelManager extends AManager {
     if (!this.levelState) return;
 
     this.retreatFlowFields = [];
-    const amount = Math.max(20, this.zombies.size / 4);
+    const amount = Math.max(20, this.zombies.size);
     for (let i = 0; i < amount; i++) {
       this.retreatFlowFields.push(
         generateFlowField(
