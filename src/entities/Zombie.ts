@@ -33,7 +33,6 @@ export default class Zombie extends AEntity {
 
   private randomStopInterval: number;
   private randomStopTimer: number = 0;
-
   private clearTargetPosInterval: number = 1.5;
   private clearTargetPosTimer: number = 0;
 
@@ -44,15 +43,19 @@ export default class Zombie extends AEntity {
   private stuckThreshold: number = 0.8;
   private lastGridPos: GridPosition = { x: -1, y: -1 };
   private gridPosChangeTimer: number = 0;
+
   private retreatFlowFieldIndex: number = 0;
 
   private attackCooldownTimer: number = 0;
+  private attackTimer: number = 0;
+  private attackDuration: number = 0.5;
+  private hasDealtDamage: boolean = false;
 
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     super(gameInstance, gridToWorld(gridPos), entityId, true);
 
     this.isWalking = true;
-    this.minDistanceFromPlayer = GRID_CONFIG.TILE_SIZE * 1.5;
+    this.minDistanceFromPlayer = GRID_CONFIG.TILE_SIZE * 1;
 
     const settings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.zombie;
     this.health = settings.maxHealth + (Math.random() - 0.5) * settings.healthDeviation;
@@ -75,8 +78,7 @@ export default class Zombie extends AEntity {
         break;
 
       case ZombieState.ATTACKING:
-        if (this.attackCooldownTimer > 0) this.attackCooldownTimer -= _deltaTime;
-        else this.zombieState = ZombieState.CHASING_PLAYER;
+        this.zombieAttackPlayer(_deltaTime);
         break;
 
       case ZombieState.WAITING_FOR_NIGHT:
@@ -204,10 +206,35 @@ export default class Zombie extends AEntity {
     this.moveTargetPos = gridToWorld(lowestDistanceNeighbor, true);
   }
 
-  private zombieAttackPlayer(): void {
+  private zombieAttackPlayer(_deltaTime: number): void {
+    this.attackTimer -= _deltaTime;
     const zombieSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.zombie;
+
+    if (!this.hasDealtDamage && this.attackTimer <= this.attackDuration * 0.4) {
+      const player = this.gameInstance.MANAGERS.LevelManager.player;
+      if (player) {
+        this.distanceFromPlayer = getVectorDistance(this.worldPos, player.worldPos);
+        if (this.distanceFromPlayer < this.minDistanceFromPlayer) {
+          player.damage(zombieSettings.attackDamage);
+          this.hasDealtDamage = true;
+        }
+      }
+    }
+
+    if (this.attackTimer <= 0) {
+      this.attackCooldownTimer = zombieSettings.attackCooldownSec * (Math.random() + 0.5);
+      if (this.zombieState === ZombieState.ATTACKING) this.zombieState = ZombieState.CHASING_PLAYER;
+    }
+  }
+
+  // Actions
+  // ==================================================
+
+  private startAttacking(): void {
+    if (this.attackCooldownTimer > 0) return;
     this.zombieState = ZombieState.ATTACKING;
-    this.attackCooldownTimer = zombieSettings.attackCooldownSec * (Math.random() + 0.5);
+    this.attackTimer = this.attackDuration;
+    this.hasDealtDamage = false;
 
     this.gameInstance.MANAGERS.AssetManager.playAudioAsset("AZombieAttack", "sound", 0.85);
   }
@@ -225,6 +252,8 @@ export default class Zombie extends AEntity {
     if (!this.isWalking) return;
     this.detectAndHandleStuck(_deltaTime);
 
+    if (this.attackCooldownTimer > 0) this.attackCooldownTimer -= _deltaTime;
+
     if (this.zombieState === ZombieState.CHASING_PLAYER) {
       this.zombieChasePlayer(_deltaTime);
       if (zombieSettings.enableErraticBehavior) this.applyErraticBehavior(_deltaTime);
@@ -233,7 +262,7 @@ export default class Zombie extends AEntity {
       if (this.distanceFromPlayer < this.minDistanceFromPlayer) {
         this.moveTargetPos = { ...player.worldPos };
         this.clearTargetPosTimer = 0;
-        this.zombieAttackPlayer();
+        this.startAttacking();
         return;
       } else {
         this.moveIfPossible(_deltaTime);

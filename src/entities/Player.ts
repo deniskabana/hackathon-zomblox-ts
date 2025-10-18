@@ -155,11 +155,11 @@ export default class Player extends AEntity {
     this.health -= amount;
     if (this.health <= 0) {
       this.gameInstance.MANAGERS.AssetManager.playAudioAsset("APlayerDie", "sound");
+      alert("YOU DED");
       // TODO: DIE
     } else {
       this.gameInstance.MANAGERS.AssetManager.playAudioAsset("APlayerHurt", "sound");
     }
-    console.warn("PLAYER HEALTH: ", this.health);
   }
 
   private checkHasCollisions(futurePos: WorldPosition): boolean {

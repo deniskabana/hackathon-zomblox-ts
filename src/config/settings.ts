@@ -32,7 +32,7 @@ export const DEFAULT_SETTINGS = {
       damagedSlowdownCoef: 0.5,
       attackDamage: 6,
       attackDamageDeviation: 3,
-      attackCooldownSec: 0.9,
+      attackCooldownSec: 1.1,
     },
     player: {
       startHealth: 100,
