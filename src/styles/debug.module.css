@@ -1,0 +1,27 @@
+.debugContainer {
+  position: fixed;
+  z-index: 2;
+  padding: 0;
+  right: 8px;
+  top: 8px;
+}
+
+.debugElementsContainer {
+  right: 8px;
+  bottom: 8px;
+  left: auto;
+  top: auto;
+  display: flex;
+  align-items: flex-end;
+  flex-direction: row-reverse;
+  gap: 10px;
+}
+
+.debugSettings {
+  right: auto;
+  top: auto;
+  left: 8px;
+  bottom: 8px;
+  color: black;
+  font-weight: 400;
+}

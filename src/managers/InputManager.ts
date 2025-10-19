@@ -54,7 +54,7 @@ export default class InputManager extends AManager {
   }
 
   public simulateControlRelease(control: GameControls): void {
-    this.controlsPressed.add(control);
+    this.controlsPressed.delete(control);
   }
 
   public updateAimAngle(angle: number): void {
@@ -146,7 +146,7 @@ export default class InputManager extends AManager {
         return;
     }
 
-    this.controlsPressed.add(control);
+    return control;
   }
 
   // Utils

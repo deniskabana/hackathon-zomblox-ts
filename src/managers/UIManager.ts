@@ -1,10 +1,10 @@
 import type GameInstance from "../GameInstance";
 import styles from "../styles/UIManager.module.css";
+import debugStyles from "../styles/debug.module.css";
 import hudStyles from "../styles/hud.module.css";
 import getUiControls, { type UiControls } from "../ui/uiControls";
 import { AManager } from "./abstract/AManager";
 
-// Do not waste time on this manager
 export default class UIManager extends AManager {
   private startGameContainer: HTMLDivElement;
   private nightOverlay: HTMLDivElement;
@@ -51,7 +51,7 @@ export default class UIManager extends AManager {
 
     if (!this.gameInstance.isDev) return;
 
-    this.debugContainer.className = styles.devUiContainer + " " + styles.devDebugContainer;
+    this.debugContainer.className = debugStyles.debugContainer + " " + debugStyles.debugElementsContainer;
     if (this.gameInstance.isDev && !this.debugSettingsInitialized) this.initDebugSettings();
     this.debugContainer.appendChild(this.debugTextFps);
     this.debugContainer.appendChild(this.debugTextZombies);
@@ -80,7 +80,7 @@ export default class UIManager extends AManager {
 
   private initDebugSettings(): void {
     this.debugSettingsContainer.className =
-      styles.devUiContainer + " " + styles.flagsContainer + " " + styles.contentContainer;
+      debugStyles.debugContainer + " " + debugStyles.debugSettings + " " + styles.contentContainer;
     const debugSettings = this.gameInstance.MANAGERS.GameManager.getSettings().debug;
 
     const wrapper = document.createElement("div");
