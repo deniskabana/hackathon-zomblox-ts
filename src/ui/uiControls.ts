@@ -11,15 +11,15 @@ export default function getUiControls(gameInstance: GameInstance): UiControls {
   const fullScreenButton = getFullScreenButton();
   const sleepUntilNightButton = getSleepUntilNightButton(gameInstance);
   const masterVolumeToggleButton = getMasterVolumeToggleButton(gameInstance);
-  const shootButtonLeft = getShootButton("left", gameInstance);
-  const shootButtonRight = getShootButton("right", gameInstance);
+  // const _shootButtonLeft = getShootButton("left", gameInstance);
+  // const _shootButtonRight = getShootButton("right", gameInstance);
 
   return {
     fullScreenButton,
     sleepUntilNightButton,
     masterVolumeToggleButton,
-    shootButtonLeft,
-    shootButtonRight,
+    // shootButtonLeft,
+    // shootButtonRight,
   };
 }
 
@@ -109,7 +109,7 @@ function getSleepUntilNightButton(gameInstance: GameInstance): UiControls[string
   };
 }
 
-function getShootButton(position: "right" | "left", gameInstance: GameInstance): UiControls[string] {
+export function getShootButton(position: "right" | "left", gameInstance: GameInstance): UiControls[string] {
   const buttonEl = document.createElement("div");
   document.body.appendChild(buttonEl);
   buttonEl.className = cx(styles.uiControl, position === "left" ? styles.shootButtonLeft : styles.shootButtonRight);

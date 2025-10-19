@@ -119,7 +119,10 @@ export default class InputManager extends AManager {
 
       const angle = getDirectionalAngle({ x: touch.clientX, y: touch.clientY }, joystickCenter);
       if (event.target === joystickLeft) this.moveDirection = angle;
-      if (event.target === joystickRight) this.aimDirection = angle;
+      if (event.target === joystickRight) {
+        this.aimDirection = angle;
+        this.simulateControlPress(GameControls.SHOOT);
+      }
     }
 
     target.classList.add(styles.joystickActive);
@@ -135,7 +138,10 @@ export default class InputManager extends AManager {
       this.moveDirection = undefined;
     }
 
-    if (event.target === joystickRight) target = joystickRight;
+    if (event.target === joystickRight) {
+      target = joystickRight;
+      this.simulateControlRelease(GameControls.SHOOT);
+    }
 
     if (target) target.classList.remove(styles.joystickActive);
   }
