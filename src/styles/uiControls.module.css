@@ -15,11 +15,11 @@
 
   backdrop-filter: blur(4px);
   box-shadow: 2px 2px 6px rgba(10, 10, 20, 0.15);
-  transition: all 0.2s ease;
+  transition: opacity 0.2s ease;
 }
 
-.uiControl:hover {
-  background: #4c5c7f9f;
+.uiControlActive {
+  opacity: 0.5;
 }
 
 .masterVolumeToggleButton {
@@ -27,35 +27,61 @@
   right: 1rem;
 }
 
-.touchControlArrLeft {
-  width: 3rem;
-  height: 3rem;
-  bottom: 4rem;
-  left: 1rem;
-}
-
-.touchControlArrTop {
-  width: 3rem;
-  height: 3rem;
-  bottom: 7rem;
-  left: 4rem;
-}
-
-.touchControlArrRight {
-  width: 3rem;
-  height: 3rem;
-  bottom: 4rem;
-  left: 7rem;
-}
-
-.touchControlArrBottom {
-  width: 3rem;
-  height: 3rem;
-  bottom: 1rem;
-  left: 4rem;
-}
-
 .sleepUntilNightButton {
   top: 1rem;
   right: 5rem;
+}
+
+.shootButtonLeft {
+  background: #4f2f2a59;
+  bottom: calc(2rem + 128px + 1rem);
+  left: 1rem;
+}
+.shootButtonRight {
+  background: #4f2f2a59;
+  bottom: calc(2rem + 128px + 1rem);
+  right: 1rem;
+}
+
+.joystick {
+  position: fixed;
+  z-index: 19;
+  background: #e2e2e625;
+  border: 2px solid #9999999f;
+  bottom: 2rem;
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  opacity: 0.55;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  box-shadow: 2px 2px 6px rgba(10, 10, 20, 0.15);
+  transition: opacity 0.2s ease;
+}
+
+.joystick::before {
+  z-index: 20;
+  background: #9999999f;
+  display: block;
+  content: "";
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.joystick.joystickActive::before {
+  background: #797979cf;
+}
+
+.joystickActive {
+  opacity: 1;
+}
+
+.joystickLeft {
+  left: 2rem;
+}
+.joystickRight {
+  right: 2rem;
 }

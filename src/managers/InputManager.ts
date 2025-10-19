@@ -3,6 +3,8 @@ import { GameControls } from "../types/GameControls";
 import type { ScreenPosition } from "../types/ScreenPosition";
 import getDirectionalAngle from "../utils/math/getDirectionalAngle";
 import { AManager } from "./abstract/AManager";
+import styles from "../styles/uiControls.module.css";
+import getVectorDistance from "../utils/math/getVectorDistance";
 
 export default class InputManager extends AManager {
   private aimDirection: number = 0;
@@ -18,10 +20,10 @@ export default class InputManager extends AManager {
     document.addEventListener("mouseup", this.onMouseUp.bind(this));
     document.addEventListener("mousemove", this.onMouseMove.bind(this));
 
-    document.addEventListener("touchstart", this.genericPreventDefault.bind(this));
-    document.addEventListener("touchmove", this.genericPreventDefault.bind(this));
-    document.addEventListener("touchend", this.genericPreventDefault.bind(this));
-    document.addEventListener("touchcancel", this.genericPreventDefault.bind(this));
+    document.addEventListener("touchstart", this.onTouchStart.bind(this), { passive: false });
+    document.addEventListener("touchmove", this.onTouchStart.bind(this), { passive: false });
+    document.addEventListener("touchend", this.onTouchEnd.bind(this), { passive: false });
+    document.addEventListener("touchcancel", this.onTouchEnd.bind(this), { passive: false });
 
     document.addEventListener("keydown", this.onKeyDown.bind(this));
     document.addEventListener("keyup", this.onKeyUp.bind(this));
@@ -96,6 +98,48 @@ export default class InputManager extends AManager {
     event.preventDefault();
   }
 
+  private onTouchStart(event: TouchEvent): void {
+    event.preventDefault();
+    const { joystickLeft, joystickRight } = this.gameInstance.MANAGERS.UIManager;
+    let target: HTMLDivElement | undefined = undefined;
+
+    if (event.target === joystickLeft) target = joystickLeft;
+    if (event.target === joystickRight) target = joystickRight;
+    if (!target) return;
+
+    const boundRect = target.getBoundingClientRect();
+    const joystickCenter: ScreenPosition = {
+      x: boundRect.left + boundRect.width / 2,
+      y: boundRect.top + boundRect.height / 2,
+    };
+
+    for (const touch of event.targetTouches) {
+      const touchPos: ScreenPosition = { x: touch.clientX, y: touch.clientY };
+      if (getVectorDistance(touchPos, joystickCenter) < 32) continue; // Deadzone
+
+      const angle = getDirectionalAngle({ x: touch.clientX, y: touch.clientY }, joystickCenter);
+      if (event.target === joystickLeft) this.moveDirection = angle;
+      if (event.target === joystickRight) this.aimDirection = angle;
+    }
+
+    target.classList.add(styles.joystickActive);
+  }
+
+  private onTouchEnd(event: TouchEvent): void {
+    event.preventDefault();
+    const { joystickLeft, joystickRight } = this.gameInstance.MANAGERS.UIManager;
+    let target: HTMLDivElement | undefined = undefined;
+
+    if (event.target === joystickLeft) {
+      target = joystickLeft;
+      this.moveDirection = undefined;
+    }
+
+    if (event.target === joystickRight) target = joystickRight;
+
+    if (target) target.classList.remove(styles.joystickActive);
+  }
+
   private updateMousePosition(event: MouseEvent): void {
     const rect = this.gameInstance.canvas.getBoundingClientRect();
     const screenX = event.clientX - rect.left;
@@ -157,10 +201,10 @@ export default class InputManager extends AManager {
     document.removeEventListener("mouseup", this.onMouseUp);
     document.removeEventListener("mousemove", this.onMouseMove);
 
-    document.removeEventListener("touchstart", this.genericPreventDefault);
-    document.removeEventListener("touchmove", this.genericPreventDefault);
-    document.removeEventListener("touchend", this.genericPreventDefault);
-    document.removeEventListener("touchcancel", this.genericPreventDefault);
+    document.removeEventListener("touchstart", this.onTouchStart);
+    document.removeEventListener("touchmove", this.onTouchStart);
+    document.removeEventListener("touchend", this.onTouchEnd);
+    document.removeEventListener("touchcancel", this.onTouchEnd);
 
     document.removeEventListener("keydown", this.onKeyDown);
     document.removeEventListener("keyup", this.onKeyUp);

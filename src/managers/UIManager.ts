@@ -2,7 +2,9 @@ import type GameInstance from "../GameInstance";
 import styles from "../styles/UIManager.module.css";
 import debugStyles from "../styles/debug.module.css";
 import hudStyles from "../styles/hud.module.css";
+import uiControlsStyles from "../styles/uiControls.module.css";
 import getUiControls, { type UiControls } from "../ui/uiControls";
+import cx from "../utils/cx";
 import { AManager } from "./abstract/AManager";
 
 export default class UIManager extends AManager {
@@ -11,7 +13,7 @@ export default class UIManager extends AManager {
   private hudContainer: HTMLDivElement;
   private hudDayCounter: HTMLDivElement;
 
-  private uiControls: UiControls;
+  private uiControls: UiControls = {};
 
   private debugContainer: HTMLDivElement;
   private debugTextFps: HTMLDivElement;
@@ -21,42 +23,60 @@ export default class UIManager extends AManager {
 
   private debugSettingsInitialized: boolean = false;
 
+  // Touch controls
+  public joystickLeft: HTMLDivElement;
+  public joystickRight: HTMLDivElement;
+
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
 
-    this.uiControls = getUiControls(this.gameInstance);
+    this.joystickLeft = document.createElement("div");
+    this.joystickRight = document.createElement("div");
+
+    document.body.appendChild(this.joystickLeft);
+    document.body.appendChild(this.joystickRight);
+
     this.startGameContainer = document.createElement("div");
     this.nightOverlay = document.createElement("div");
     this.hudContainer = document.createElement("div");
     this.hudDayCounter = document.createElement("div");
+
+    this.hudContainer.appendChild(this.hudDayCounter);
+
+    document.body.appendChild(this.startGameContainer);
+    document.body.appendChild(this.hudContainer);
+    document.body.appendChild(this.nightOverlay);
 
     this.debugContainer = document.createElement("div");
     this.debugTextFps = document.createElement("div");
     this.debugTextZombies = document.createElement("div");
     this.debugTextHealth = document.createElement("div");
     this.debugSettingsContainer = document.createElement("div");
-  }
 
-  public init(): void {
-    this.startGameContainer.className = styles.startGameContainer;
-    document.body.appendChild(this.startGameContainer);
-
-    this.hudContainer.className = hudStyles.hudContainer;
-    this.hudDayCounter.className = hudStyles.hudElement;
-    this.hudContainer.appendChild(this.hudDayCounter);
-    document.body.appendChild(this.hudContainer);
-
-    this.nightOverlay.className = styles.nightOverlay;
-    document.body.appendChild(this.nightOverlay);
-
-    if (!this.gameInstance.isDev) return;
-
-    this.debugContainer.className = debugStyles.debugContainer + " " + debugStyles.debugElementsContainer;
-    if (this.gameInstance.isDev && !this.debugSettingsInitialized) this.initDebugSettings();
     this.debugContainer.appendChild(this.debugTextFps);
     this.debugContainer.appendChild(this.debugTextZombies);
     this.debugContainer.appendChild(this.debugTextHealth);
+
     document.body.appendChild(this.debugContainer);
+  }
+
+  public init(): void {
+    this.startGameContainer.className = cx(styles.startGameContainer);
+
+    this.joystickLeft.className = cx(uiControlsStyles.joystick, uiControlsStyles.joystickLeft);
+    this.joystickRight.className = cx(uiControlsStyles.joystick, uiControlsStyles.joystickRight);
+
+    this.hudContainer.className = cx(hudStyles.hudContainer);
+    this.hudDayCounter.className = cx(hudStyles.hudElement);
+
+    this.nightOverlay.className = cx(styles.nightOverlay);
+
+    this.uiControls = getUiControls(this.gameInstance);
+
+    if (!this.gameInstance.isDev) return;
+
+    this.debugContainer.className = cx(debugStyles.debugContainer, debugStyles.debugElementsContainer);
+    if (this.gameInstance.isDev && !this.debugSettingsInitialized) this.initDebugSettings();
   }
 
   public draw(fps: number): void {
@@ -79,12 +99,15 @@ export default class UIManager extends AManager {
   }
 
   private initDebugSettings(): void {
-    this.debugSettingsContainer.className =
-      debugStyles.debugContainer + " " + debugStyles.debugSettings + " " + styles.contentContainer;
+    this.debugSettingsContainer.className = cx(
+      debugStyles.debugContainer,
+      debugStyles.debugSettings,
+      styles.contentContainer,
+    );
     const debugSettings = this.gameInstance.MANAGERS.GameManager.getSettings().debug;
 
     const wrapper = document.createElement("div");
-    wrapper.className = styles.contentContainer;
+    wrapper.className = cx(styles.contentContainer);
 
     let setting: keyof typeof debugSettings;
     for (setting in debugSettings) {
@@ -103,7 +126,7 @@ export default class UIManager extends AManager {
       checkboxLabel.appendChild(checkbox);
 
       const checkboxText = document.createElement("span");
-      checkboxText.className = styles.uiText;
+      checkboxText.className = cx(styles.uiText);
       checkboxText.innerText = setting;
       checkboxLabel.appendChild(checkboxText);
 
@@ -142,10 +165,10 @@ export default class UIManager extends AManager {
   }
 
   public drawStartGameContainer(): void {
-    this.startGameContainer.className = styles.startGameContainer;
+    this.startGameContainer.className = cx(styles.startGameContainer);
     this.startGameContainer.style.display = "flex";
     const text = document.createElement("p");
-    text.className = styles.startGameText;
+    text.className = cx(styles.startGameText);
     text.innerHTML =
       "<p>Click anywhere...</p><br /><br /><small>WASD - Move, Mouse - Aim, Tab - Cycle weapons</small><br /><br /><small>(open with #debug in URL)</small>";
     this.startGameContainer.appendChild(text);
@@ -162,11 +185,20 @@ export default class UIManager extends AManager {
 
   public destroy(): void {
     this.startGameContainer.remove();
+    this.nightOverlay.remove();
+    this.hudContainer.remove();
+    this.hudDayCounter.remove();
+
     this.debugContainer.remove();
     this.debugTextFps.remove();
     this.debugTextZombies.remove();
     this.debugTextHealth.remove();
     this.debugSettingsContainer.remove();
-    this.nightOverlay.remove();
+
+    this.joystickLeft.remove();
+    this.joystickRight.remove();
+
+    for (const control of Object.values(this.uiControls)) control.destroy();
+    this.uiControls = {};
   }
 }

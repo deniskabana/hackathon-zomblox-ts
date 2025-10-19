@@ -71,6 +71,9 @@ export default class Player extends AEntity {
   }
 
   private getMovementInput(): WorldPosition {
+    const joystickMoveDireciton = this.gameInstance.MANAGERS.InputManager.getMoveDirection();
+    if (joystickMoveDireciton) return radiansToVector(joystickMoveDireciton);
+
     let x = 0;
     let y = 0;
 
