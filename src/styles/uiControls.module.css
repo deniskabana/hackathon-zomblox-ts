@@ -9,8 +9,8 @@
   justify-content: center;
   align-items: center;
   color: #ffffffc0;
-  width: 3.5rem;
-  height: 3.5rem;
+  width: 50px;
+  height: 50px;
   text-align: center;
 
   backdrop-filter: blur(4px);
@@ -22,24 +22,30 @@
   opacity: 0.5;
 }
 
+.fullScreenButton {
+  left: 50%;
+  margin-left: -25px;
+  top: 10px;
+}
+
 .masterVolumeToggleButton {
-  top: 1rem;
-  right: 1rem;
+  top: 10px;
+  right: 10px;
 }
 
 .sleepUntilNightButton {
-  top: 1rem;
-  right: 5rem;
+  top: 10px;
+  right: 70px;
 }
 
 .shootButtonLeft {
   background: #4f2f2a59;
-  bottom: calc(2rem + 128px + 1rem);
+  bottom: calc(22px + 128px + 10px);
   left: 1rem;
 }
 .shootButtonRight {
   background: #4f2f2a59;
-  bottom: calc(2rem + 128px + 1rem);
+  bottom: calc(22px + 128px + 10px);
   right: 1rem;
 }
 
@@ -48,7 +54,7 @@
   z-index: 19;
   background: #e2e2e625;
   border: 2px solid #9999999f;
-  bottom: 2rem;
+  bottom: 20px;
   width: 128px;
   height: 128px;
   border-radius: 50%;
@@ -80,8 +86,8 @@
 }
 
 .joystickLeft {
-  left: 2rem;
+  left: 20px;
 }
 .joystickRight {
-  right: 2rem;
+  right: 20px;
 }

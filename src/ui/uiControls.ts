@@ -8,16 +8,42 @@ export interface UiControls {
 }
 
 export default function getUiControls(gameInstance: GameInstance): UiControls {
+  const fullScreenButton = getFullScreenButton();
   const sleepUntilNightButton = getSleepUntilNightButton(gameInstance);
   const masterVolumeToggleButton = getMasterVolumeToggleButton(gameInstance);
   const shootButtonLeft = getShootButton("left", gameInstance);
   const shootButtonRight = getShootButton("right", gameInstance);
 
   return {
+    fullScreenButton,
     sleepUntilNightButton,
     masterVolumeToggleButton,
     shootButtonLeft,
     shootButtonRight,
+  };
+}
+
+function getFullScreenButton(): UiControls[string] {
+  const buttonEl = document.createElement("div");
+  document.body.appendChild(buttonEl);
+  buttonEl.className = cx(styles.uiControl, styles.fullScreenButton);
+  buttonEl.innerText = "🖥️";
+
+  const handleClick = () => {
+    if (document.fullscreenElement === document.body) document.exitFullscreen();
+    else document.body.requestFullscreen();
+  };
+
+  buttonEl.addEventListener("click", handleClick);
+  buttonEl.addEventListener("touchend", handleClick);
+
+  return {
+    draw: () => {},
+    destroy: () => {
+      buttonEl.removeEventListener("click", handleClick);
+      buttonEl.removeEventListener("touchend", handleClick);
+      buttonEl.remove();
+    },
   };
 }
 
