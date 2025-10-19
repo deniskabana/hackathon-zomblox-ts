@@ -10,9 +10,9 @@ import {
 import { DEF_WEAPONS, type Weapon } from "../config/weapons";
 import type GameInstance from "../GameInstance";
 import type { AssetImage } from "../managers/AssetManager";
+import { GameControls } from "../types/GameControls";
 import { GridTileState } from "../types/Grid";
 import { ZIndex } from "../types/ZIndex";
-import getDirectionalAngle from "../utils/math/getDirectionalAngle";
 import getVectorDistance from "../utils/math/getVectorDistance";
 import normalizeVector from "../utils/math/normalizeVector";
 import radiansToVector from "../utils/math/radiansToVector";
@@ -48,7 +48,7 @@ export default class Player extends AEntity {
     if (this.nextWeaponCooldownTimer > 0) this.nextWeaponCooldownTimer -= _deltaTime;
     if (this.stepSoundCooldownTimer > 0) this.stepSoundCooldownTimer -= _deltaTime;
     if (this.getCheckShootInput()) this.shoot();
-    if (this.gameInstance.MANAGERS.InputManager.isKeyDown("Tab")) this.chooseNextWeapon();
+    if (this.gameInstance.MANAGERS.InputManager.isControlDown(GameControls.CHANGE_WEAPON)) this.chooseNextWeapon();
   }
 
   public draw() {
@@ -67,9 +67,7 @@ export default class Player extends AEntity {
   }
 
   private getAimAngle(): number {
-    const mousePos = this.gameInstance.MANAGERS.InputManager.mouseScreenPos;
-    const mouseWorldPos = this.gameInstance.MANAGERS.CameraManager.screenToWorld(mousePos);
-    return getDirectionalAngle(mouseWorldPos, this.worldPos);
+    return this.gameInstance.MANAGERS.InputManager.getAimDirection();
   }
 
   private getMovementInput(): WorldPosition {
@@ -77,16 +75,16 @@ export default class Player extends AEntity {
     let y = 0;
 
     const input = this.gameInstance.MANAGERS.InputManager;
-    if (input.isKeyDown("KeyW")) y -= 1;
-    if (input.isKeyDown("KeyS")) y += 1;
-    if (input.isKeyDown("KeyA")) x -= 1;
-    if (input.isKeyDown("KeyD")) x += 1;
+    if (input.isControlDown(GameControls.MOVE_UP)) y -= 1;
+    if (input.isControlDown(GameControls.MOVE_LEFT)) x -= 1;
+    if (input.isControlDown(GameControls.MOVE_DOWN)) y += 1;
+    if (input.isControlDown(GameControls.MOVE_RIGHT)) x += 1;
 
     return normalizeVector({ x, y });
   }
 
   private getCheckShootInput(): boolean {
-    return this.gameInstance.MANAGERS.InputManager.isMouseDown();
+    return this.gameInstance.MANAGERS.InputManager.isControlDown(GameControls.SHOOT);
   }
 
   public shoot(): void {
