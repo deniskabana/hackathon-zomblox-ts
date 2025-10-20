@@ -330,6 +330,7 @@ export default class Zombie extends AEntity {
     }
   }
 
+  // TODO: Refactor like in Player
   private checkHasCollisions(futurePos: WorldPosition): boolean {
     const levelGrid = this.gameInstance.MANAGERS.LevelManager.levelGrid;
     if (!levelGrid) return false;

@@ -18,7 +18,7 @@ export default class CameraManager extends AManager {
   private readonly maxZoom: number = 1.5;
 
   private readonly targetWorldWidth: number = 1000;
-  private readonly playerFollowSpeed = 2;
+  private readonly playerFollowSpeed = 0.2;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
@@ -26,6 +26,7 @@ export default class CameraManager extends AManager {
 
   public init(): void {
     window.addEventListener("resize", this.onResize.bind(this));
+    this.onResize();
   }
 
   public update(_deltaTime: number): void {

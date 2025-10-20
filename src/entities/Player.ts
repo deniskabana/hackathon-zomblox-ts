@@ -13,6 +13,8 @@ import type { AssetImage } from "../managers/AssetManager";
 import { GameControls } from "../types/GameControls";
 import { GridTileState } from "../types/Grid";
 import { ZIndex } from "../types/ZIndex";
+import isInsideGrid from "../utils/grid/isInsideGrid";
+import areVectorsEqual from "../utils/math/areVectorsEqual";
 import getVectorDistance from "../utils/math/getVectorDistance";
 import normalizeVector from "../utils/math/normalizeVector";
 import radiansToVector from "../utils/math/radiansToVector";
@@ -164,27 +166,49 @@ export default class Player extends AEntity {
     }
   }
 
-  private checkHasCollisions(futurePos: WorldPosition): boolean {
+  private adjustMovementForCollisions(futurePos: WorldPosition): WorldPosition {
     const radius = GRID_CONFIG.TILE_SIZE / 3;
+    const resultPos: ReturnType<typeof this.adjustMovementForCollisions> = { ...futurePos };
 
-    if (futurePos.x - radius < 0 || futurePos.x + radius >= WORLD_SIZE.WIDTH) return true;
-    if (futurePos.y - radius < 0 || futurePos.y + radius >= WORLD_SIZE.HEIGHT) return true;
-
-    const gridPosList: GridPosition[] = [
-      worldToGrid({ x: futurePos.x - radius, y: futurePos.y - radius }),
-      worldToGrid({ x: futurePos.x - radius, y: futurePos.y + radius }),
-      worldToGrid({ x: futurePos.x + radius, y: futurePos.y + radius }),
-      worldToGrid({ x: futurePos.x + radius, y: futurePos.y - radius }),
-    ];
+    if (futurePos.x - radius < 0) resultPos.x = 0 + radius;
+    if (futurePos.x + radius >= WORLD_SIZE.WIDTH) resultPos.x = WORLD_SIZE.WIDTH - radius;
+    if (futurePos.y - radius < 0) resultPos.y = 0 + radius;
+    if (futurePos.y + radius >= WORLD_SIZE.HEIGHT) resultPos.y = WORLD_SIZE.HEIGHT - radius;
 
     const levelGrid = this.gameInstance.MANAGERS.LevelManager.levelGrid;
-    if (!levelGrid) return false;
-    for (const gridPos of gridPosList) {
-      const { state } = levelGrid[gridPos.x][gridPos.y];
-      if (state === GridTileState.BLOCKED) return true;
+    if (!levelGrid) return resultPos;
+
+    const checkPoints: { pos: GridPosition; axis: "x" | "y"; dir: 1 | -1 }[] = [
+      { pos: worldToGrid({ x: futurePos.x - radius, y: futurePos.y }), axis: "x", dir: -1 }, // Left
+      { pos: worldToGrid({ x: futurePos.x + radius, y: futurePos.y }), axis: "x", dir: 1 }, // Right
+      { pos: worldToGrid({ x: futurePos.x, y: futurePos.y - radius }), axis: "y", dir: -1 }, // Top
+      { pos: worldToGrid({ x: futurePos.x, y: futurePos.y + radius }), axis: "y", dir: 1 }, // Bottom
+    ];
+
+    for (const check of checkPoints) {
+      if (!isInsideGrid(check.pos)) continue;
+
+      const { state } = levelGrid[check.pos.x][check.pos.y];
+      if (state !== GridTileState.BLOCKED) continue;
+
+      if (check.axis === "x") {
+        const blockWorldX = check.pos.x * GRID_CONFIG.TILE_SIZE + GRID_CONFIG.TILE_SIZE / 2;
+        if (check.dir < 0) {
+          resultPos.x = Math.max(resultPos.x, blockWorldX + GRID_CONFIG.TILE_SIZE / 2 + radius);
+        } else {
+          resultPos.x = Math.min(resultPos.x, blockWorldX - GRID_CONFIG.TILE_SIZE / 2 - radius);
+        }
+      } else {
+        const blockWorldY = check.pos.y * GRID_CONFIG.TILE_SIZE + GRID_CONFIG.TILE_SIZE / 2;
+        if (check.dir < 0) {
+          resultPos.y = Math.max(resultPos.y, blockWorldY + GRID_CONFIG.TILE_SIZE / 2 + radius);
+        } else {
+          resultPos.y = Math.min(resultPos.y, blockWorldY - GRID_CONFIG.TILE_SIZE / 2 - radius);
+        }
+      }
     }
 
-    return false;
+    return resultPos;
   }
 
   private applyMovement(_deltaTime: number): void {
@@ -197,9 +221,9 @@ export default class Player extends AEntity {
       y: this.worldPos.y + movementVector.y * _deltaTime * this.moveSpeed,
     };
 
-    // BUG: Movement is restricted if diagonal and ANY axis collides
-    if (this.checkHasCollisions(futurePos)) this.isMoving = false;
-    else this.setWorldPosition(futurePos);
+    const adjustedFuturePos = this.adjustMovementForCollisions(futurePos);
+    if (areVectorsEqual(adjustedFuturePos, this.worldPos)) this.isMoving = false;
+    else this.setWorldPosition(adjustedFuturePos);
 
     // Play step sound
     if (this.isMoving && this.stepSoundCooldownTimer <= 0) {
@@ -215,8 +239,8 @@ export default class Player extends AEntity {
       y: this.worldPos.y + movementVector.y * strength,
     };
 
-    if (this.checkHasCollisions(futurePos)) return;
-    else this.setWorldPosition(futurePos);
+    // if (this.adjustMovementForCollisions(futurePos)) return;
+    this.setWorldPosition(this.adjustMovementForCollisions(futurePos));
   }
 
   private die(): void {
