@@ -15,7 +15,9 @@ export default class InputManager extends AManager {
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
+  }
 
+  public init(): void {
     document.addEventListener("mousedown", this.onMouseDown.bind(this));
     document.addEventListener("mouseup", this.onMouseUp.bind(this));
     document.addEventListener("mousemove", this.onMouseMove.bind(this));
@@ -33,8 +35,6 @@ export default class InputManager extends AManager {
     document.addEventListener("selectstart", this.genericPreventDefault.bind(this));
     document.addEventListener("select", this.genericPreventDefault.bind(this));
   }
-
-  public init(): void {}
 
   // Input Manager API
   // --------------------------------------------------
@@ -203,21 +203,24 @@ export default class InputManager extends AManager {
   // --------------------------------------------------
 
   public destroy(): void {
-    document.removeEventListener("mousedown", this.onMouseDown);
-    document.removeEventListener("mouseup", this.onMouseUp);
-    document.removeEventListener("mousemove", this.onMouseMove);
+    document.removeEventListener("mousedown", this.onMouseDown.bind(this));
+    document.removeEventListener("mouseup", this.onMouseUp.bind(this));
+    document.removeEventListener("mousemove", this.onMouseMove.bind(this));
 
-    document.removeEventListener("touchstart", this.onTouchStart);
-    document.removeEventListener("touchmove", this.onTouchStart);
-    document.removeEventListener("touchend", this.onTouchEnd);
-    document.removeEventListener("touchcancel", this.onTouchEnd);
+    document.removeEventListener("touchstart", this.onTouchStart.bind(this));
+    document.removeEventListener("touchmove", this.onTouchStart.bind(this));
+    document.removeEventListener("touchend", this.onTouchEnd.bind(this));
+    document.removeEventListener("touchcancel", this.onTouchEnd.bind(this));
 
-    document.removeEventListener("keydown", this.onKeyDown);
-    document.removeEventListener("keyup", this.onKeyUp);
-    document.removeEventListener("keypress", this.onKeyPress);
+    document.removeEventListener("keydown", this.onKeyDown.bind(this));
+    document.removeEventListener("keyup", this.onKeyUp.bind(this));
+    document.removeEventListener("keypress", this.onKeyPress.bind(this));
 
-    document.body.removeEventListener("scroll", this.genericPreventDefault);
-    document.removeEventListener("selectstart", this.genericPreventDefault);
-    document.removeEventListener("select", this.genericPreventDefault);
+    document.body.removeEventListener("scroll", this.genericPreventDefault.bind(this));
+    document.removeEventListener("selectstart", this.genericPreventDefault.bind(this));
+    document.removeEventListener("select", this.genericPreventDefault.bind(this));
+
+    this.moveDirection = undefined;
+    this.controlsPressed.clear();
   }
 }

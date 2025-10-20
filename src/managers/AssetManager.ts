@@ -179,5 +179,9 @@ export default class AssetManager extends AManager {
     this.pauseAllMusic();
     this.assetsAudioMap.clear();
     this.assetsImageMap.clear();
+    this.isReady = false;
+
+    this.playingAudioTracks = [];
+    this.playingMusic.clear();
   }
 }

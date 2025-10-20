@@ -13,7 +13,6 @@ export default class GameManager extends AManager {
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
 
-    // Settings persistence
     const storedSettings = localStorage.getItem(KEY_SETTINGS);
     if (storedSettings !== null) {
       try {
@@ -23,14 +22,14 @@ export default class GameManager extends AManager {
           this.setSettings(safeSettings);
         }
       } catch {
-        /* Swallow */
+        // Swallow
       }
     }
-
-    this.stateSetLoading();
   }
 
-  public init(): void {}
+  public init(): void {
+    this.stateSetLoading();
+  }
 
   private stateSetLoading(): void {
     this.gameState = GameState.LOADING;
@@ -85,5 +84,7 @@ export default class GameManager extends AManager {
     return this.gameState === GameState.PAUSED;
   }
 
-  public destroy(): void {}
+  public destroy(): void {
+    this.gameState = GameState.INITIALIZING;
+  }
 }

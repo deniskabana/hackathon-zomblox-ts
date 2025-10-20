@@ -100,5 +100,7 @@ export default class VFXManager extends AManager {
     });
   }
 
-  public destroy(): void {}
+  public destroy(): void {
+    this.effects.clear();
+  }
 }

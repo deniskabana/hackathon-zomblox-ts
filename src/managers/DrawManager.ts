@@ -20,10 +20,11 @@ export default class DrawManager extends AManager {
   }
 
   public init(): void {
+    window.addEventListener("resize", this.updateCanvasSize.bind(this));
+
     const ctx = this.canvas.getContext("2d");
     if (!ctx) throw new Error("Failed to get 2D context from canvas");
     this.ctx = ctx;
-    window.addEventListener("resize", this.updateCanvasSize.bind(this));
   }
 
   // Canvas
@@ -202,6 +203,10 @@ export default class DrawManager extends AManager {
 
   public destroy(): void {
     this.stopRenderLoop();
-    window.removeEventListener("resize", this.updateCanvasSize);
+    window.removeEventListener("resize", this.updateCanvasSize.bind(this));
+
+    this.drawQueue = {};
+    this.lastFrameTime = 0;
+    this.fps = 0;
   }
 }

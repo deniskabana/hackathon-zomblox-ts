@@ -45,22 +45,6 @@ export default class LevelManager extends AManager {
     super(gameInstance);
   }
 
-  public update(_deltaTime: number) {
-    this.player?.update(_deltaTime);
-
-    for (const zombie of this.zombies.values()) zombie.update(_deltaTime);
-
-    this.applyZombieSpawn(_deltaTime);
-
-    const hasPlayerMoved = !this.player || !areVectorsEqual(this.lastPlayerGridPos, this.player.gridPos);
-    if (hasPlayerMoved || !this.flowField) this.updatePathFindingGrid();
-
-    if (this.levelState?.phase === "night" && !!this.player) {
-      this.nightEndCounter -= _deltaTime;
-      if (this.nightEndCounter <= 0) this.startDay();
-    }
-  }
-
   public init(): void {
     this.player = new Player({ x: 2, y: 2 }, this.entityIdCounter++, this.gameInstance);
     this.lastPlayerGridPos = this.player.gridPos;
@@ -73,13 +57,11 @@ export default class LevelManager extends AManager {
     this.spawnBlock({ x: 8, y: 2 });
     this.spawnBlock({ x: 7, y: 2 });
     this.spawnBlock({ x: 7, y: 3 });
-    this.spawnBlock({ x: 7, y: 4 });
     this.spawnBlock({ x: 6, y: 4 });
     this.spawnBlock({ x: 6, y: 5 });
     this.spawnBlock({ x: 6, y: 6 });
     this.spawnBlock({ x: 6, y: 7 });
     this.spawnBlock({ x: 6, y: 8 });
-    this.spawnBlock({ x: 5, y: 8 });
     this.spawnBlock({ x: 4, y: 8 });
     this.spawnBlock({ x: 3, y: 8 });
     this.spawnBlock({ x: 3, y: 9 });
@@ -89,26 +71,21 @@ export default class LevelManager extends AManager {
     this.spawnBlock({ x: 10, y: 4 });
     this.spawnBlock({ x: 11, y: 4 });
     this.spawnBlock({ x: 12, y: 4 });
-    this.spawnBlock({ x: 12, y: 3 });
     this.spawnBlock({ x: 12, y: 2 });
     this.spawnBlock({ x: 13, y: 2 });
     this.spawnBlock({ x: 14, y: 2 });
     // TODO: Remove, top-right
     this.spawnBlock({ x: 15, y: 2 });
-    this.spawnBlock({ x: 16, y: 2 });
     this.spawnBlock({ x: 17, y: 2 });
     this.spawnBlock({ x: 18, y: 2 });
     this.spawnBlock({ x: 19, y: 2 });
-    this.spawnBlock({ x: 19, y: 3 });
     this.spawnBlock({ x: 20, y: 3 });
     this.spawnBlock({ x: 20, y: 4 });
     this.spawnBlock({ x: 21, y: 4 });
     this.spawnBlock({ x: 21, y: 5 });
     this.spawnBlock({ x: 22, y: 5 });
-    this.spawnBlock({ x: 23, y: 5 });
     this.spawnBlock({ x: 23, y: 6 });
     this.spawnBlock({ x: 23, y: 7 });
-    this.spawnBlock({ x: 23, y: 8 });
     this.spawnBlock({ x: 23, y: 9 });
     this.spawnBlock({ x: 23, y: 10 });
     // TODO: Remove, center
@@ -126,47 +103,46 @@ export default class LevelManager extends AManager {
     this.spawnBlock({ x: 15, y: 6 });
     this.spawnBlock({ x: 15, y: 7 });
     this.spawnBlock({ x: 14, y: 7 });
-    this.spawnBlock({ x: 13, y: 8 });
-    this.spawnBlock({ x: 13, y: 9 });
-    this.spawnBlock({ x: 13, y: 10 });
-    this.spawnBlock({ x: 13, y: 11 });
-    this.spawnBlock({ x: 13, y: 12 });
     // TODO: Remove, bottom-left
     this.spawnBlock({ x: 5, y: 11 });
     this.spawnBlock({ x: 5, y: 12 });
     this.spawnBlock({ x: 5, y: 13 });
     this.spawnBlock({ x: 5, y: 14 });
     this.spawnBlock({ x: 5, y: 15 });
-    this.spawnBlock({ x: 6, y: 13 });
-    this.spawnBlock({ x: 7, y: 13 });
     this.spawnBlock({ x: 6, y: 15 });
     this.spawnBlock({ x: 7, y: 15 });
     this.spawnBlock({ x: 8, y: 15 });
     this.spawnBlock({ x: 9, y: 15 });
-    this.spawnBlock({ x: 9, y: 16 });
     this.spawnBlock({ x: 9, y: 17 });
     // TODO: Remove, bottom-right
     this.spawnBlock({ x: 13, y: 16 });
-    this.spawnBlock({ x: 14, y: 16 });
     this.spawnBlock({ x: 15, y: 16 });
     this.spawnBlock({ x: 15, y: 15 });
-    this.spawnBlock({ x: 16, y: 15 });
     this.spawnBlock({ x: 16, y: 14 });
     this.spawnBlock({ x: 17, y: 14 });
-    this.spawnBlock({ x: 17, y: 13 });
     this.spawnBlock({ x: 18, y: 13 });
-    this.spawnBlock({ x: 19, y: 13 });
-    this.spawnBlock({ x: 20, y: 13 });
-    this.spawnBlock({ x: 20, y: 12 });
-    this.spawnBlock({ x: 20, y: 11 });
     this.spawnBlock({ x: 20, y: 10 });
     this.spawnBlock({ x: 20, y: 9 });
     this.spawnBlock({ x: 20, y: 8 });
-    this.spawnBlock({ x: 19, y: 11 });
-    this.spawnBlock({ x: 18, y: 11 });
     this.spawnBlock({ x: 17, y: 11 });
 
     this.levelGrid = this.generateLevelGrid();
+  }
+
+  public update(_deltaTime: number) {
+    this.player?.update(_deltaTime);
+
+    for (const zombie of this.zombies.values()) zombie.update(_deltaTime);
+
+    this.applyZombieSpawn(_deltaTime);
+
+    const hasPlayerMoved = !this.player || !areVectorsEqual(this.lastPlayerGridPos, this.player.gridPos);
+    if (hasPlayerMoved || !this.flowField) this.updatePathFindingGrid();
+
+    if (this.levelState?.phase === "night" && !!this.player) {
+      this.nightEndCounter -= _deltaTime;
+      if (this.nightEndCounter <= 0) this.startDay();
+    }
   }
 
   public drawEntities(): void {
@@ -416,6 +392,10 @@ export default class LevelManager extends AManager {
   }
 
   public destroy(): void {
+    this.stopSpawningZombies();
+    for (const track of this.musicDay) track.pause();
+    for (const track of this.musicNight) track.pause();
+
     this.player = undefined;
     this.zombies.clear();
     this.blocks.clear();
