@@ -33,8 +33,10 @@ export default class UIManager extends AManager {
     this.joystickLeft = document.createElement("div");
     this.joystickRight = document.createElement("div");
 
-    document.body.appendChild(this.joystickLeft);
-    document.body.appendChild(this.joystickRight);
+    if ("ontouchend" in document) {
+      document.body.appendChild(this.joystickLeft);
+      document.body.appendChild(this.joystickRight);
+    }
 
     this.startGameContainer = document.createElement("div");
     this.nightOverlay = document.createElement("div");

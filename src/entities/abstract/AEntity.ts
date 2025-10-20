@@ -40,16 +40,19 @@ export default abstract class AEntity {
     futurePos: WorldPosition,
     levelGrid: LevelGrid | undefined,
     gridConfig: GridConfig,
+    includeWorldBoundaries: boolean = true,
   ): WorldPosition {
     const radius = gridConfig.TILE_SIZE / 3;
     const resultPos: WorldPosition = { ...futurePos };
     const worldWidth = gridConfig.TILE_SIZE * gridConfig.GRID_WIDTH;
     const worldHeight = gridConfig.TILE_SIZE * gridConfig.GRID_HEIGHT;
 
-    if (futurePos.x - radius < 0) resultPos.x = 0 + radius;
-    if (futurePos.x + radius >= worldWidth) resultPos.x = worldWidth - radius;
-    if (futurePos.y - radius < 0) resultPos.y = 0 + radius;
-    if (futurePos.y + radius >= worldHeight) resultPos.y = worldHeight - radius;
+    if (includeWorldBoundaries) {
+      if (futurePos.x - radius < 0) resultPos.x = 0 + radius;
+      if (futurePos.x + radius >= worldWidth) resultPos.x = worldWidth - radius;
+      if (futurePos.y - radius < 0) resultPos.y = 0 + radius;
+      if (futurePos.y + radius >= worldHeight) resultPos.y = worldHeight - radius;
+    }
 
     if (!levelGrid) return resultPos;
 

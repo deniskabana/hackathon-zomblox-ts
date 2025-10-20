@@ -170,7 +170,9 @@ export default class LevelManager extends AManager {
           );
         } else {
           // Debug renderer (flow field distance map)
-          const distance = this.flowField?.[x][y].distance ?? 0;
+          let distance = 0;
+          if (this.retreatFlowFields) distance = this.retreatFlowFields[0]?.[x][y].distance ?? 0;
+          else distance = this.flowField?.[x][y].distance ?? 0;
           this.gameInstance.MANAGERS.DrawManager.drawText(
             String(distance),
             tileWorldPos.x + GRID_CONFIG.TILE_SIZE / 2,
@@ -265,6 +267,7 @@ export default class LevelManager extends AManager {
 
   public startNight(): void {
     if (!this.levelState) return;
+    this.retreatFlowFields = undefined;
     this.levelState.phase = "night";
     this.gameInstance.MANAGERS.UIManager.showNightOverlay();
 
@@ -303,7 +306,8 @@ export default class LevelManager extends AManager {
     if (!this.levelState) return;
 
     this.retreatFlowFields = [];
-    const amount = Math.max(20, this.zombies.size);
+    // const amount = Math.max(20, this.zombies.size);
+    const amount = 1;
     for (let i = 0; i < amount; i++) {
       this.retreatFlowFields.push(
         generateFlowField(
