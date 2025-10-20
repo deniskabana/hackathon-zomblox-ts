@@ -59,42 +59,50 @@ export default class GameInstance {
   }
 
   public update(_deltaTime: number): void {
-    const { GameManager, CameraManager, AssetManager } = this.MANAGERS;
+    const { LevelManager, GameManager, CameraManager, AssetManager } = this.MANAGERS;
     if (!GameManager.isPlaying() && !AssetManager.getIsReady()) return;
+
     const player = this.MANAGERS.LevelManager.player;
-    if (player) CameraManager.followPlayer(player.worldPos);
-    this.MANAGERS.LevelManager.update(_deltaTime);
+    if (player) CameraManager.followPlayer(_deltaTime, player.worldPos);
+
+    LevelManager.update(_deltaTime);
+    CameraManager.update(_deltaTime);
   }
 
   private async loadAndPrepareGame(): Promise<void> {
-    this.MANAGERS.AssetManager.init();
-    await this.MANAGERS.AssetManager.preloadAssets();
+    const { UIManager, GameManager, AssetManager } = this.MANAGERS;
 
-    this.MANAGERS.GameManager.init();
-    this.MANAGERS.GameManager.stateSetReady();
+    AssetManager.init();
+    await AssetManager.preloadAssets();
 
-    this.MANAGERS.UIManager.init();
-    this.MANAGERS.UIManager.drawStartGameContainer();
+    GameManager.init();
+    GameManager.stateSetReady();
+
+    UIManager.init();
+    UIManager.drawStartGameContainer();
   }
 
   private startGame(): void {
+    const { UIManager, GameManager, CameraManager, DrawManager, InputManager, LevelManager, VFXManager } =
+      this.MANAGERS;
     if (this.MANAGERS.GameManager.getState() !== GameState.READY) return;
+
     document.removeEventListener("click", this.startGame);
     document.removeEventListener("touchend", this.startGame);
 
     // Asset manager was initialized in loadAndPrepareGame()
-    this.MANAGERS.CameraManager.init();
-    this.MANAGERS.DrawManager.init();
-    this.MANAGERS.InputManager.init();
-    this.MANAGERS.LevelManager.init();
-    this.MANAGERS.VFXManager.init();
+    CameraManager.init();
+    DrawManager.init();
+    InputManager.init();
+    LevelManager.init();
+    VFXManager.init();
 
-    this.MANAGERS.DrawManager.startRenderLoop();
+    DrawManager.startRenderLoop();
 
-    this.MANAGERS.UIManager.hideStartGameContainer();
-    this.MANAGERS.GameManager.stateSetPlaying();
+    UIManager.hideStartGameContainer();
+    GameManager.stateSetPlaying();
 
-    this.MANAGERS.LevelManager.startGame();
+    LevelManager.startGame();
   }
 
   public stopAndQuiteGame(): void {
@@ -109,13 +117,16 @@ export default class GameInstance {
   }
 
   private destroy(): void {
-    this.MANAGERS.AssetManager.destroy();
-    this.MANAGERS.CameraManager.destroy();
-    this.MANAGERS.DrawManager.destroy();
-    this.MANAGERS.GameManager.destroy();
-    this.MANAGERS.InputManager.destroy();
-    this.MANAGERS.LevelManager.destroy();
-    this.MANAGERS.UIManager.destroy();
-    this.MANAGERS.VFXManager.destroy();
+    const { AssetManager, UIManager, GameManager, CameraManager, DrawManager, InputManager, LevelManager, VFXManager } =
+      this.MANAGERS;
+
+    AssetManager.destroy();
+    CameraManager.destroy();
+    DrawManager.destroy();
+    GameManager.destroy();
+    InputManager.destroy();
+    LevelManager.destroy();
+    UIManager.destroy();
+    VFXManager.destroy();
   }
 }

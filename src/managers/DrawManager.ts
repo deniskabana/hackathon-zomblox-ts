@@ -33,8 +33,6 @@ export default class DrawManager extends AManager {
   private updateCanvasSize(): void {
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
-
-    this.gameInstance.MANAGERS.CameraManager.setViewportSize(this.canvas.width, this.canvas.height);
   }
 
   private clearCanvas(): void {
@@ -64,6 +62,7 @@ export default class DrawManager extends AManager {
 
   private renderLoop(currentTime: number): void {
     if (!this.isRunning) return;
+    const { UIManager, VFXManager, LevelManager } = this.gameInstance.MANAGERS;
 
     const deltaTime = (currentTime - this.lastFrameTime) / 1000;
     this.lastFrameTime = currentTime;
@@ -72,9 +71,9 @@ export default class DrawManager extends AManager {
     this.clearCanvas();
     this.gameInstance.update(deltaTime); // TODO: Extract update from render loop when I have time
     this.renderDrawQueue();
-    this.gameInstance.MANAGERS.UIManager.draw(this.fps);
-    this.gameInstance.MANAGERS.VFXManager.draw(deltaTime);
-    this.gameInstance.MANAGERS.LevelManager.drawEntities();
+    UIManager.draw(this.fps);
+    VFXManager.draw(deltaTime);
+    LevelManager.drawEntities();
 
     this.rafId = requestAnimationFrame(this.renderLoop.bind(this));
   }
@@ -98,14 +97,18 @@ export default class DrawManager extends AManager {
     if (!this.ctx) return;
     this.ctx.save();
 
+    const { CameraManager } = this.gameInstance.MANAGERS;
+    const width = cmd.width * CameraManager.zoom;
+    const height = cmd.width * CameraManager.zoom;
+
     if (cmd.alpha !== undefined) this.ctx.globalAlpha = cmd.alpha;
 
     if (cmd.rotation !== undefined && cmd.rotation !== 0) {
-      this.ctx.translate(cmd.x + cmd.width / 2, cmd.y + cmd.height / 2);
+      this.ctx.translate(cmd.x + width / 2, cmd.y + height / 2);
       this.ctx.rotate(cmd.rotation);
-      this.ctx.drawImage(cmd.image, -cmd.width / 2, -cmd.height / 2, cmd.width, cmd.height);
+      this.ctx.drawImage(cmd.image, -width / 2, -height / 2, width, height);
     } else {
-      this.ctx.drawImage(cmd.image, cmd.x, cmd.y, cmd.width, cmd.height);
+      this.ctx.drawImage(cmd.image, cmd.x, cmd.y, width, height);
     }
 
     this.ctx.restore();
@@ -124,10 +127,9 @@ export default class DrawManager extends AManager {
     rotation?: number,
     alpha?: number,
   ): void {
-    const camera = this.gameInstance.MANAGERS.CameraManager;
-    const screenPos = camera.worldToScreen({ x: worldX, y: worldY });
-
-    if (!camera.isOnScreen({ x: worldX, y: worldY }, Math.max(width, height))) return;
+    const { CameraManager } = this.gameInstance.MANAGERS;
+    const screenPos = CameraManager.worldToScreen({ x: worldX, y: worldY });
+    if (!CameraManager.isOnScreen({ x: worldX, y: worldY }, Math.max(width, height))) return;
 
     const queue = this.drawQueue[zIndex] ?? [];
     queue.push({
@@ -152,23 +154,27 @@ export default class DrawManager extends AManager {
     lineWidth: number = 1,
   ): void {
     if (!this.ctx) return;
+    const { CameraManager } = this.gameInstance.MANAGERS;
+
     this.ctx.save();
     this.ctx.strokeStyle = color;
-    this.ctx.lineWidth = lineWidth;
+    this.ctx.lineWidth = lineWidth * CameraManager.zoom;
     const screenPos = this.gameInstance.MANAGERS.CameraManager.worldToScreen({ x, y });
-    this.ctx.strokeRect(screenPos.x, screenPos.y, width, height);
+    this.ctx.strokeRect(screenPos.x, screenPos.y, width * CameraManager.zoom, height * CameraManager.zoom);
     this.ctx.restore();
   }
 
   public drawLine(x1: number, y1: number, x2: number, y2: number, color: string, lineWidth: number = 1): void {
     if (!this.ctx) return;
+    const { CameraManager } = this.gameInstance.MANAGERS;
+
     this.ctx.save();
     this.ctx.strokeStyle = color;
-    this.ctx.lineWidth = lineWidth;
+    this.ctx.lineWidth = lineWidth * CameraManager.zoom;
     this.ctx.beginPath();
-    const screenPos1 = this.gameInstance.MANAGERS.CameraManager.worldToScreen({ x: x1, y: y1 });
+    const screenPos1 = CameraManager.worldToScreen({ x: x1, y: y1 });
     this.ctx.moveTo(screenPos1.x, screenPos1.y);
-    const screenPos2 = this.gameInstance.MANAGERS.CameraManager.worldToScreen({ x: x2, y: y2 });
+    const screenPos2 = CameraManager.worldToScreen({ x: x2, y: y2 });
     this.ctx.lineTo(screenPos2.x, screenPos2.y);
     this.ctx.closePath();
     this.ctx.stroke();
@@ -185,9 +191,11 @@ export default class DrawManager extends AManager {
     align: CanvasTextAlign = "left",
   ): void {
     if (!this.ctx) return;
+    const { CameraManager } = this.gameInstance.MANAGERS;
+
     this.ctx.save();
     this.ctx.fillStyle = color;
-    this.ctx.font = `${fontSize}px ${fontFamily}`;
+    this.ctx.font = `${fontSize * CameraManager.zoom}px ${fontFamily}`;
     this.ctx.textAlign = align;
     const screenPos = this.gameInstance.MANAGERS.CameraManager.worldToScreen({ x, y });
     this.ctx.fillText(text, screenPos.x, screenPos.y);
