@@ -124,7 +124,6 @@ export default class Zombie extends AEntity {
     const retreatFlowFields = this.gameInstance.MANAGERS.LevelManager.retreatFlowFields;
     if (!retreatFlowFields) return;
     this.retreatFlowFieldIndex = Math.floor(Math.random() * retreatFlowFields.length);
-    console.log(retreatFlowFields[this.retreatFlowFieldIndex]);
   }
 
   public startWandering(): void {
@@ -171,13 +170,15 @@ export default class Zombie extends AEntity {
     }
 
     if (isInsideGrid(this.gridPos) && this.distanceFromPlayer >= this.minDistanceFromPlayer && !!flowField) {
+      const currentDistance = flowField[this.gridPos.x][this.gridPos.y].distance;
+
       const lowestDistanceNeighbor = flowField[this.gridPos.x][this.gridPos.y].neighbors.reduce<Vector>((acc, val) => {
-        if (!acc) return acc;
-        if (
-          flowField[val.x][val.y].distance < flowField[acc.x][acc.y].distance &&
-          Math.abs(flowField[val.x][val.y].distance - flowField[acc.x][acc.y].distance) <= 2
-        )
-          return val;
+        const neighborDist = flowField[val.x][val.y].distance;
+
+        if (neighborDist < currentDistance && currentDistance - neighborDist <= 2) {
+          if (neighborDist < flowField[acc.x][acc.y].distance) return val;
+        }
+
         return acc;
       }, this.gridPos);
 
@@ -185,11 +186,6 @@ export default class Zombie extends AEntity {
     } else {
       this.moveTargetPos = { ...player.worldPos };
     }
-
-    // if (this.moveTargetPos) {
-    //   this.moveTargetPos.x += (0.5 - Math.random()) * GRID_CONFIG.TILE_SIZE * 0.25;
-    //   this.moveTargetPos.y += (0.5 - Math.random()) * GRID_CONFIG.TILE_SIZE * 0.25;
-    // }
   }
 
   private zombieRetreat(_deltaTime: number): void {
@@ -206,23 +202,24 @@ export default class Zombie extends AEntity {
       return;
     }
 
+    // Reached any edge
     const { x, y } = this.gridPos;
     if (x <= 0 || x >= GRID_CONFIG.GRID_WIDTH - 1 || y <= 0 || y >= GRID_CONFIG.GRID_HEIGHT - 1) {
-      const offsetX = x <= 0 ? -3 : x >= GRID_CONFIG.GRID_WIDTH - 1 ? 3 : 0;
-      const offsetY = y <= 0 ? -3 : y >= GRID_CONFIG.GRID_HEIGHT - 1 ? 3 : 0;
+      const offsetX = x <= 0 ? -10 : x >= GRID_CONFIG.GRID_WIDTH - 1 ? 10 : 0;
+      const offsetY = y <= 0 ? -10 : y >= GRID_CONFIG.GRID_HEIGHT - 1 ? 10 : 0;
       this.moveTargetPos = gridToWorld({ x: x + offsetX, y: y + offsetY }, true);
       return;
     }
 
-    if (!flowField[this.gridPos.x][this.gridPos.y].neighbors.length)
-      console.log(flowField[this.gridPos.x][this.gridPos.y].neighbors);
+    const currentDistance = flowField[this.gridPos.x][this.gridPos.y].distance;
+
     const lowestDistanceNeighbor = flowField[this.gridPos.x][this.gridPos.y].neighbors.reduce<Vector>((acc, val) => {
-      if (!acc) return acc;
-      if (
-        flowField[val.x][val.y].distance < flowField[acc.x][acc.y].distance &&
-        Math.abs(flowField[val.x][val.y].distance - flowField[acc.x][acc.y].distance) <= 2
-      )
-        return val;
+      const neighborDist = flowField[val.x][val.y].distance;
+
+      if (neighborDist < currentDistance && currentDistance - neighborDist <= 2) {
+        if (neighborDist < flowField[acc.x][acc.y].distance) return val;
+      }
+
       return acc;
     }, this.gridPos);
 

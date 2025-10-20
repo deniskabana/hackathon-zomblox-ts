@@ -251,7 +251,7 @@ export default class LevelManager extends AManager {
       case 1:
         return { x: GRID_CONFIG.GRID_WIDTH - 1 + margin, y: Math.random() * (GRID_CONFIG.GRID_HEIGHT - 1) };
       case 2:
-        return { x: Math.random() * (GRID_CONFIG.GRID_WIDTH - 1), y: WORLD_SIZE.HEIGHT - 1 + margin };
+        return { x: Math.random() * (GRID_CONFIG.GRID_WIDTH - 1), y: GRID_CONFIG.GRID_HEIGHT - 1 + margin };
       case 3:
         return { x: -margin, y: Math.random() * (GRID_CONFIG.GRID_HEIGHT - 1) };
     }
@@ -306,8 +306,7 @@ export default class LevelManager extends AManager {
     if (!this.levelState) return;
 
     this.retreatFlowFields = [];
-    // const amount = Math.max(20, this.zombies.size);
-    const amount = 1;
+    const amount = Math.max(20, this.zombies.size);
     for (let i = 0; i < amount; i++) {
       this.retreatFlowFields.push(
         generateFlowField(
@@ -335,7 +334,7 @@ export default class LevelManager extends AManager {
       if (musicDay) this.musicDay.push(musicDay);
     }
 
-    if (this.levelState.daysCounter > 1)
+    if (this.levelState.daysCounter > 0)
       this.gameInstance.MANAGERS.AssetManager.playAudioAsset("AFXMorningRooster", "sound", 0.35);
 
     for (const track of this.musicDay) track.resume();
