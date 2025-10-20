@@ -56,10 +56,6 @@ export default class LevelManager extends AManager {
     // TODO: Remove, top-left
     this.spawnBlock({ x: 8, y: 2 });
     this.spawnBlock({ x: 7, y: 2 });
-    this.spawnBlock({ x: 7, y: 3 });
-    this.spawnBlock({ x: 6, y: 4 });
-    this.spawnBlock({ x: 6, y: 5 });
-    this.spawnBlock({ x: 6, y: 6 });
     this.spawnBlock({ x: 6, y: 7 });
     this.spawnBlock({ x: 6, y: 8 });
     this.spawnBlock({ x: 4, y: 8 });
@@ -84,9 +80,6 @@ export default class LevelManager extends AManager {
     this.spawnBlock({ x: 21, y: 4 });
     this.spawnBlock({ x: 21, y: 5 });
     this.spawnBlock({ x: 22, y: 5 });
-    this.spawnBlock({ x: 23, y: 6 });
-    this.spawnBlock({ x: 23, y: 7 });
-    this.spawnBlock({ x: 23, y: 9 });
     this.spawnBlock({ x: 23, y: 10 });
     // TODO: Remove, center
     this.spawnBlock({ x: 9, y: 7 });
@@ -116,10 +109,6 @@ export default class LevelManager extends AManager {
     this.spawnBlock({ x: 9, y: 17 });
     // TODO: Remove, bottom-right
     this.spawnBlock({ x: 13, y: 16 });
-    this.spawnBlock({ x: 15, y: 16 });
-    this.spawnBlock({ x: 15, y: 15 });
-    this.spawnBlock({ x: 16, y: 14 });
-    this.spawnBlock({ x: 17, y: 14 });
     this.spawnBlock({ x: 18, y: 13 });
     this.spawnBlock({ x: 20, y: 10 });
     this.spawnBlock({ x: 20, y: 9 });

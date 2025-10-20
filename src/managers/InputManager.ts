@@ -147,11 +147,12 @@ export default class InputManager extends AManager {
   }
 
   private updateMousePosition(event: MouseEvent): void {
+    const zoom = this.gameInstance.MANAGERS.CameraManager.zoom;
     const rect = this.gameInstance.canvas.getBoundingClientRect();
     const screenX = event.clientX - rect.left;
     const screenY = event.clientY - rect.top;
-    this.mouseScreenPos.x = screenX;
-    this.mouseScreenPos.y = screenY;
+    this.mouseScreenPos.x = screenX * zoom;
+    this.mouseScreenPos.y = screenY * zoom;
 
     const player = this.gameInstance.MANAGERS.LevelManager.player;
     if (!player) return;
