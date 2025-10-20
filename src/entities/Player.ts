@@ -1,19 +1,10 @@
 import type { AssetAudioName } from "../config/assets";
-import {
-  GRID_CONFIG,
-  gridToWorld,
-  WORLD_SIZE,
-  worldToGrid,
-  type GridPosition,
-  type WorldPosition,
-} from "../config/gameGrid";
+import { GRID_CONFIG, gridToWorld, type GridPosition, type WorldPosition } from "../config/gameGrid";
 import { DEF_WEAPONS, type Weapon } from "../config/weapons";
 import type GameInstance from "../GameInstance";
 import type { AssetImage } from "../managers/AssetManager";
 import { GameControls } from "../types/GameControls";
-import { GridTileState } from "../types/Grid";
 import { ZIndex } from "../types/ZIndex";
-import isInsideGrid from "../utils/grid/isInsideGrid";
 import areVectorsEqual from "../utils/math/areVectorsEqual";
 import getVectorDistance from "../utils/math/getVectorDistance";
 import normalizeVector from "../utils/math/normalizeVector";
@@ -166,51 +157,6 @@ export default class Player extends AEntity {
     }
   }
 
-  private adjustMovementForCollisions(futurePos: WorldPosition): WorldPosition {
-    const radius = GRID_CONFIG.TILE_SIZE / 3;
-    const resultPos: ReturnType<typeof this.adjustMovementForCollisions> = { ...futurePos };
-
-    if (futurePos.x - radius < 0) resultPos.x = 0 + radius;
-    if (futurePos.x + radius >= WORLD_SIZE.WIDTH) resultPos.x = WORLD_SIZE.WIDTH - radius;
-    if (futurePos.y - radius < 0) resultPos.y = 0 + radius;
-    if (futurePos.y + radius >= WORLD_SIZE.HEIGHT) resultPos.y = WORLD_SIZE.HEIGHT - radius;
-
-    const levelGrid = this.gameInstance.MANAGERS.LevelManager.levelGrid;
-    if (!levelGrid) return resultPos;
-
-    const checkPoints: { pos: GridPosition; axis: "x" | "y"; dir: 1 | -1 }[] = [
-      { pos: worldToGrid({ x: futurePos.x - radius, y: futurePos.y }), axis: "x", dir: -1 }, // Left
-      { pos: worldToGrid({ x: futurePos.x + radius, y: futurePos.y }), axis: "x", dir: 1 }, // Right
-      { pos: worldToGrid({ x: futurePos.x, y: futurePos.y - radius }), axis: "y", dir: -1 }, // Top
-      { pos: worldToGrid({ x: futurePos.x, y: futurePos.y + radius }), axis: "y", dir: 1 }, // Bottom
-    ];
-
-    for (const check of checkPoints) {
-      if (!isInsideGrid(check.pos)) continue;
-
-      const { state } = levelGrid[check.pos.x][check.pos.y];
-      if (state !== GridTileState.BLOCKED) continue;
-
-      if (check.axis === "x") {
-        const blockWorldX = check.pos.x * GRID_CONFIG.TILE_SIZE + GRID_CONFIG.TILE_SIZE / 2;
-        if (check.dir < 0) {
-          resultPos.x = Math.max(resultPos.x, blockWorldX + GRID_CONFIG.TILE_SIZE / 2 + radius);
-        } else {
-          resultPos.x = Math.min(resultPos.x, blockWorldX - GRID_CONFIG.TILE_SIZE / 2 - radius);
-        }
-      } else {
-        const blockWorldY = check.pos.y * GRID_CONFIG.TILE_SIZE + GRID_CONFIG.TILE_SIZE / 2;
-        if (check.dir < 0) {
-          resultPos.y = Math.max(resultPos.y, blockWorldY + GRID_CONFIG.TILE_SIZE / 2 + radius);
-        } else {
-          resultPos.y = Math.min(resultPos.y, blockWorldY - GRID_CONFIG.TILE_SIZE / 2 - radius);
-        }
-      }
-    }
-
-    return resultPos;
-  }
-
   private applyMovement(_deltaTime: number): void {
     this.moveDirection = this.getAimAngle();
     const movementVector = this.getMovementInput();
@@ -221,7 +167,11 @@ export default class Player extends AEntity {
       y: this.worldPos.y + movementVector.y * _deltaTime * this.moveSpeed,
     };
 
-    const adjustedFuturePos = this.adjustMovementForCollisions(futurePos);
+    const adjustedFuturePos = this.adjustMovementForCollisions(
+      futurePos,
+      this.gameInstance.MANAGERS.LevelManager.levelGrid,
+      GRID_CONFIG,
+    );
     if (areVectorsEqual(adjustedFuturePos, this.worldPos)) this.isMoving = false;
     else this.setWorldPosition(adjustedFuturePos);
 
@@ -232,15 +182,16 @@ export default class Player extends AEntity {
     }
   }
 
-  public applyPushback(direction: number, strength: number = 1): void {
+  public pushbackForce(direction: number, strength: number = 1): void {
     const movementVector = radiansToVector(direction);
     const futurePos = {
       x: this.worldPos.x + movementVector.x * strength,
       y: this.worldPos.y + movementVector.y * strength,
     };
 
-    // if (this.adjustMovementForCollisions(futurePos)) return;
-    this.setWorldPosition(this.adjustMovementForCollisions(futurePos));
+    this.setWorldPosition(
+      this.adjustMovementForCollisions(futurePos, this.gameInstance.MANAGERS.LevelManager.levelGrid, GRID_CONFIG),
+    );
   }
 
   private die(): void {
@@ -248,6 +199,7 @@ export default class Player extends AEntity {
     this.gameInstance.MANAGERS.AssetManager.playAudioAsset("APlayerDie", "sound");
     this.gameInstance.MANAGERS.LevelManager.destroyPlayer();
 
+    // TODO: Game over screen
     setTimeout(this.gameInstance.restartGame.bind(this.gameInstance), 5000);
   }
 }
