@@ -6,7 +6,10 @@ import InputManager from "./managers/InputManager";
 import LevelManager from "./managers/LevelManager";
 import UIManager from "./managers/UIManager";
 import VFXManager from "./managers/VFXManager";
+import csTranslation from "./translation/cs";
+import enTranslation from "./translation/en";
 import { GameState } from "./types/GameState";
+import type { Translation } from "./types/Translation";
 
 export default class GameInstance {
   public isDev: boolean;
@@ -21,6 +24,12 @@ export default class GameInstance {
     UIManager: UIManager;
     VFXManager: VFXManager;
   };
+  public translation: Translation;
+
+  private readonly translations: Translation[] = [
+    { dictionary: enTranslation, code: "en", flag: "🇬🇧" },
+    { dictionary: csTranslation, code: "cs", flag: "🇨🇿" },
+  ];
 
   gameLogicInterval: number = 50; // 50 ms; TODO: Implement
 
@@ -28,6 +37,10 @@ export default class GameInstance {
     this.isDev = import.meta.env.NODE_ENV === "development" || !!location.hash.match("debug");
     this.canvas = document.createElement("canvas"); // Fake in constructor
     this.MANAGERS = undefined as unknown as typeof this.MANAGERS; // Fake in constructor
+
+    const preferredTranslation = this.translations.find((code) => String(code) === navigator.language.slice(0, 2));
+    if (preferredTranslation) this.translation = preferredTranslation;
+    else this.translation = this.translations[0];
   }
 
   init() {
