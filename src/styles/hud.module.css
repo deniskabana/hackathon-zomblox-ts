@@ -1,5 +1,5 @@
 .hudContainer {
-  position: fixed;
+  position: absolute;
   left: 0.35rem;
   top: 0.35rem;
   background: #2020209a;

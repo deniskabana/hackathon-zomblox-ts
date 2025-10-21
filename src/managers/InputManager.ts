@@ -119,8 +119,8 @@ export default class InputManager extends AManager {
 
     const boundRect = target.getBoundingClientRect();
     const joystickCenter: ScreenPosition = {
-      x: boundRect.left + boundRect.width / 2,
-      y: boundRect.top + boundRect.height / 2,
+      x: boundRect.x + boundRect.width / 2,
+      y: boundRect.y + boundRect.height / 2,
     };
 
     for (const touch of event.targetTouches) {
@@ -209,7 +209,7 @@ export default class InputManager extends AManager {
 
     const angleVector: ScreenPosition = radiansToVector(angle);
     handleTarget.style.left = `${joystickCenter.x + angleVector.x * intensityNilToOne * this.joystickMaxDistance - radius}px`;
-    handleTarget.style.top = `${joystickCenter.y + angleVector.y * intensityNilToOne * this.joystickMaxDistance - radius}px`;
+    handleTarget.style.top = `${joystickCenter.y + angleVector.y * intensityNilToOne * this.joystickMaxDistance - radius - parseFloat(this.gameInstance.MANAGERS.UIManager.uiContainer.style.top)}px`;
   }
 
   private getGameControlByKeyCode(code: string): GameControls | undefined {

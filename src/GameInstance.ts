@@ -79,7 +79,7 @@ export default class GameInstance {
     GameManager.stateSetReady();
 
     UIManager.init();
-    UIManager.drawStartGameContainer();
+    UIManager.showStartGameContainer();
   }
 
   private startGame(): void {
@@ -89,6 +89,10 @@ export default class GameInstance {
 
     document.removeEventListener("click", this.startGame);
     document.removeEventListener("touchend", this.startGame);
+
+    // Fullscreen
+    if (document.fullscreenElement === document.body) document.exitFullscreen();
+    else document.body.requestFullscreen();
 
     // Asset manager was initialized in loadAndPrepareGame()
     CameraManager.init();
@@ -100,6 +104,7 @@ export default class GameInstance {
     DrawManager.startRenderLoop();
 
     UIManager.hideStartGameContainer();
+    UIManager.showUi();
     GameManager.stateSetPlaying();
 
     LevelManager.startGame();

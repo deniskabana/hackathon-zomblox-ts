@@ -20,7 +20,7 @@
 
 .nightOverlay {
   display: block;
-  position: fixed;
+  position: absolute;
   z-index: 1;
   background: #030403;
   left: 0;

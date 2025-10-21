@@ -15,9 +15,9 @@ export default class CameraManager extends AManager {
   private targetZoom: number = 1;
 
   private readonly minZoom: number = 0.5;
-  private readonly maxZoom: number = 1.5;
+  private readonly maxZoom: number = 2;
 
-  private readonly targetWorldWidth: number = 1000;
+  private readonly targetWorldWidth: number = 768;
   private readonly playerFollowSpeed = 0.2;
 
   constructor(gameInstance: GameInstance) {
@@ -31,7 +31,7 @@ export default class CameraManager extends AManager {
 
   public update(_deltaTime: number): void {
     if (this.zoom !== this.targetZoom)
-      this.zoom = Math.round(lerp(this.zoom, this.targetZoom, _deltaTime * 9) * 1000) / 1000;
+      this.zoom = Math.round(lerp(this.zoom, this.targetZoom, _deltaTime * 9) * 100) / 100;
   }
 
   private onResize(): void {
@@ -47,8 +47,8 @@ export default class CameraManager extends AManager {
   public followPlayer(_deltaTime: number, playerPos: WorldPosition): void {
     const levelManager = this.gameInstance.MANAGERS.LevelManager;
 
-    this.x = lerp(playerPos.x, this.x, _deltaTime * this.playerFollowSpeed);
-    this.y = lerp(playerPos.y, this.y, _deltaTime * this.playerFollowSpeed);
+    this.x = lerp(playerPos.x, this.x, (_deltaTime * this.playerFollowSpeed) / 10);
+    this.y = lerp(playerPos.y, this.y, (_deltaTime * this.playerFollowSpeed) / 10);
 
     const halfViewWidth = this.viewportWidth / 2 / this.zoom;
     const halfViewHeight = this.viewportHeight / 2 / this.zoom;
@@ -80,7 +80,6 @@ export default class CameraManager extends AManager {
     };
   }
 
-  // BUG: This causes untrue edges on mobile because only center coords are considered
   public isOnScreen(worldPos: WorldPosition, margin: number = 100): boolean {
     const zoomedMargin = margin * this.zoom;
     const screen = this.worldToScreen(worldPos);

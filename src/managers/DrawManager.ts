@@ -65,6 +65,7 @@ export default class DrawManager extends AManager {
     const { uiContainer } = this.gameInstance.MANAGERS.UIManager;
     uiContainer.style.width = this.canvas.style.width;
     uiContainer.style.height = this.canvas.style.height;
+    uiContainer.style.top = `${(window.innerHeight - this.constrainedHeight) / 2}px`;
 
     this.gameInstance.MANAGERS.CameraManager.setViewportSize(width, this.constrainedHeight);
   }

@@ -57,7 +57,7 @@ export default class UIManager extends AManager {
 
     this.hudContainer.appendChild(this.hudDayCounter);
 
-    this.uiContainer.appendChild(this.startGameContainer);
+    document.body.appendChild(this.startGameContainer);
     this.uiContainer.appendChild(this.hudContainer);
     this.uiContainer.appendChild(this.nightOverlay);
 
@@ -180,7 +180,7 @@ export default class UIManager extends AManager {
 `;
   }
 
-  public drawStartGameContainer(): void {
+  public showStartGameContainer(): void {
     this.startGameContainer.className = cx(styles.startGameContainer);
     this.startGameContainer.style.display = "flex";
     const text = document.createElement("p");
@@ -195,25 +195,19 @@ export default class UIManager extends AManager {
     this.startGameContainer.innerHTML = "";
   }
 
+  public showUi(): void {
+    this.uiContainer.style.opacity = "1";
+  }
+
+  public hideUi(): void {
+    this.uiContainer.style.opacity = "0";
+  }
+
   private uiControlsDraw(): void {
     for (const control of Object.values(this.uiControls)) control.draw();
   }
 
   public destroy(): void {
-    this.startGameContainer.remove();
-    this.nightOverlay.remove();
-    this.hudContainer.remove();
-    this.hudDayCounter.remove();
-
-    this.debugContainer.remove();
-    this.debugTextFps.remove();
-    this.debugTextZombies.remove();
-    this.debugTextHealth.remove();
-    this.debugSettingsContainer.remove();
-
-    this.joystickLeft.remove();
-    this.joystickRight.remove();
-
     for (const control of Object.values(this.uiControls)) control.destroy();
     this.uiControls = {};
   }
