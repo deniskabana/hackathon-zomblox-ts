@@ -30,6 +30,10 @@ export default class DrawManager extends AManager {
   // Canvas
   // ==================================================
 
+  public getSize(): { width: number; height: number } {
+    return { width: this.canvas.width, height: this.canvas.height };
+  }
+
   private updateCanvasSize(): void {
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
@@ -69,7 +73,7 @@ export default class DrawManager extends AManager {
     this.fps = Math.round(1 / deltaTime);
 
     this.clearCanvas();
-    this.gameInstance.update(deltaTime); // TODO: Extract update from render loop when I have time
+    this.gameInstance.update(deltaTime); // TODO: Extract update from render loop when I have time with 120fps cap
     this.renderDrawQueue();
     UIManager.draw(this.fps);
     VFXManager.draw(deltaTime);
@@ -204,10 +208,6 @@ export default class DrawManager extends AManager {
 
   // Utils
   // ==================================================
-
-  public getSize(): { width: number; height: number } {
-    return { width: this.canvas.width, height: this.canvas.height };
-  }
 
   public destroy(): void {
     this.stopRenderLoop();

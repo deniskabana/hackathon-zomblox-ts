@@ -123,7 +123,7 @@ export default class Zombie extends AEntity {
 
     const retreatFlowFields = this.gameInstance.MANAGERS.LevelManager.retreatFlowFields;
     if (!retreatFlowFields) return;
-    this.retreatFlowFieldIndex = Math.floor(Math.random() * retreatFlowFields.length);
+    this.retreatFlowFieldIndex = this.entityId % retreatFlowFields.length;
   }
 
   public startWandering(): void {
