@@ -8,7 +8,7 @@ export interface UiControls {
 }
 
 export default function getUiControls(gameInstance: GameInstance): UiControls {
-  const fullScreenButton = getFullScreenButton();
+  const fullScreenButton = getFullScreenButton(gameInstance);
   const sleepUntilNightButton = getSleepUntilNightButton(gameInstance);
   const masterVolumeToggleButton = getMasterVolumeToggleButton(gameInstance);
   // const _shootButtonLeft = getShootButton("left", gameInstance);
@@ -23,9 +23,9 @@ export default function getUiControls(gameInstance: GameInstance): UiControls {
   };
 }
 
-function getFullScreenButton(): UiControls[string] {
+function getFullScreenButton(gameInstance: GameInstance): UiControls[string] {
   const buttonEl = document.createElement("div");
-  document.body.appendChild(buttonEl);
+  gameInstance.MANAGERS.UIManager.uiContainer.appendChild(buttonEl);
   buttonEl.className = cx(styles.uiControl, styles.fullScreenButton);
   buttonEl.innerText = "🖥️";
 
@@ -49,7 +49,7 @@ function getFullScreenButton(): UiControls[string] {
 
 function getMasterVolumeToggleButton(gameInstance: GameInstance): UiControls[string] {
   const buttonEl = document.createElement("div");
-  document.body.appendChild(buttonEl);
+  gameInstance.MANAGERS.UIManager.uiContainer.appendChild(buttonEl);
   buttonEl.className = cx(styles.uiControl, styles.masterVolumeToggleButton);
 
   const handleClick = () => {
@@ -83,7 +83,7 @@ function getMasterVolumeToggleButton(gameInstance: GameInstance): UiControls[str
 
 function getSleepUntilNightButton(gameInstance: GameInstance): UiControls[string] {
   const buttonEl = document.createElement("div");
-  document.body.appendChild(buttonEl);
+  gameInstance.MANAGERS.UIManager.uiContainer.appendChild(buttonEl);
   buttonEl.className = cx(styles.uiControl, styles.sleepUntilNightButton);
   buttonEl.innerHTML = "🌙";
 
@@ -111,7 +111,7 @@ function getSleepUntilNightButton(gameInstance: GameInstance): UiControls[string
 
 export function getShootButton(position: "right" | "left", gameInstance: GameInstance): UiControls[string] {
   const buttonEl = document.createElement("div");
-  document.body.appendChild(buttonEl);
+  gameInstance.MANAGERS.UIManager.uiContainer.appendChild(buttonEl);
   buttonEl.className = cx(styles.uiControl, position === "left" ? styles.shootButtonLeft : styles.shootButtonRight);
   buttonEl.innerHTML = "💥";
 

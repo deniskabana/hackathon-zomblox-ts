@@ -45,6 +45,7 @@ export default class DrawManager extends AManager {
     const width = window.innerWidth;
     const height = window.innerHeight;
     const actualAspect = width / height;
+    const dpr = window.devicePixelRatio || 1;
 
     if (actualAspect > this.MAX_ASPECT) {
       this.constrainedHeight = Math.floor(width / this.MAX_ASPECT);
@@ -54,8 +55,16 @@ export default class DrawManager extends AManager {
       this.constrainedHeight = height;
     }
 
-    this.canvas.width = width;
-    this.canvas.height = this.constrainedHeight;
+    this.canvas.style.width = `${width}px`;
+    this.canvas.style.height = `${this.constrainedHeight}px`;
+
+    this.canvas.width = width * dpr;
+    this.canvas.height = this.constrainedHeight * dpr;
+    this.ctx?.scale(dpr, dpr);
+
+    const { uiContainer } = this.gameInstance.MANAGERS.UIManager;
+    uiContainer.style.width = this.canvas.style.width;
+    uiContainer.style.height = this.canvas.style.height;
 
     this.gameInstance.MANAGERS.CameraManager.setViewportSize(width, this.constrainedHeight);
   }

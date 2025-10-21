@@ -8,6 +8,8 @@ import cx from "../utils/cx";
 import { AManager } from "./abstract/AManager";
 
 export default class UIManager extends AManager {
+  public uiContainer: HTMLDivElement;
+
   private startGameContainer: HTMLDivElement;
   private nightOverlay: HTMLDivElement;
   private hudContainer: HTMLDivElement;
@@ -32,16 +34,20 @@ export default class UIManager extends AManager {
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
 
+    this.uiContainer = document.createElement("div");
+    this.uiContainer.id = "ui-container";
+    document.body.appendChild(this.uiContainer);
+
     this.joystickLeft = document.createElement("div");
     this.joystickRight = document.createElement("div");
     this.joystickLeftHandle = document.createElement("div");
     this.joystickRightHandle = document.createElement("div");
 
     if ("ontouchend" in document) {
-      document.body.appendChild(this.joystickLeft);
-      document.body.appendChild(this.joystickRight);
-      document.body.appendChild(this.joystickLeftHandle);
-      document.body.appendChild(this.joystickRightHandle);
+      this.uiContainer.appendChild(this.joystickLeft);
+      this.uiContainer.appendChild(this.joystickRight);
+      this.uiContainer.appendChild(this.joystickLeftHandle);
+      this.uiContainer.appendChild(this.joystickRightHandle);
     }
 
     this.startGameContainer = document.createElement("div");
@@ -51,9 +57,9 @@ export default class UIManager extends AManager {
 
     this.hudContainer.appendChild(this.hudDayCounter);
 
-    document.body.appendChild(this.startGameContainer);
-    document.body.appendChild(this.hudContainer);
-    document.body.appendChild(this.nightOverlay);
+    this.uiContainer.appendChild(this.startGameContainer);
+    this.uiContainer.appendChild(this.hudContainer);
+    this.uiContainer.appendChild(this.nightOverlay);
 
     this.debugContainer = document.createElement("div");
     this.debugTextFps = document.createElement("div");
@@ -65,7 +71,7 @@ export default class UIManager extends AManager {
     this.debugContainer.appendChild(this.debugTextZombies);
     this.debugContainer.appendChild(this.debugTextHealth);
 
-    document.body.appendChild(this.debugContainer);
+    this.uiContainer.appendChild(this.debugContainer);
   }
 
   public init(): void {
