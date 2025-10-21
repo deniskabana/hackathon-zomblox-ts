@@ -54,7 +54,7 @@ export default class DrawManager extends AManager {
       this.constrainedHeight = height;
     }
 
-    this.canvas.width = Math.min(width, 1920);
+    this.canvas.width = width;
     this.canvas.height = this.constrainedHeight;
 
     this.gameInstance.MANAGERS.CameraManager.setViewportSize(width, this.constrainedHeight);
