@@ -1,9 +1,9 @@
 import { GRID_CONFIG, gridToWorld, type GridPosition } from "../config/gameGrid";
 import type GameInstance from "../GameInstance";
 import { ZIndex } from "../types/ZIndex";
-import AEntity from "./abstract/AEntity";
+import ABlock from "./abstract/ABlock";
 
-export default class BlockWood extends AEntity {
+export default class BlockWood extends ABlock {
   public health: number;
 
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {

@@ -8,7 +8,7 @@ import getDirectionalAngle from "../utils/math/getDirectionalAngle";
 import getVectorDistance from "../utils/math/getVectorDistance";
 import radialLerp from "../utils/math/radialLerp";
 import radiansToVector from "../utils/math/radiansToVector";
-import AEntity from "./abstract/AEntity";
+import AEnemy from "./abstract/AEnemy";
 
 export enum ZombieState {
   CHASING_PLAYER = "CHASING_PLAYER",
@@ -18,7 +18,7 @@ export enum ZombieState {
   WAITING_FOR_NIGHT = "WAITING_FOR_NIGHT",
 }
 
-export default class Zombie extends AEntity {
+export default class Zombie extends AEnemy {
   private zombieState: ZombieState = ZombieState.CHASING_PLAYER;
   public health: number;
 

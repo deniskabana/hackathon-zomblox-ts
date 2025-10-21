@@ -9,9 +9,9 @@ import areVectorsEqual from "../utils/math/areVectorsEqual";
 import getVectorDistance from "../utils/math/getVectorDistance";
 import normalizeVector from "../utils/math/normalizeVector";
 import radiansToVector from "../utils/math/radiansToVector";
-import AEntity from "./abstract/AEntity";
+import APlayer from "./abstract/APlayer";
 
-export default class Player extends AEntity {
+export default class Player extends APlayer {
   private facingDirection: number = 0;
   private moveSpeed: number;
   private isMoving: boolean = false;

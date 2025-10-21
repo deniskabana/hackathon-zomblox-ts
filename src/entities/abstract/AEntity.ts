@@ -1,5 +1,6 @@
 import { type WorldPosition, type GridPosition, worldToGrid, type GridConfig } from "../../config/gameGrid";
 import type GameInstance from "../../GameInstance";
+import type { EntityType } from "../../types/EntityType";
 import { GridTileState, type LevelGrid } from "../../types/Grid";
 import isInsideGrid from "../../utils/grid/isInsideGrid";
 
@@ -11,6 +12,7 @@ export default abstract class AEntity {
   public entityId: number;
 
   public abstract health: number;
+  public abstract entityType: EntityType;
 
   constructor(gameInstance: GameInstance, worldPos: WorldPosition, entityId: number, isStaticObject?: boolean) {
     this.gameInstance = gameInstance;
