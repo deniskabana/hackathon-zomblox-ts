@@ -271,7 +271,7 @@ export default class LevelManager extends AManager {
       const musicNight = this.gameInstance.MANAGERS.AssetManager.playAudioAsset(
         "AMusicBackgroundNight",
         "music",
-        1,
+        0.7,
         true,
         false,
       );
@@ -280,7 +280,7 @@ export default class LevelManager extends AManager {
       const ambienceNight = this.gameInstance.MANAGERS.AssetManager.playAudioAsset(
         "AFXZombieAmbience",
         "music",
-        0.4,
+        0.35,
         true,
         false,
       );
@@ -316,7 +316,7 @@ export default class LevelManager extends AManager {
       const musicDay = this.gameInstance.MANAGERS.AssetManager.playAudioAsset(
         "AMusicBackgroundDay",
         "music",
-        1,
+        0.6,
         true,
         false,
       );

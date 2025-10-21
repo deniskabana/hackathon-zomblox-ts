@@ -97,6 +97,7 @@ export default class AssetManager extends AManager {
     switch (type) {
       case "music":
         if (this.playingAudioTracks.includes(assetName)) return;
+        audio.volume = volumeSettings.music * volumeSettings.master * volume;
         audio.loop = true;
         break;
 
