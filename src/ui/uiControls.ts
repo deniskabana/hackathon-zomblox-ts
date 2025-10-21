@@ -85,7 +85,7 @@ function getSleepUntilNightButton(gameInstance: GameInstance): UiControls[string
   const buttonEl = document.createElement("div");
   document.body.appendChild(buttonEl);
   buttonEl.className = cx(styles.uiControl, styles.sleepUntilNightButton);
-  buttonEl.innerHTML = "🛏️";
+  buttonEl.innerHTML = "🌙";
 
   const handleClick = () => {
     const isDay = gameInstance.MANAGERS.LevelManager.getIsDay();

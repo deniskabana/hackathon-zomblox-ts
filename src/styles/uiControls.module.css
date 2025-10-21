@@ -4,13 +4,13 @@
   background: #2f2f4a59;
   border: 1px solid #999999af;
   border-radius: 1rem;
-  font-size: 1.75rem;
+  font-size: 1.4rem;
   display: flex;
   justify-content: center;
   align-items: center;
   color: #ffffffc0;
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   text-align: center;
 
   backdrop-filter: blur(4px);
@@ -22,39 +22,25 @@
   opacity: 0.5;
 }
 
-.fullScreenButton {
-  left: 50%;
-  margin-left: -25px;
-  top: 10px;
-}
-
 .masterVolumeToggleButton {
-  top: 10px;
-  right: 10px;
+  top: 16px;
+  right: 16px;
 }
-
+.fullScreenButton {
+  top: 16px;
+  right: calc(16px + 40px + 16px);
+}
 .sleepUntilNightButton {
-  top: 10px;
-  right: 70px;
-}
-
-.shootButtonLeft {
-  background: #4f2f2a59;
-  bottom: calc(22px + 128px + 10px);
-  left: 1rem;
-}
-.shootButtonRight {
-  background: #4f2f2a59;
-  bottom: calc(22px + 128px + 10px);
-  right: 1rem;
+  top: 16px;
+  right: calc(16px + 40px + 16px + 40px + 16px);
 }
 
 .joystick {
   position: fixed;
   z-index: 19;
-  background: #e2e2e625;
-  border: 2px solid #9999999f;
-  bottom: 20px;
+  background: #e3e2e745;
+  border: 2px solid #999999af;
+  bottom: 32px;
   width: 128px;
   height: 128px;
   border-radius: 50%;
@@ -63,22 +49,41 @@
   align-items: center;
   justify-content: center;
 
-  box-shadow: 2px 2px 6px rgba(10, 10, 20, 0.15);
+  box-shadow: 0 0 10px 1px rgba(10, 10, 20, 0.2);
   transition: opacity 0.2s ease;
+}
+
+.joystickHandle {
+  position: fixed;
+  z-index: 20;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 3px solid #a83432;
+  background: #2f2f4a;
+  opacity: 0;
+
+  transition: opacity 0.2s ease;
+}
+.joystickHandleActive {
+  opacity: 1;
 }
 
 .joystick::before {
   z-index: 20;
-  background: #9999999f;
+  background-color: #999;
   display: block;
   content: "";
   width: 32px;
   height: 32px;
   border-radius: 50%;
-}
 
+  background-size: 80% 80%;
+  background-repeat: no-repeat;
+  background-position: center;
+}
 .joystick.joystickActive::before {
-  background: #797979cf;
+  background-color: #aaa;
 }
 
 .joystickActive {
@@ -86,8 +91,15 @@
 }
 
 .joystickLeft {
-  left: 20px;
+  left: 32px;
 }
+.joystickLeft::before {
+  background-image: url(/icons/person-walking-solid-full.svg);
+}
+
 .joystickRight {
-  right: 20px;
+  right: 32px;
+}
+.joystickRight::before {
+  background-image: url(/icons/crosshairs-solid-full.svg);
 }

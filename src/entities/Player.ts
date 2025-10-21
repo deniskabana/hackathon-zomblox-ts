@@ -25,6 +25,8 @@ export default class Player extends AEntity {
   private nextWeaponCooldownTimer: number = 0;
   private stepSoundCooldownTimer: number = 0;
 
+  private readonly stepSoundCooldownInterval: number = 0.35;
+
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     super(gameInstance, gridToWorld(gridPos), entityId, true);
 
@@ -64,8 +66,8 @@ export default class Player extends AEntity {
   }
 
   private getMovementInput(): WorldPosition {
-    const joystickMoveDireciton = this.gameInstance.MANAGERS.InputManager.getMoveDirection();
-    if (joystickMoveDireciton) return radiansToVector(joystickMoveDireciton);
+    const joystickMoveDirection = this.gameInstance.MANAGERS.InputManager.getMoveDirection();
+    if (joystickMoveDirection !== undefined) return radiansToVector(joystickMoveDirection);
 
     let x = 0;
     let y = 0;
@@ -158,13 +160,17 @@ export default class Player extends AEntity {
   }
 
   private applyMovement(_deltaTime: number): void {
-    this.moveDirection = this.getAimAngle();
     const movementVector = this.getMovementInput();
-    this.isMoving = !(movementVector.x === 0 && movementVector.y === 0);
+
+    let speed: typeof this.moveSpeed = this.moveSpeed;
+    const joystickMoveIntensity = this.gameInstance.MANAGERS.InputManager.getMoveIntensity();
+    if (joystickMoveIntensity !== undefined) speed *= joystickMoveIntensity;
+
+    this.moveDirection = this.getAimAngle();
 
     const futurePos = {
-      x: this.worldPos.x + movementVector.x * _deltaTime * this.moveSpeed,
-      y: this.worldPos.y + movementVector.y * _deltaTime * this.moveSpeed,
+      x: this.worldPos.x + movementVector.x * _deltaTime * speed,
+      y: this.worldPos.y + movementVector.y * _deltaTime * speed,
     };
 
     const adjustedFuturePos = this.adjustMovementForCollisions(
@@ -172,13 +178,17 @@ export default class Player extends AEntity {
       this.gameInstance.MANAGERS.LevelManager.levelGrid,
       GRID_CONFIG,
     );
-    if (areVectorsEqual(adjustedFuturePos, this.worldPos)) this.isMoving = false;
-    else this.setWorldPosition(adjustedFuturePos);
+    if (areVectorsEqual(adjustedFuturePos, this.worldPos)) {
+      this.isMoving = false;
+    } else {
+      this.setWorldPosition(adjustedFuturePos);
+      this.isMoving = true;
+    }
 
     // Play step sound
     if (this.isMoving && this.stepSoundCooldownTimer <= 0) {
       this.gameInstance.MANAGERS.AssetManager.playAudioAsset("APlayerStep", "sound");
-      this.stepSoundCooldownTimer = 0.35;
+      this.stepSoundCooldownTimer = this.stepSoundCooldownInterval;
     }
   }
 

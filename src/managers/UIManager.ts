@@ -26,16 +26,22 @@ export default class UIManager extends AManager {
   // Touch controls
   public joystickLeft: HTMLDivElement;
   public joystickRight: HTMLDivElement;
+  public joystickLeftHandle: HTMLDivElement;
+  public joystickRightHandle: HTMLDivElement;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
 
     this.joystickLeft = document.createElement("div");
     this.joystickRight = document.createElement("div");
+    this.joystickLeftHandle = document.createElement("div");
+    this.joystickRightHandle = document.createElement("div");
 
     if ("ontouchend" in document) {
       document.body.appendChild(this.joystickLeft);
       document.body.appendChild(this.joystickRight);
+      document.body.appendChild(this.joystickLeftHandle);
+      document.body.appendChild(this.joystickRightHandle);
     }
 
     this.startGameContainer = document.createElement("div");
@@ -67,6 +73,8 @@ export default class UIManager extends AManager {
 
     this.joystickLeft.className = cx(uiControlsStyles.joystick, uiControlsStyles.joystickLeft);
     this.joystickRight.className = cx(uiControlsStyles.joystick, uiControlsStyles.joystickRight);
+    this.joystickLeftHandle.className = cx(uiControlsStyles.joystickHandle);
+    this.joystickRightHandle.className = cx(uiControlsStyles.joystickHandle);
 
     this.hudContainer.className = cx(hudStyles.hudContainer);
     this.hudDayCounter.className = cx(hudStyles.hudElement);
