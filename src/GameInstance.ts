@@ -27,8 +27,8 @@ export default class GameInstance {
   public translation: Translation;
 
   private readonly translations: Translation[] = [
-    { dictionary: enTranslation, code: "en", flag: "🇬🇧" },
-    { dictionary: csTranslation, code: "cs", flag: "🇨🇿" },
+    { dictionary: enTranslation, code: ["en"], flag: "🇬🇧" }, // Default is first index
+    { dictionary: csTranslation, code: ["cs", "sk"], flag: "🇨🇿" },
   ];
 
   gameLogicInterval: number = 50; // 50 ms; TODO: Implement
@@ -38,7 +38,7 @@ export default class GameInstance {
     this.canvas = document.createElement("canvas"); // Fake in constructor
     this.MANAGERS = undefined as unknown as typeof this.MANAGERS; // Fake in constructor
 
-    const preferredTranslation = this.translations.find((code) => String(code) === navigator.language.slice(0, 2));
+    const preferredTranslation = this.translations.find(({ code }) => code.includes(navigator.language.slice(0, 2)));
     if (preferredTranslation) this.translation = preferredTranslation;
     else this.translation = this.translations[0];
   }
