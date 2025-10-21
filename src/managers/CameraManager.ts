@@ -80,13 +80,14 @@ export default class CameraManager extends AManager {
   }
 
   // BUG: This causes untrue edges on mobile because only center coords are considered
-  public isOnScreen(worldPos: WorldPosition, margin: number = 200): boolean {
+  public isOnScreen(worldPos: WorldPosition, margin: number = 100): boolean {
+    const zoomedMargin = margin * this.zoom;
     const screen = this.worldToScreen(worldPos);
     return (
-      screen.x >= -margin &&
-      screen.x <= this.viewportWidth * this.zoom + margin &&
-      screen.y >= -margin &&
-      screen.y <= this.viewportHeight * this.zoom + margin
+      screen.x >= -zoomedMargin &&
+      screen.x <= this.viewportWidth + zoomedMargin &&
+      screen.y >= -zoomedMargin &&
+      screen.y <= this.viewportHeight + zoomedMargin
     );
   }
 
