@@ -185,15 +185,16 @@ export default class InputManager extends AManager {
   }
 
   private updateMousePosition(event: MouseEvent): void {
-    const zoom = this.gameInstance.MANAGERS.CameraManager.zoom;
     const rect = this.gameInstance.canvas.getBoundingClientRect();
-    const screenX = event.clientX - rect.left;
-    const screenY = event.clientY - rect.top;
-    this.mouseScreenPos.x = screenX * zoom;
-    this.mouseScreenPos.y = screenY * zoom;
+    const screenX = event.clientX - rect.x;
+    const screenY = event.clientY - rect.y;
+
+    this.mouseScreenPos.x = screenX;
+    this.mouseScreenPos.y = screenY;
 
     const player = this.gameInstance.MANAGERS.LevelManager.player;
     if (!player) return;
+
     const mouseWorldPos = this.gameInstance.MANAGERS.CameraManager.screenToWorld(this.mouseScreenPos);
     this.aimDirection = getDirectionalAngle(mouseWorldPos, player.worldPos);
   }

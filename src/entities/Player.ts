@@ -12,7 +12,7 @@ import radiansToVector from "../utils/math/radiansToVector";
 import AEntity from "./abstract/AEntity";
 
 export default class Player extends AEntity {
-  private moveDirection: number = 0;
+  private facingDirection: number = 0;
   private moveSpeed: number;
   private isMoving: boolean = false;
 
@@ -57,8 +57,26 @@ export default class Player extends AEntity {
       GRID_CONFIG.TILE_SIZE,
       GRID_CONFIG.TILE_SIZE,
       ZIndex.ENTITIES,
-      this.moveDirection + Math.PI / 2,
+      this.facingDirection + Math.PI / 2,
     );
+
+    const length = GRID_CONFIG.TILE_SIZE * 4;
+
+    const laserSightVector = radiansToVector(this.facingDirection);
+    laserSightVector.x *= length;
+    laserSightVector.y *= length;
+    laserSightVector.x += this.worldPos.x;
+    laserSightVector.y += this.worldPos.y;
+
+    // if (this.gameInstance.MANAGERS.LevelManager.levelState?.phase === "night") {
+    this.gameInstance.MANAGERS.DrawManager.drawLine(
+      this.worldPos.x,
+      this.worldPos.y,
+      laserSightVector.x,
+      laserSightVector.y,
+      "#ff00008a",
+    );
+    // }
   }
 
   private getAimAngle(): number {
@@ -98,7 +116,7 @@ export default class Player extends AEntity {
 
     for (let i = 0; i < weaponDef.shots; i++) {
       const spread = (Math.random() - 0.5) * 2 * ((gunSpread * Math.PI) / 180);
-      const angle = this.moveDirection + spread;
+      const angle = this.facingDirection + spread;
       const maxDistance = weaponDef.maxDistance * GRID_CONFIG.TILE_SIZE;
 
       const raycastHit = this.gameInstance.MANAGERS.LevelManager.raycastShot(this.worldPos, angle, maxDistance);
@@ -166,7 +184,7 @@ export default class Player extends AEntity {
     const joystickMoveIntensity = this.gameInstance.MANAGERS.InputManager.getMoveIntensity();
     if (joystickMoveIntensity !== undefined) speed *= joystickMoveIntensity;
 
-    this.moveDirection = this.getAimAngle();
+    this.facingDirection = this.getAimAngle();
 
     const futurePos = {
       x: this.worldPos.x + movementVector.x * _deltaTime * speed,

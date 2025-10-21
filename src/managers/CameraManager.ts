@@ -75,8 +75,8 @@ export default class CameraManager extends AManager {
 
   public screenToWorld(screenPos: WorldPosition): WorldPosition {
     return {
-      x: (screenPos.x - this.viewportWidth / 2) * this.zoom + this.x,
-      y: (screenPos.y - this.viewportHeight / 2) * this.zoom + this.y,
+      x: (screenPos.x - this.viewportWidth / 2) / this.zoom + this.x,
+      y: (screenPos.y - this.viewportHeight / 2) / this.zoom + this.y,
     };
   }
 
