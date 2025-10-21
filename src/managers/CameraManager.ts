@@ -92,7 +92,7 @@ export default class CameraManager extends AManager {
     );
   }
 
-  private setViewportSize(width?: number, height?: number): void {
+  public setViewportSize(width?: number, height?: number): void {
     this.viewportWidth = width ?? window.innerWidth;
     this.viewportHeight = height ?? window.innerHeight;
     this.calculateZoom();

@@ -14,6 +14,13 @@ export default class DrawManager extends AManager {
   private lastFrameTime: number = 0;
   private fps: number = 0;
 
+  private readonly MIN_ASPECT = 16 / 10;
+  private readonly MAX_ASPECT = 19.5 / 9;
+  private constrainedHeight: number = 0;
+
+  private canvasUpdateTimer: number = 0;
+  private readonly canvasUpdateInterval: number = 0.2;
+
   constructor(gameInstance: GameInstance, canvas: HTMLCanvasElement) {
     super(gameInstance);
     this.canvas = canvas;
@@ -35,8 +42,22 @@ export default class DrawManager extends AManager {
   }
 
   private updateCanvasSize(): void {
-    this.canvas.width = window.innerWidth;
-    this.canvas.height = window.innerHeight;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const actualAspect = width / height;
+
+    if (actualAspect > this.MAX_ASPECT) {
+      this.constrainedHeight = Math.floor(width / this.MAX_ASPECT);
+    } else if (actualAspect < this.MIN_ASPECT) {
+      this.constrainedHeight = Math.floor(width / this.MIN_ASPECT);
+    } else {
+      this.constrainedHeight = height;
+    }
+
+    this.canvas.width = Math.min(width, 1920);
+    this.canvas.height = this.constrainedHeight;
+
+    this.gameInstance.MANAGERS.CameraManager.setViewportSize(width, this.constrainedHeight);
   }
 
   private clearCanvas(): void {
@@ -71,6 +92,13 @@ export default class DrawManager extends AManager {
     const deltaTime = (currentTime - this.lastFrameTime) / 1000;
     this.lastFrameTime = currentTime;
     this.fps = Math.round(1 / deltaTime);
+
+    if (this.canvasUpdateTimer > 0) {
+      this.canvasUpdateTimer -= deltaTime;
+    } else {
+      this.canvasUpdateTimer = this.canvasUpdateInterval;
+      this.updateCanvasSize();
+    }
 
     this.clearCanvas();
     this.gameInstance.update(deltaTime); // TODO: Extract update from render loop when I have time with 120fps cap
