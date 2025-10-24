@@ -5,14 +5,15 @@ import { GridTileState, type LevelGrid } from "../../types/Grid";
 import isInsideGrid from "../../utils/grid/isInsideGrid";
 
 export default abstract class AEntity {
-  public gameInstance: GameInstance;
+  protected readonly gameInstance: GameInstance;
+  protected readonly entityId: number;
+
   public worldPos: WorldPosition;
   public gridPos: GridPosition;
   public isStaticObject: boolean;
-  public entityId: number;
 
-  public abstract health: number;
-  public abstract entityType: EntityType;
+  protected abstract health: number;
+  protected abstract entityType: EntityType;
 
   constructor(gameInstance: GameInstance, worldPos: WorldPosition, entityId: number, isStaticObject?: boolean) {
     this.gameInstance = gameInstance;

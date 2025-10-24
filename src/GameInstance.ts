@@ -1,4 +1,5 @@
 import AssetManager from "./managers/AssetManager";
+import BuildModeManager from "./managers/BuildModeManager";
 import CameraManager from "./managers/CameraManager";
 import DrawManager from "./managers/DrawManager";
 import GameManager from "./managers/GameManager";
@@ -12,10 +13,11 @@ import { GameState } from "./types/GameState";
 import type { Translation } from "./types/Translation";
 
 export default class GameInstance {
-  public isDev: boolean;
-  public canvas: HTMLCanvasElement;
-  public MANAGERS: {
+  public readonly isDev: boolean;
+  public readonly canvas: HTMLCanvasElement;
+  public readonly MANAGERS: {
     AssetManager: AssetManager;
+    BuildModeManager: BuildModeManager;
     CameraManager: CameraManager;
     DrawManager: DrawManager;
     GameManager: GameManager;
@@ -31,22 +33,13 @@ export default class GameInstance {
     { dictionary: csTranslation, code: ["cs", "sk"], flag: "🇨🇿" },
   ];
 
-  gameLogicInterval: number = 50; // 50 ms; TODO: Implement
-
   constructor() {
     this.isDev = import.meta.env.NODE_ENV === "development" || !!location.hash.match("debug");
-    this.canvas = document.createElement("canvas"); // Fake in constructor
-    this.MANAGERS = undefined as unknown as typeof this.MANAGERS; // Fake in constructor
-
-    const preferredTranslation = this.translations.find(({ code }) => code.includes(navigator.language.slice(0, 2)));
-    if (preferredTranslation) this.translation = preferredTranslation;
-    else this.translation = this.translations[0];
-  }
-
-  init() {
     this.canvas = this.createCanvas();
+
     this.MANAGERS = {
       AssetManager: new AssetManager(this),
+      BuildModeManager: new BuildModeManager(this),
       CameraManager: new CameraManager(this),
       DrawManager: new DrawManager(this, this.canvas),
       GameManager: new GameManager(this),
@@ -56,6 +49,12 @@ export default class GameInstance {
       VFXManager: new VFXManager(this),
     };
 
+    const preferredTranslation = this.translations.find(({ code }) => code.includes(navigator.language.slice(0, 2)));
+    if (preferredTranslation) this.translation = preferredTranslation;
+    else this.translation = this.translations[0];
+  }
+
+  init() {
     document.addEventListener("click", this.startGame.bind(this));
     document.addEventListener("touchend", this.startGame.bind(this));
     this.loadAndPrepareGame();
@@ -96,18 +95,29 @@ export default class GameInstance {
   }
 
   private startGame(): void {
-    const { UIManager, GameManager, CameraManager, DrawManager, InputManager, LevelManager, VFXManager } =
-      this.MANAGERS;
+    const {
+      BuildModeManager,
+      UIManager,
+      GameManager,
+      CameraManager,
+      DrawManager,
+      InputManager,
+      LevelManager,
+      VFXManager,
+    } = this.MANAGERS;
     if (this.MANAGERS.GameManager.getState() !== GameState.READY) return;
 
     document.removeEventListener("click", this.startGame);
     document.removeEventListener("touchend", this.startGame);
 
-    // Fullscreen
-    if (document.fullscreenElement === document.body) document.exitFullscreen();
-    else document.body.requestFullscreen();
+    if (!this.isDev) {
+      // Fullscreen
+      if (document.fullscreenElement === document.body) document.exitFullscreen();
+      else document.body.requestFullscreen();
+    }
 
     // Asset manager was initialized in loadAndPrepareGame()
+    BuildModeManager.init();
     CameraManager.init();
     DrawManager.init();
     InputManager.init();
@@ -135,10 +145,20 @@ export default class GameInstance {
   }
 
   private destroy(): void {
-    const { AssetManager, UIManager, GameManager, CameraManager, DrawManager, InputManager, LevelManager, VFXManager } =
-      this.MANAGERS;
+    const {
+      BuildModeManager,
+      AssetManager,
+      UIManager,
+      GameManager,
+      CameraManager,
+      DrawManager,
+      InputManager,
+      LevelManager,
+      VFXManager,
+    } = this.MANAGERS;
 
     AssetManager.destroy();
+    BuildModeManager.destroy();
     CameraManager.destroy();
     DrawManager.destroy();
     GameManager.destroy();

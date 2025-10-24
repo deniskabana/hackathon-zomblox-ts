@@ -5,13 +5,22 @@ import type GameInstance from "../GameInstance";
 import type { AssetImage } from "../managers/AssetManager";
 import { GameControls } from "../types/GameControls";
 import { ZIndex } from "../types/ZIndex";
+import assertNever from "../utils/assertNever";
 import areVectorsEqual from "../utils/math/areVectorsEqual";
 import getVectorDistance from "../utils/math/getVectorDistance";
 import normalizeVector from "../utils/math/normalizeVector";
 import radiansToVector from "../utils/math/radiansToVector";
 import APlayer from "./abstract/APlayer";
 
+export enum PlayerState {
+  NORMAL = "NORMAL",
+  SHOPPING = "SHOPPING",
+  BUILDING = "BUILDING",
+  DEAD = "DEAD",
+}
+
 export default class Player extends APlayer {
+  private playerState: PlayerState;
   private facingDirection: number = 0;
   private moveSpeed: number;
   private isMoving: boolean = false;
@@ -31,6 +40,7 @@ export default class Player extends APlayer {
     super(gameInstance, gridToWorld(gridPos), entityId, true);
 
     const settings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.player;
+    this.playerState = PlayerState.NORMAL;
     this.moveSpeed = settings.movementSpeed;
     this.health = settings.startHealth;
     this.maxHealth = settings.startHealth;
@@ -44,6 +54,8 @@ export default class Player extends APlayer {
     if (this.stepSoundCooldownTimer > 0) this.stepSoundCooldownTimer -= _deltaTime;
     if (this.getCheckShootInput()) this.shoot();
     if (this.gameInstance.MANAGERS.InputManager.isControlDown(GameControls.CHANGE_WEAPON)) this.chooseNextWeapon();
+
+    if (this.getBuildingModeInput()) this.startBuildingMode();
   }
 
   public draw() {
@@ -101,7 +113,32 @@ export default class Player extends APlayer {
     return this.gameInstance.MANAGERS.InputManager.isControlDown(GameControls.SHOOT);
   }
 
+  private getBuildingModeInput(): boolean {
+    return this.gameInstance.MANAGERS.InputManager.isControlDown(GameControls.BUILD_MENU);
+  }
+
+  public startBuildingMode(): void {
+    if (this.playerState === PlayerState.BUILDING) return;
+    this.playerState = PlayerState.BUILDING;
+  }
+
+  public endBuildingMode(): void {
+    if (this.playerState !== PlayerState.BUILDING) return;
+    this.playerState = PlayerState.NORMAL;
+  }
+
+  public startShopping(): void {
+    if (this.playerState === PlayerState.SHOPPING) return;
+    this.playerState = PlayerState.SHOPPING;
+  }
+
+  public endShopping(): void {
+    if (this.playerState !== PlayerState.SHOPPING) return;
+    this.playerState = PlayerState.NORMAL;
+  }
+
   public shoot(): void {
+    if (this.playerState !== PlayerState.NORMAL) return;
     if (this.gameInstance.MANAGERS.LevelManager.levelState?.phase === "day") return;
     if (this.gunCooldownTimer > 0) return;
 
@@ -153,6 +190,8 @@ export default class Player extends APlayer {
         return "AGunShotgun";
       case "Submachine":
         return "AGunSMG";
+      default:
+        assertNever(this.weapon);
     }
   }
 
@@ -220,7 +259,12 @@ export default class Player extends APlayer {
     );
   }
 
+  public getPlayerState(): PlayerState {
+    return this.playerState;
+  }
+
   private die(): void {
+    this.playerState = PlayerState.DEAD;
     this.gameInstance.MANAGERS.VFXManager.drawBloodOnScreen();
     this.gameInstance.MANAGERS.AssetManager.playAudioAsset("APlayerDie", "sound");
     this.gameInstance.MANAGERS.LevelManager.destroyPlayer();

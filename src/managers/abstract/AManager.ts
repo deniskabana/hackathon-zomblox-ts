@@ -1,7 +1,7 @@
 import type GameInstance from "../../GameInstance";
 
 export abstract class AManager {
-  public gameInstance: GameInstance;
+  protected readonly gameInstance: GameInstance;
 
   constructor(gameInstance: GameInstance) {
     this.gameInstance = gameInstance;

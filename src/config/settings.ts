@@ -1,4 +1,3 @@
-import type { LevelState } from "../types/LevelState";
 import { GRID_CONFIG } from "./gameGrid";
 import type { Weapon } from "./weapons";
 
@@ -9,7 +8,6 @@ export const DEFAULT_SETTINGS = {
   debug: { enableFlowFieldRender: false, showZombieState: false, showZombieTarget: false },
   rules: {
     game: {
-      startPhase: "night" as LevelState["phase"],
       startCurrency: 0,
       enableRewardAutoCollect: true,
       rewardCoef: 1,
