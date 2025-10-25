@@ -25,7 +25,7 @@ export default class CameraManager extends AManager {
   }
 
   public init(): void {
-    window.addEventListener("resize", this.onResize.bind(this));
+    window.addEventListener("resize", this.onResize);
     this.onResize();
   }
 
@@ -34,10 +34,10 @@ export default class CameraManager extends AManager {
       this.zoom = Math.round(lerp(this.zoom, this.targetZoom, _deltaTime * 9) * 100) / 100;
   }
 
-  private onResize(): void {
+  private onResize = (): void => {
     this.setViewportSize();
     this.calculateZoom();
-  }
+  };
 
   private calculateZoom(): void {
     const idealZoom = this.viewportWidth / this.targetWorldWidth;
@@ -98,6 +98,6 @@ export default class CameraManager extends AManager {
   }
 
   public destroy(): void {
-    window.removeEventListener("resize", this.onResize.bind(this));
+    window.removeEventListener("resize", this.onResize);
   }
 }

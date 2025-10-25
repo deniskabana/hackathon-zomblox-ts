@@ -27,7 +27,7 @@ export default class DrawManager extends AManager {
   }
 
   public init(): void {
-    window.addEventListener("resize", this.updateCanvasSize.bind(this));
+    window.addEventListener("resize", this.updateCanvasSize);
 
     const ctx = this.canvas.getContext("2d");
     if (!ctx) throw new Error("Failed to get 2D context from canvas");
@@ -41,7 +41,7 @@ export default class DrawManager extends AManager {
     return { width: this.canvas.width, height: this.canvas.height };
   }
 
-  private updateCanvasSize(): void {
+  private updateCanvasSize = (): void => {
     const width = window.innerWidth;
     const height = window.innerHeight;
     const actualAspect = width / height;
@@ -68,7 +68,7 @@ export default class DrawManager extends AManager {
     uiContainer.style.top = `${(window.innerHeight - this.constrainedHeight) / 2}px`;
 
     this.gameInstance.MANAGERS.CameraManager.setViewportSize(width, this.constrainedHeight);
-  }
+  };
 
   private clearCanvas(): void {
     if (!this.ctx) return;
@@ -261,7 +261,7 @@ export default class DrawManager extends AManager {
 
   public destroy(): void {
     this.stopRenderLoop();
-    window.removeEventListener("resize", this.updateCanvasSize.bind(this));
+    window.removeEventListener("resize", this.updateCanvasSize);
 
     this.drawQueue = {};
     this.lastFrameTime = 0;

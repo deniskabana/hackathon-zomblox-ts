@@ -116,10 +116,8 @@ function getBuildModeButton(gameInstance: GameInstance): UiControls[string] {
     const active = !gameInstance.MANAGERS.BuildModeManager.isBuildModeActive;
     if (active) {
       buttonEl.classList.add(styles.uiControlActive);
-      buttonEl.innerHTML = "⨯ &nbsp;Close Build mode";
     } else {
       buttonEl.classList.remove(styles.uiControlActive);
-      buttonEl.innerHTML = "🛠️ &nbsp;Open Build mode";
     }
   };
 
@@ -131,6 +129,10 @@ function getBuildModeButton(gameInstance: GameInstance): UiControls[string] {
       const isDay = gameInstance.MANAGERS.LevelManager.getIsDay();
       const desiredOpacity = isDay ? "1" : "0";
       if (buttonEl.style.opacity !== desiredOpacity) buttonEl.style.opacity = desiredOpacity;
+
+      const active = gameInstance.MANAGERS.BuildModeManager.isBuildModeActive;
+      if (active) buttonEl.innerHTML = "🛠️ &nbsp;Close Build mode";
+      else buttonEl.innerHTML = "🛠️ &nbsp;Open Build mode";
     },
     destroy: () => {
       buttonEl.removeEventListener("click", handleClick);

@@ -55,8 +55,8 @@ export default class GameInstance {
   }
 
   init() {
-    document.addEventListener("click", this.startGame.bind(this));
-    document.addEventListener("touchend", this.startGame.bind(this));
+    document.addEventListener("click", this.startGame);
+    document.addEventListener("touchend", this.startGame);
     this.loadAndPrepareGame();
   }
 
@@ -94,7 +94,7 @@ export default class GameInstance {
     UIManager.showStartGameContainer();
   }
 
-  private startGame(): void {
+  private startGame = (): void => {
     const {
       BuildModeManager,
       UIManager,
@@ -131,7 +131,7 @@ export default class GameInstance {
     GameManager.stateSetPlaying();
 
     LevelManager.startGame();
-  }
+  };
 
   public stopAndQuiteGame(): void {
     this.destroy();
@@ -140,8 +140,8 @@ export default class GameInstance {
   public async restartGame(): Promise<void> {
     this.stopAndQuiteGame();
     await this.loadAndPrepareGame();
-    document.addEventListener("click", this.startGame.bind(this));
-    document.addEventListener("touchend", this.startGame.bind(this));
+    document.addEventListener("click", this.startGame);
+    document.addEventListener("touchend", this.startGame);
   }
 
   private destroy(): void {
