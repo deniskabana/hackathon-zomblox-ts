@@ -103,7 +103,8 @@ export default class UIManager extends AManager {
 
   private drawHud(): void {
     const dayNo = this.gameInstance.MANAGERS.LevelManager.levelState?.daysCounter;
-    this.hudDayCounter.innerText = `Day: ${dayNo}`;
+    const label = this.gameInstance.translation.dictionary.hud.day;
+    this.hudDayCounter.innerText = `${label}: ${dayNo}`;
   }
 
   public showNightOverlay(): void {

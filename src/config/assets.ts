@@ -15,7 +15,7 @@ export const DEF_ASSETS_AUDIO = {
   AGunShotgunReload: "/audio/shotgun-reload-sfx-36524.mp3", // https://pixabay.com/users/freesound_community-46691455/
   AGunSMGReload: "/audio/gunreload_9-92134.mp3", // https://pixabay.com/users/freesound_community-46691455/
   // Blocks
-  ABlockWoodPlaced: "/audio/put_item-83043.mp3", // https://pixabay.com/users/freesound_community-46691455/
+  ABlockWoodPlaced: "/audio/wood-block-105066.mp3", // https://pixabay.com/users/freesound_community-46691455/
   ABlockWoodDamaged: "/audio/wood-smash-1-170410.mp3", // https://pixabay.com/users/floraphonic-38928062/
   ABlockWoodDestroyed: "/audio/wood-smash-3-170418.mp3", // https://pixabay.com/users/floraphonic-38928062/
   // Zombies
@@ -29,6 +29,7 @@ export const DEF_ASSETS_AUDIO = {
   AFXShopPurchase: "/audio/coin-donation-2-180438.mp3", // https://pixabay.com/users/floraphonic-38928062/
   AFXZombieAmbience: "/audio/zombie-sound-224167.mp3", // https://pixabay.com/users/alice_soundz-44907632/
   AFXMorningRooster: "/audio/rooster-233738.mp3", // https://pixabay.com/users/stefan_grace-8153913/
+  AFXUiClick: "/audio/computer-mouse-click-352734.mp3", // https://pixabay.com/users/universfield-28281460/
   // Music
   AMusicBackgroundNight: "/audio/horror-scary-dark-music-413504.mp3", // https://pixabay.com/users/lnplusmusic-47631836/
   AMusicBackgroundDay: "/audio/early-morning-muse-full-version-peaceful-flute-harp-strings-371629.mp3", // https://pixabay.com/users/kaazoom-448850/

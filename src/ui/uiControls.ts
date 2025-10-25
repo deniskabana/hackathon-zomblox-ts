@@ -23,6 +23,7 @@ function getFullScreenButton(gameInstance: GameInstance): UiControls[string] {
   buttonEl.innerText = "🖥️";
 
   const handleClick = () => {
+    gameInstance.MANAGERS.AssetManager.playAudioAsset("AFXUiClick", "sound");
     if (document.fullscreenElement === document.body) document.exitFullscreen();
     else document.body.requestFullscreen();
   };
@@ -46,6 +47,7 @@ function getMasterVolumeToggleButton(gameInstance: GameInstance): UiControls[str
   buttonEl.className = cx(styles.uiControl, styles.masterVolumeToggleButton);
 
   const handleClick = () => {
+    gameInstance.MANAGERS.AssetManager.playAudioAsset("AFXUiClick", "sound");
     const volumeSettings = gameInstance.MANAGERS.GameManager.getSettings().volume;
 
     if (volumeSettings.master === 1) {
@@ -80,6 +82,7 @@ function getSleepUntilNightButton(gameInstance: GameInstance): UiControls[string
   buttonEl.className = cx(styles.uiControl, styles.sleepUntilNightButton);
 
   const handleClick = () => {
+    gameInstance.MANAGERS.AssetManager.playAudioAsset("AFXUiClick", "sound");
     const isDay = gameInstance.MANAGERS.LevelManager.getIsDay();
     if (!isDay) return;
     gameInstance.MANAGERS.LevelManager.startNight();
@@ -110,6 +113,7 @@ function getBuildModeButton(gameInstance: GameInstance): UiControls[string] {
   buttonEl.className = cx(styles.uiControl, styles.buildModeButton);
 
   const handleClick = () => {
+    gameInstance.MANAGERS.AssetManager.playAudioAsset("AFXUiClick", "sound");
     gameInstance.MANAGERS.InputManager.simulateControlPress(GameControls.BUILD_MENU);
     setTimeout(() => gameInstance.MANAGERS.InputManager.simulateControlRelease(GameControls.BUILD_MENU), 0);
 

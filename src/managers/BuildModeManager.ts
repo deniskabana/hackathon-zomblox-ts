@@ -41,7 +41,16 @@ export default class BuildModeManager extends AManager {
         GRID_CONFIG.TILE_SIZE,
         ZIndex.BLOCKS,
         0,
-        0.75,
+        0.65,
+      );
+      this.gameInstance.MANAGERS.DrawManager.drawText(
+        "✔︎",
+        worldPos.x + GRID_CONFIG.TILE_SIZE / 2,
+        worldPos.y + GRID_CONFIG.TILE_SIZE * 0.7,
+        "#ffffff",
+        25,
+        "Arial",
+        "center",
       );
     }
 
@@ -161,6 +170,7 @@ export default class BuildModeManager extends AManager {
     );
     if (isAvailable) {
       this.gameInstance.MANAGERS.LevelManager.spawnBlock(gridPos);
+      this.gameInstance.MANAGERS.AssetManager.playAudioAsset("ABlockWoodPlaced", "sound");
       hasBuilt = true;
     }
 
@@ -212,7 +222,12 @@ export default class BuildModeManager extends AManager {
       }
     } else {
       const rect = this.gameInstance.canvas.getBoundingClientRect();
-      targetPos = worldToGrid({ x: event.clientX - rect.x, y: event.clientY - rect.y });
+      targetPos = worldToGrid(
+        this.gameInstance.MANAGERS.CameraManager.screenToWorld({
+          x: event.clientX - rect.x,
+          y: event.clientY - rect.y,
+        }),
+      );
     }
 
     if (this.activeGridTile) {
@@ -220,9 +235,11 @@ export default class BuildModeManager extends AManager {
         this.confirmBuild();
       } else {
         this.setBuildPosition(undefined);
+        this.gameInstance.MANAGERS.AssetManager.playAudioAsset("AFXUiClick", "sound");
       }
     } else {
       this.setBuildPosition(targetPos);
+      this.gameInstance.MANAGERS.AssetManager.playAudioAsset("AFXUiClick", "sound");
     }
   };
 }
