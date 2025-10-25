@@ -192,6 +192,8 @@ export default class BuildModeManager extends AManager {
       return;
     }
 
+    this.gameInstance.MANAGERS.AssetManager.playAudioAsset("AFXUiClick", "sound");
+
     const isAvailable = this.reachableBlocks?.reduce<boolean>(
       (acc, val) => (areVectorsEqual(gridPos, val) ? true : acc),
       false,
@@ -208,11 +210,15 @@ export default class BuildModeManager extends AManager {
     if (!this.isBuildModeActive || !this.reachableBlocks) return;
 
     let targetPos: GridPosition | undefined;
+    const rect = this.gameInstance.canvas.getBoundingClientRect();
 
-    if ("targetTouches" in event) {
-      for (const touch of event.targetTouches) {
+    if ("changedTouches" in event) {
+      for (const touch of event.changedTouches) {
         const touchPosGrid = worldToGrid(
-          this.gameInstance.MANAGERS.CameraManager.screenToWorld({ x: touch.clientX, y: touch.clientY }),
+          this.gameInstance.MANAGERS.CameraManager.screenToWorld({
+            x: touch.clientX - rect.x,
+            y: touch.clientY - rect.y,
+          }),
         );
         const isAllowed = this.reachableBlocks.reduce<boolean>(
           (acc, val) => (areVectorsEqual(touchPosGrid, val) ? true : acc),
@@ -221,7 +227,6 @@ export default class BuildModeManager extends AManager {
         if (isAllowed) targetPos = touchPosGrid;
       }
     } else {
-      const rect = this.gameInstance.canvas.getBoundingClientRect();
       targetPos = worldToGrid(
         this.gameInstance.MANAGERS.CameraManager.screenToWorld({
           x: event.clientX - rect.x,
@@ -235,11 +240,9 @@ export default class BuildModeManager extends AManager {
         this.confirmBuild();
       } else {
         this.setBuildPosition(undefined);
-        this.gameInstance.MANAGERS.AssetManager.playAudioAsset("AFXUiClick", "sound");
       }
     } else {
       this.setBuildPosition(targetPos);
-      this.gameInstance.MANAGERS.AssetManager.playAudioAsset("AFXUiClick", "sound");
     }
   };
 }
