@@ -78,7 +78,6 @@ function getSleepUntilNightButton(gameInstance: GameInstance): UiControls[string
   const buttonEl = document.createElement("div");
   gameInstance.MANAGERS.UIManager.uiContainer.appendChild(buttonEl);
   buttonEl.className = cx(styles.uiControl, styles.sleepUntilNightButton);
-  buttonEl.innerHTML = "🌙 &nbsp;Sleep until night";
 
   const handleClick = () => {
     const isDay = gameInstance.MANAGERS.LevelManager.getIsDay();
@@ -94,6 +93,8 @@ function getSleepUntilNightButton(gameInstance: GameInstance): UiControls[string
       const isDay = gameInstance.MANAGERS.LevelManager.getIsDay();
       const desiredOpacity = isDay ? "1" : "0";
       if (buttonEl.style.opacity !== desiredOpacity) buttonEl.style.opacity = desiredOpacity;
+      const label = gameInstance.translation.dictionary.hud.sleepUntilNight;
+      buttonEl.innerHTML = "🌙 &nbsp;" + label;
     },
     destroy: () => {
       buttonEl.removeEventListener("click", handleClick);
@@ -107,7 +108,6 @@ function getBuildModeButton(gameInstance: GameInstance): UiControls[string] {
   const buttonEl = document.createElement("div");
   gameInstance.MANAGERS.UIManager.uiContainer.appendChild(buttonEl);
   buttonEl.className = cx(styles.uiControl, styles.buildModeButton);
-  buttonEl.innerHTML = "🛠️ &nbsp;Open Build mode";
 
   const handleClick = () => {
     gameInstance.MANAGERS.InputManager.simulateControlPress(GameControls.BUILD_MENU);
@@ -131,8 +131,8 @@ function getBuildModeButton(gameInstance: GameInstance): UiControls[string] {
       if (buttonEl.style.opacity !== desiredOpacity) buttonEl.style.opacity = desiredOpacity;
 
       const active = gameInstance.MANAGERS.BuildModeManager.isBuildModeActive;
-      if (active) buttonEl.innerHTML = "🛠️ &nbsp;Close Build mode";
-      else buttonEl.innerHTML = "🛠️ &nbsp;Open Build mode";
+      if (active) buttonEl.innerHTML = "🛠️ &nbsp;" + gameInstance.translation.dictionary.hud.closeBuildMenu;
+      else buttonEl.innerHTML = "🛠️ &nbsp;" + gameInstance.translation.dictionary.hud.openBuildMenu;
     },
     destroy: () => {
       buttonEl.removeEventListener("click", handleClick);

@@ -16,7 +16,9 @@ const enTranslation = {
   hud: {
     day: "Day",
     youDied: "You died!",
-    sleep: "Sleep until night",
+    sleepUntilNight: "Sleep until night",
+    openBuildMenu: "Open Build menu",
+    closeBuildMenu: "Close Build menu",
     goodMorning: "Good morning!",
     goodMorningDesc: (day: number) => `Day ${day} is starting.`,
   },

@@ -133,15 +133,15 @@ export default class GameInstance {
     LevelManager.startGame();
   };
 
-  public stopAndQuiteGame(): void {
+  public stopAndQuitGame(): void {
     this.destroy();
   }
 
   public async restartGame(): Promise<void> {
-    this.stopAndQuiteGame();
-    await this.loadAndPrepareGame();
     document.addEventListener("click", this.startGame);
     document.addEventListener("touchend", this.startGame);
+    this.stopAndQuitGame();
+    await this.loadAndPrepareGame();
   }
 
   private destroy(): void {

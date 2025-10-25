@@ -18,7 +18,9 @@ const csTranslation: TranslationDictionary = {
   hud: {
     day: "Den",
     youDied: "Zemřel jsi!",
-    sleep: "Spát do noci",
+    sleepUntilNight: "Spát do noci",
+    openBuildMenu: "Začít stavět",
+    closeBuildMenu: "Ukončit stavění",
     goodMorning: "Dobré ráno!",
     goodMorningDesc: (day: number) => `Začíná ${day}. den.`,
   },

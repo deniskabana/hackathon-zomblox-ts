@@ -217,7 +217,6 @@ export default class UIManager extends AManager {
     throw new Error("NOT IMPLEMENTED");
   }
 
-  // TODO: TBD
   public setBuildModeState(hasSelectedTile: boolean): void {
     throw new Error("NOT IMPLEMENTED" + hasSelectedTile);
   }
