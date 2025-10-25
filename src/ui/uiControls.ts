@@ -78,7 +78,7 @@ function getSleepUntilNightButton(gameInstance: GameInstance): UiControls[string
   const buttonEl = document.createElement("div");
   gameInstance.MANAGERS.UIManager.uiContainer.appendChild(buttonEl);
   buttonEl.className = cx(styles.uiControl, styles.sleepUntilNightButton);
-  buttonEl.innerHTML = "🌙 Sleep until night";
+  buttonEl.innerHTML = "🌙 &nbsp;Sleep until night";
 
   const handleClick = () => {
     const isDay = gameInstance.MANAGERS.LevelManager.getIsDay();
@@ -107,24 +107,24 @@ function getBuildModeButton(gameInstance: GameInstance): UiControls[string] {
   const buttonEl = document.createElement("div");
   gameInstance.MANAGERS.UIManager.uiContainer.appendChild(buttonEl);
   buttonEl.className = cx(styles.uiControl, styles.buildModeButton);
-  buttonEl.innerText = "🛠️ Build mode";
+  buttonEl.innerHTML = "🛠️ &nbsp;Open Build mode";
 
   const handleClick = () => {
     gameInstance.MANAGERS.InputManager.simulateControlPress(GameControls.BUILD_MENU);
-    buttonEl.classList.add(styles.uiControlActive);
-  };
-  const handleRelase = () => {
-    gameInstance.MANAGERS.InputManager.simulateControlRelease(GameControls.BUILD_MENU);
-    buttonEl.classList.remove(styles.uiControlActive);
+    setTimeout(() => gameInstance.MANAGERS.InputManager.simulateControlRelease(GameControls.BUILD_MENU), 0);
+
+    const active = !gameInstance.MANAGERS.BuildModeManager.isBuildModeActive;
+    if (active) {
+      buttonEl.classList.add(styles.uiControlActive);
+      buttonEl.innerHTML = "⨯ &nbsp;Close Build mode";
+    } else {
+      buttonEl.classList.remove(styles.uiControlActive);
+      buttonEl.innerHTML = "🛠️ &nbsp;Open Build mode";
+    }
   };
 
   buttonEl.addEventListener("click", handleClick);
   buttonEl.addEventListener("touchend", handleClick);
-
-  buttonEl.addEventListener("touchstart", handleClick);
-  buttonEl.addEventListener("touchmove", handleClick);
-  buttonEl.addEventListener("touchend", handleRelase);
-  buttonEl.addEventListener("touchcancel", handleRelase);
 
   return {
     draw: () => {
@@ -133,10 +133,8 @@ function getBuildModeButton(gameInstance: GameInstance): UiControls[string] {
       if (buttonEl.style.opacity !== desiredOpacity) buttonEl.style.opacity = desiredOpacity;
     },
     destroy: () => {
-      buttonEl.removeEventListener("touchstart", handleClick);
+      buttonEl.removeEventListener("click", handleClick);
       buttonEl.removeEventListener("touchend", handleClick);
-      buttonEl.removeEventListener("touchmove", handleRelase);
-      buttonEl.removeEventListener("touchcancel", handleRelase);
       buttonEl.remove();
     },
   };

@@ -207,6 +207,17 @@ export default class DrawManager extends AManager {
     this.ctx.restore();
   }
 
+  public drawRectFilled(x: number, y: number, width: number, height: number, color: string): void {
+    if (!this.ctx) return;
+    const { CameraManager } = this.gameInstance.MANAGERS;
+
+    this.ctx.save();
+    this.ctx.fillStyle = color;
+    const screenPos = this.gameInstance.MANAGERS.CameraManager.worldToScreen({ x, y });
+    this.ctx.fillRect(screenPos.x, screenPos.y, width * CameraManager.zoom, height * CameraManager.zoom);
+    this.ctx.restore();
+  }
+
   public drawLine(x1: number, y1: number, x2: number, y2: number, color: string, lineWidth: number = 1): void {
     if (!this.ctx) return;
     const { CameraManager } = this.gameInstance.MANAGERS;

@@ -1,4 +1,4 @@
-import { GRID_CONFIG, gridToWorld, type GridPosition } from "../config/gameGrid";
+import { GRID_CONFIG, gridToWorld, worldToGrid, type GridPosition } from "../config/gameGrid";
 import type GameInstance from "../GameInstance";
 import { GridTileState } from "../types/Grid";
 import { ZIndex } from "../types/ZIndex";
@@ -7,8 +7,10 @@ import areVectorsEqual from "../utils/math/areVectorsEqual";
 import { AManager } from "./abstract/AManager";
 
 export default class BuildModeManager extends AManager {
-  private isBuildModeActive: boolean;
+  public isBuildModeActive: boolean;
   private activeGridTile: GridPosition | undefined;
+  private reachableBlocks: GridPosition[] | undefined;
+  private unreachableBlocks: GridPosition[] | undefined;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
@@ -21,26 +23,53 @@ export default class BuildModeManager extends AManager {
     this.activeGridTile = undefined;
   }
 
-  public destroy(): void {}
+  public destroy(): void {
+    this.setBuildMode(false);
+  }
 
   public draw(): void {
-    if (!this.isBuildModeActive || !this.activeGridTile) return;
+    if (!this.isBuildModeActive) return;
 
     const sprite = this.gameInstance.MANAGERS.AssetManager.getImageAsset("IBlockWood");
-    if (!sprite) return;
+    if (this.activeGridTile && sprite) {
+      const worldPos = gridToWorld(this.activeGridTile);
+      this.gameInstance.MANAGERS.DrawManager.queueDraw(
+        worldPos.x,
+        worldPos.y,
+        sprite,
+        GRID_CONFIG.TILE_SIZE,
+        GRID_CONFIG.TILE_SIZE,
+        ZIndex.BLOCKS,
+        0,
+        0.75,
+      );
+    }
 
-    const worldPos = gridToWorld(this.activeGridTile);
-
-    this.gameInstance.MANAGERS.DrawManager.queueDraw(
-      worldPos.x,
-      worldPos.y,
-      sprite,
-      GRID_CONFIG.TILE_SIZE,
-      GRID_CONFIG.TILE_SIZE,
-      ZIndex.BLOCKS,
-      0,
-      0.4,
-    );
+    this.updateReachableBlocks();
+    if (this.reachableBlocks) {
+      for (const blockPos of this.reachableBlocks) {
+        const worldPos = gridToWorld(blockPos);
+        this.gameInstance.MANAGERS.DrawManager.drawRectFilled(
+          worldPos.x + 1,
+          worldPos.y + 1,
+          GRID_CONFIG.TILE_SIZE - 2,
+          GRID_CONFIG.TILE_SIZE - 2,
+          "#22bb444f",
+        );
+      }
+    }
+    if (this.unreachableBlocks) {
+      for (const blockPos of this.unreachableBlocks) {
+        const worldPos = gridToWorld(blockPos);
+        this.gameInstance.MANAGERS.DrawManager.drawRectFilled(
+          worldPos.x + 1,
+          worldPos.y + 1,
+          GRID_CONFIG.TILE_SIZE - 2,
+          GRID_CONFIG.TILE_SIZE - 2,
+          "#9922336f",
+        );
+      }
+    }
   }
 
   // Utils
@@ -50,48 +79,67 @@ export default class BuildModeManager extends AManager {
    * Toggle build mode
    */
   public setBuildMode(active: boolean): void {
-    if (this.gameInstance.MANAGERS.LevelManager.levelState?.phase !== "day") return;
+    if (active) {
+      if (this.gameInstance.MANAGERS.LevelManager.levelState?.phase !== "day") return;
+      // TODO: this.gameInstance.MANAGERS.UIManager.showBuildModeToolbar();
+      document.addEventListener("touchend", this.handleScreenTouch);
+      document.addEventListener("mouseup", this.handleScreenTouch);
+    } else {
+      // TODO: this.gameInstance.MANAGERS.UIManager.hideBuildModeToolbar();
+      document.removeEventListener("touchend", this.handleScreenTouch);
+      document.removeEventListener("mouseup", this.handleScreenTouch);
+
+      this.activeGridTile = undefined;
+      this.reachableBlocks = undefined;
+      this.setBuildPosition(undefined);
+    }
 
     this.isBuildModeActive = active;
-
-    if (active) {
-      // TODO: Implement when toolbar is needed for choosing multiple blocks
-      // this.gameInstance.MANAGERS.UIManager.showBuildModeToolbar();
-    } else {
-      // TODO: ...also...
-      // this.gameInstance.MANAGERS.UIManager.hideBuildModeToolbar();
-      this.activeGridTile = undefined;
-    }
   }
 
   /**
    * Get a list of GridPositions representing the blocks the player can build on
    */
-  public getReachableBlocks(): GridPosition[] {
+  private updateReachableBlocks(): void {
     const player = this.gameInstance.MANAGERS.LevelManager.player;
-    if (!player) return [];
+    if (!player) return;
 
-    const threshold = 3;
-    const reachableBlocks: ReturnType<typeof this.getReachableBlocks> = [];
+    const threshold = 2;
+    const reachableBlocks: typeof this.reachableBlocks = [];
+    const unreachableBlocks: typeof this.unreachableBlocks = [];
 
-    for (let x = -threshold; x < threshold; x++) {
-      for (let y = -threshold; y < threshold; y++) {
+    for (let x = -threshold; x <= threshold; x++) {
+      for (let y = -threshold; y <= threshold; y++) {
         const currentPos: GridPosition = {
-          x: player.gridPos.x + threshold,
-          y: player.gridPos.y + threshold,
+          x: player.gridPos.x + x,
+          y: player.gridPos.y + y,
         };
 
-        if (!isInsideGrid(currentPos)) continue;
+        const isOnCorner = Math.abs(x) === Math.abs(threshold) && Math.abs(y) === Math.abs(threshold);
+        const isPlayerPos = areVectorsEqual(player.gridPos, currentPos);
+        if (isOnCorner || isPlayerPos) continue;
 
-        // Ignore player and their closely surrounding tiles
-        if (x >= player.gridPos.x - 1 && x <= player.gridPos.x + 1) continue;
-        if (y >= player.gridPos.y - 1 && y <= player.gridPos.y + 1) continue;
+        const levelGrid = this.gameInstance.MANAGERS.LevelManager.levelGrid;
+        const isUnavailable = levelGrid?.[currentPos.x]?.[currentPos.y]?.state !== GridTileState.AVAILABLE;
 
-        reachableBlocks.push(currentPos);
+        if (isInsideGrid(currentPos) && !isUnavailable) {
+          reachableBlocks.push(currentPos);
+        } else {
+          unreachableBlocks.push(currentPos);
+        }
       }
     }
 
-    return reachableBlocks;
+    this.reachableBlocks = reachableBlocks;
+    this.unreachableBlocks = unreachableBlocks;
+
+    const gridPos = this.activeGridTile;
+    if (!gridPos) return;
+    const isSelectedReachable = this.reachableBlocks?.reduce<boolean>(
+      (acc, val) => (areVectorsEqual(gridPos, val) ? true : acc),
+      false,
+    );
+    if (!isSelectedReachable) this.activeGridTile = undefined;
   }
 
   /**
@@ -103,10 +151,11 @@ export default class BuildModeManager extends AManager {
     const levelGrid = this.gameInstance.MANAGERS.LevelManager.levelGrid;
     const gridPos = this.activeGridTile;
 
-    if (!gridPos || !isInsideGrid(gridPos)) return hasBuilt;
+    this.updateReachableBlocks();
+    if (!gridPos || !isInsideGrid(gridPos) || !this.reachableBlocks) return hasBuilt;
     if (!levelGrid || levelGrid[gridPos.x][gridPos.y].state !== GridTileState.AVAILABLE) return hasBuilt;
 
-    const isAvailable = this.getReachableBlocks().reduce<boolean>(
+    const isAvailable = this.reachableBlocks.reduce<boolean>(
       (acc, val) => (areVectorsEqual(gridPos, val) ? true : acc),
       false,
     );
@@ -115,7 +164,9 @@ export default class BuildModeManager extends AManager {
       hasBuilt = true;
     }
 
-    this.setBuildMode(false);
+    const player = this.gameInstance.MANAGERS.LevelManager.player;
+    if (player) player.endBuildingMode();
+
     return hasBuilt;
   }
 
@@ -131,7 +182,47 @@ export default class BuildModeManager extends AManager {
       return;
     }
 
-    if (!isInsideGrid(gridPos)) return;
+    const isAvailable = this.reachableBlocks?.reduce<boolean>(
+      (acc, val) => (areVectorsEqual(gridPos, val) ? true : acc),
+      false,
+    );
+    if (!isAvailable) return;
+
     this.activeGridTile = gridPos;
   }
+
+  /**
+   * Handles clicking / touching the screen
+   */
+  private handleScreenTouch = (event: TouchEvent | MouseEvent): void => {
+    if (!this.isBuildModeActive || !this.reachableBlocks) return;
+
+    let targetPos: GridPosition | undefined;
+
+    if ("targetTouches" in event) {
+      for (const touch of event.targetTouches) {
+        const touchPosGrid = worldToGrid(
+          this.gameInstance.MANAGERS.CameraManager.screenToWorld({ x: touch.clientX, y: touch.clientY }),
+        );
+        const isAllowed = this.reachableBlocks.reduce<boolean>(
+          (acc, val) => (areVectorsEqual(touchPosGrid, val) ? true : acc),
+          false,
+        );
+        if (isAllowed) targetPos = touchPosGrid;
+      }
+    } else {
+      const rect = this.gameInstance.canvas.getBoundingClientRect();
+      targetPos = worldToGrid({ x: event.clientX - rect.x, y: event.clientY - rect.y });
+    }
+
+    if (this.activeGridTile) {
+      if (areVectorsEqual(this.activeGridTile, targetPos)) {
+        this.confirmBuild();
+      } else {
+        this.setBuildPosition(undefined);
+      }
+    } else {
+      this.setBuildPosition(targetPos);
+    }
+  };
 }

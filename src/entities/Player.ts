@@ -55,7 +55,7 @@ export default class Player extends APlayer {
     if (this.getCheckShootInput()) this.shoot();
     if (this.gameInstance.MANAGERS.InputManager.isControlDown(GameControls.CHANGE_WEAPON)) this.chooseNextWeapon();
 
-    if (this.getBuildingModeInput()) this.startBuildingMode();
+    this.handleBuildingModeInput();
   }
 
   public draw() {
@@ -113,8 +113,13 @@ export default class Player extends APlayer {
     return this.gameInstance.MANAGERS.InputManager.isControlDown(GameControls.SHOOT);
   }
 
-  private getBuildingModeInput(): boolean {
-    return this.gameInstance.MANAGERS.InputManager.isControlDown(GameControls.BUILD_MENU);
+  private handleBuildingModeInput(): void {
+    const isPressed = this.gameInstance.MANAGERS.InputManager.isControlDown(GameControls.BUILD_MENU);
+
+    if (isPressed) {
+      if (this.playerState !== PlayerState.BUILDING) this.startBuildingMode();
+      else this.endBuildingMode();
+    }
   }
 
   public startBuildingMode(): void {
