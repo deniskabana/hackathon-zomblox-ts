@@ -207,6 +207,21 @@ export default class UIManager extends AManager {
     for (const control of Object.values(this.uiControls)) control.draw();
   }
 
+  // TODO: TBD
+  public showBuildModeToolbar(): void {
+    throw new Error("NOT IMPLEMENTED");
+  }
+
+  // TODO: TBD
+  public hideBuildModeToolbar(): void {
+    throw new Error("NOT IMPLEMENTED");
+  }
+
+  // TODO: TBD
+  public setBuildModeState(hasSelectedTile: boolean): void {
+    throw new Error("NOT IMPLEMENTED" + hasSelectedTile);
+  }
+
   public destroy(): void {
     for (const control of Object.values(this.uiControls)) control.destroy();
     this.uiControls = {};

@@ -15,7 +15,7 @@ export default class DrawManager extends AManager {
   private fps: number = 0;
 
   private readonly MIN_ASPECT = 16 / 10;
-  private readonly MAX_ASPECT = 19.5 / 9;
+  private readonly MAX_ASPECT = 32 / 9;
   private constrainedHeight: number = 0;
 
   private canvasUpdateTimer: number = 0;
@@ -97,7 +97,7 @@ export default class DrawManager extends AManager {
 
   private renderLoop(currentTime: number): void {
     if (!this.isRunning) return;
-    const { UIManager, VFXManager, LevelManager } = this.gameInstance.MANAGERS;
+    const { BuildModeManager, UIManager, VFXManager, LevelManager } = this.gameInstance.MANAGERS;
 
     const deltaTime = (currentTime - this.lastFrameTime) / 1000;
     this.lastFrameTime = currentTime;
@@ -111,11 +111,12 @@ export default class DrawManager extends AManager {
     }
 
     this.clearCanvas();
-    this.gameInstance.update(deltaTime); // TODO: Extract update from render loop when I have time with 120fps cap
+    this.gameInstance.update(deltaTime); // This could be decoupled
     this.renderDrawQueue();
     UIManager.draw(this.fps);
     VFXManager.draw(deltaTime);
     LevelManager.drawEntities();
+    BuildModeManager.draw();
 
     this.rafId = requestAnimationFrame(this.renderLoop.bind(this));
   }
@@ -212,7 +213,7 @@ export default class DrawManager extends AManager {
 
     this.ctx.save();
     this.ctx.strokeStyle = color;
-    this.ctx.lineWidth = lineWidth * CameraManager.zoom;
+    this.ctx.lineWidth = Math.max(1, lineWidth * CameraManager.zoom);
     this.ctx.beginPath();
     const screenPos1 = CameraManager.worldToScreen({ x: x1, y: y1 });
     this.ctx.moveTo(screenPos1.x, screenPos1.y);

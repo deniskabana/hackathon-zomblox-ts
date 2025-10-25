@@ -120,11 +120,13 @@ export default class Player extends APlayer {
   public startBuildingMode(): void {
     if (this.playerState === PlayerState.BUILDING) return;
     this.playerState = PlayerState.BUILDING;
+    this.gameInstance.MANAGERS.BuildModeManager.setBuildMode(true);
   }
 
   public endBuildingMode(): void {
     if (this.playerState !== PlayerState.BUILDING) return;
     this.playerState = PlayerState.NORMAL;
+    this.gameInstance.MANAGERS.BuildModeManager.setBuildMode(false);
   }
 
   public startShopping(): void {

@@ -8,18 +8,11 @@ export interface UiControls {
 }
 
 export default function getUiControls(gameInstance: GameInstance): UiControls {
-  const fullScreenButton = getFullScreenButton(gameInstance);
-  const sleepUntilNightButton = getSleepUntilNightButton(gameInstance);
-  const masterVolumeToggleButton = getMasterVolumeToggleButton(gameInstance);
-  // const _shootButtonLeft = getShootButton("left", gameInstance);
-  // const _shootButtonRight = getShootButton("right", gameInstance);
-
   return {
-    fullScreenButton,
-    sleepUntilNightButton,
-    masterVolumeToggleButton,
-    // shootButtonLeft,
-    // shootButtonRight,
+    fullScreenButton: getFullScreenButton(gameInstance),
+    sleepUntilNightButton: getSleepUntilNightButton(gameInstance),
+    masterVolumeToggleButton: getMasterVolumeToggleButton(gameInstance),
+    buildModeButton: getBuildModeButton(gameInstance),
   };
 }
 
@@ -85,7 +78,7 @@ function getSleepUntilNightButton(gameInstance: GameInstance): UiControls[string
   const buttonEl = document.createElement("div");
   gameInstance.MANAGERS.UIManager.uiContainer.appendChild(buttonEl);
   buttonEl.className = cx(styles.uiControl, styles.sleepUntilNightButton);
-  buttonEl.innerHTML = "🌙";
+  buttonEl.innerHTML = "🌙 Sleep until night";
 
   const handleClick = () => {
     const isDay = gameInstance.MANAGERS.LevelManager.getIsDay();
@@ -99,7 +92,8 @@ function getSleepUntilNightButton(gameInstance: GameInstance): UiControls[string
   return {
     draw: () => {
       const isDay = gameInstance.MANAGERS.LevelManager.getIsDay();
-      buttonEl.style.opacity = isDay ? "1" : "0";
+      const desiredOpacity = isDay ? "1" : "0";
+      if (buttonEl.style.opacity !== desiredOpacity) buttonEl.style.opacity = desiredOpacity;
     },
     destroy: () => {
       buttonEl.removeEventListener("click", handleClick);
@@ -109,20 +103,23 @@ function getSleepUntilNightButton(gameInstance: GameInstance): UiControls[string
   };
 }
 
-export function getShootButton(position: "right" | "left", gameInstance: GameInstance): UiControls[string] {
+function getBuildModeButton(gameInstance: GameInstance): UiControls[string] {
   const buttonEl = document.createElement("div");
   gameInstance.MANAGERS.UIManager.uiContainer.appendChild(buttonEl);
-  buttonEl.className = cx(styles.uiControl, position === "left" ? styles.shootButtonLeft : styles.shootButtonRight);
-  buttonEl.innerHTML = "💥";
+  buttonEl.className = cx(styles.uiControl, styles.buildModeButton);
+  buttonEl.innerText = "🛠️ Build mode";
 
   const handleClick = () => {
-    gameInstance.MANAGERS.InputManager.simulateControlPress(GameControls.SHOOT);
+    gameInstance.MANAGERS.InputManager.simulateControlPress(GameControls.BUILD_MENU);
     buttonEl.classList.add(styles.uiControlActive);
   };
   const handleRelase = () => {
-    gameInstance.MANAGERS.InputManager.simulateControlRelease(GameControls.SHOOT);
+    gameInstance.MANAGERS.InputManager.simulateControlRelease(GameControls.BUILD_MENU);
     buttonEl.classList.remove(styles.uiControlActive);
   };
+
+  buttonEl.addEventListener("click", handleClick);
+  buttonEl.addEventListener("touchend", handleClick);
 
   buttonEl.addEventListener("touchstart", handleClick);
   buttonEl.addEventListener("touchmove", handleClick);
@@ -130,7 +127,11 @@ export function getShootButton(position: "right" | "left", gameInstance: GameIns
   buttonEl.addEventListener("touchcancel", handleRelase);
 
   return {
-    draw: () => {},
+    draw: () => {
+      const isDay = gameInstance.MANAGERS.LevelManager.getIsDay();
+      const desiredOpacity = isDay ? "1" : "0";
+      if (buttonEl.style.opacity !== desiredOpacity) buttonEl.style.opacity = desiredOpacity;
+    },
     destroy: () => {
       buttonEl.removeEventListener("touchstart", handleClick);
       buttonEl.removeEventListener("touchend", handleClick);

@@ -32,7 +32,15 @@
 }
 .sleepUntilNightButton {
   top: 16px;
-  right: calc(16px + 40px + 16px + 40px + 16px);
+  left: 16px;
+  width: auto;
+  padding: 0 1rem;
+}
+.buildModeButton {
+  top: calc(16px + 40px + 16px);
+  left: 16px;
+  width: auto;
+  padding: 0 1rem;
 }
 
 .joystick {

@@ -1,6 +1,7 @@
 .hudContainer {
   position: absolute;
-  left: 0.35rem;
+  left: 50%;
+  transform: translate3d(-50%, 0, 0);
   top: 0.35rem;
   background: #2020209a;
   border-radius: 0.25rem;

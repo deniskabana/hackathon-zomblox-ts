@@ -1,6 +1,7 @@
-import type { GridPosition } from "../config/gameGrid";
+import { GRID_CONFIG, gridToWorld, type GridPosition } from "../config/gameGrid";
 import type GameInstance from "../GameInstance";
 import { GridTileState } from "../types/Grid";
+import { ZIndex } from "../types/ZIndex";
 import isInsideGrid from "../utils/grid/isInsideGrid";
 import areVectorsEqual from "../utils/math/areVectorsEqual";
 import { AManager } from "./abstract/AManager";
@@ -22,6 +23,26 @@ export default class BuildModeManager extends AManager {
 
   public destroy(): void {}
 
+  public draw(): void {
+    if (!this.isBuildModeActive || !this.activeGridTile) return;
+
+    const sprite = this.gameInstance.MANAGERS.AssetManager.getImageAsset("IBlockWood");
+    if (!sprite) return;
+
+    const worldPos = gridToWorld(this.activeGridTile);
+
+    this.gameInstance.MANAGERS.DrawManager.queueDraw(
+      worldPos.x,
+      worldPos.y,
+      sprite,
+      GRID_CONFIG.TILE_SIZE,
+      GRID_CONFIG.TILE_SIZE,
+      ZIndex.BLOCKS,
+      0,
+      0.4,
+    );
+  }
+
   // Utils
   // ==================================================
 
@@ -32,7 +53,15 @@ export default class BuildModeManager extends AManager {
     if (this.gameInstance.MANAGERS.LevelManager.levelState?.phase !== "day") return;
 
     this.isBuildModeActive = active;
-    if (!active) this.activeGridTile = undefined;
+
+    if (active) {
+      // TODO: Implement when toolbar is needed for choosing multiple blocks
+      // this.gameInstance.MANAGERS.UIManager.showBuildModeToolbar();
+    } else {
+      // TODO: ...also...
+      // this.gameInstance.MANAGERS.UIManager.hideBuildModeToolbar();
+      this.activeGridTile = undefined;
+    }
   }
 
   /**
