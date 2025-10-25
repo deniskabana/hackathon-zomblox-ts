@@ -361,8 +361,8 @@ export default class LevelManager extends AManager {
   }
 
   private updatePathFindingGrid(): void {
-    this.levelGrid = this.generateLevelGrid();
     if (this.levelState?.phase === "day") return;
+    this.levelGrid = this.generateLevelGrid();
     if (!this.player) return;
     this.lastPlayerGridPos = this.player.gridPos;
     this.flowField = generateFlowField(this.levelGrid, this.player.gridPos);

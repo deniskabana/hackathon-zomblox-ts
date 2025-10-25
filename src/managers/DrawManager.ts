@@ -19,7 +19,7 @@ export default class DrawManager extends AManager {
   private constrainedHeight: number = 0;
 
   private canvasUpdateTimer: number = 0;
-  private readonly canvasUpdateInterval: number = 0.2;
+  private readonly canvasUpdateInterval: number = 2;
 
   constructor(gameInstance: GameInstance, canvas: HTMLCanvasElement) {
     super(gameInstance);

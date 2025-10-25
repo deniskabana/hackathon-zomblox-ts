@@ -18,7 +18,6 @@ export default class CameraManager extends AManager {
   private readonly maxZoom: number = 2;
 
   private readonly targetWorldWidth: number = 768;
-  private readonly playerFollowSpeed = 0.2;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
@@ -47,8 +46,8 @@ export default class CameraManager extends AManager {
   public followPlayer(_deltaTime: number, playerPos: WorldPosition): void {
     const levelManager = this.gameInstance.MANAGERS.LevelManager;
 
-    this.x = lerp(playerPos.x, this.x, (_deltaTime * this.playerFollowSpeed) / 10);
-    this.y = lerp(playerPos.y, this.y, (_deltaTime * this.playerFollowSpeed) / 10);
+    this.x = playerPos.x;
+    this.y = playerPos.y;
 
     const halfViewWidth = this.viewportWidth / 2 / this.zoom;
     const halfViewHeight = this.viewportHeight / 2 / this.zoom;
