@@ -145,11 +145,6 @@ export default class LevelManager extends AManager {
     for (const zombie of this.zombies.values()) zombie.draw();
     for (const block of this.blocks.values()) block.draw();
     for (const coin of this.collectables.values()) coin.draw();
-
-    if (!this.getIsDay() && this.player) {
-      this.gameInstance.MANAGERS.LightManager.drawNightLighting(this.player.worldPos, this.player.getFacingDirection());
-    }
-
     // Render ground
     this.levelGrid?.forEach((gridRow, x) => {
       gridRow.forEach((_gridCol, y) => {
@@ -184,6 +179,10 @@ export default class LevelManager extends AManager {
         }
       });
     });
+
+    if (!this.getIsDay() && this.player) {
+      this.gameInstance.MANAGERS.LightManager.drawNightLighting(this.player.worldPos, this.player.getFacingDirection());
+    }
   }
 
   public destroyEntity(entityId: number, type: "block" | "zombie"): void {

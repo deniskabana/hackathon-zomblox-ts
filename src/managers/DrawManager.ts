@@ -86,6 +86,8 @@ export default class DrawManager extends AManager {
     uiContainer.style.top = `${(window.innerHeight - this.constrainedHeight) / 2}px`;
 
     this.gameInstance.MANAGERS.CameraManager.setViewportSize(width, this.constrainedHeight);
+
+    this.gameInstance.MANAGERS.LightManager.updateCanvasSize();
   };
 
   private clearCanvas(): void {

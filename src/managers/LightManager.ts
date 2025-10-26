@@ -8,7 +8,7 @@ export default class LightManager extends AManager {
 
   private readonly nightOverlayAlpha = 0.85;
   private readonly playerLightRadius = GRID_CONFIG.TILE_SIZE * 3;
-  private readonly playerLightConeLen = GRID_CONFIG.TILE_SIZE * 8;
+  private readonly playerLightConeLen = GRID_CONFIG.TILE_SIZE * 6;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
@@ -17,16 +17,12 @@ export default class LightManager extends AManager {
   public init(): void {
     this.lightMaskCanvas = document.createElement("canvas");
 
-    window.addEventListener("resize", this.updateCanvasSize);
-    this.updateCanvasSize();
-
     const ctx = this.lightMaskCanvas.getContext("2d");
     if (!ctx) throw new Error("Failed to get 2D context from canvas");
     this.ctx = ctx;
   }
 
   public destroy(): void {
-    window.removeEventListener("resize", this.updateCanvasSize);
     this.lightMaskCanvas?.remove();
     this.lightMaskCanvas = undefined;
   }
@@ -34,9 +30,8 @@ export default class LightManager extends AManager {
   // Utils
   // ==================================================
 
-  private updateCanvasSize(): void {
+  public updateCanvasSize(): void {
     if (!this.lightMaskCanvas) return;
-    const dpr = window.devicePixelRatio || 1;
     const gameCanvas = this.gameInstance.canvas;
 
     this.lightMaskCanvas.style.width = gameCanvas.style.width;
@@ -44,15 +39,19 @@ export default class LightManager extends AManager {
 
     this.lightMaskCanvas.width = gameCanvas.width;
     this.lightMaskCanvas.height = gameCanvas.height;
-    this.ctx?.scale(dpr, dpr);
   }
 
+  /**
+   * Draws a lightning radius around the player
+   */
   public drawNightLighting(playerWorldPos: WorldPosition, facingAngle: number): void {
     if (!this.ctx || !this.lightMaskCanvas) return;
 
     const { CameraManager, DrawManager } = this.gameInstance.MANAGERS;
     const playerScreenPos = CameraManager.worldToScreen(playerWorldPos);
     const zoom = CameraManager.zoom;
+
+    this.ctx.clearRect(0, 0, this.lightMaskCanvas.width, this.lightMaskCanvas.height);
 
     this.ctx.save();
     this.ctx.globalCompositeOperation = "source-over";
@@ -87,17 +86,12 @@ export default class LightManager extends AManager {
     const gameCanvasCtx = DrawManager.getContext();
     if (!gameCanvasCtx) return;
 
-    gameCanvasCtx.globalAlpha = this.nightOverlayAlpha;
-    gameCanvasCtx.drawImage(
-      this.lightMaskCanvas,
-      0,
-      0,
-      this.lightMaskCanvas.width * zoom,
-      this.lightMaskCanvas.height * zoom,
-    );
-    gameCanvasCtx.restore();
+    gameCanvasCtx.drawImage(this.lightMaskCanvas, 0, 0, this.lightMaskCanvas.width, this.lightMaskCanvas.height);
   }
 
+  /**
+   * Draws a light cone in the desired direction.
+   */
   private drawLightCone(playerScreen: WorldPosition, facingAngle: number, zoom: number): void {
     if (!this.ctx) return;
     const coneLength = this.playerLightConeLen * zoom;
@@ -109,6 +103,7 @@ export default class LightManager extends AManager {
 
     const gradient = this.ctx.createLinearGradient(0, 0, coneLength, 0);
     gradient.addColorStop(0, `rgba(0, 0, 0, ${this.nightOverlayAlpha})`);
+    gradient.addColorStop(0.35, `rgba(0, 0, 0, ${this.nightOverlayAlpha / 2})`);
     gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
 
     this.ctx.globalCompositeOperation = "destination-out";
