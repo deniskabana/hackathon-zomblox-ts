@@ -244,7 +244,6 @@ export default class InputManager extends AManager {
       case "KeyP":
         control = GameControls.PAUSE;
         break;
-      case "Space":
       case "KeyB":
         control = GameControls.BUILD_MENU;
         break;

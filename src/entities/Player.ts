@@ -33,8 +33,10 @@ export default class Player extends APlayer {
   private gunCooldownTimer: number = 0;
   private nextWeaponCooldownTimer: number = 0;
   private stepSoundCooldownTimer: number = 0;
+  private buildingModeCooldownTimer: number = 0;
 
   private readonly stepSoundCooldownInterval: number = 0.35;
+  private readonly buildingModeCooldownInterval: number = 0.2;
 
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     super(gameInstance, gridToWorld(gridPos), entityId, true);
@@ -55,7 +57,7 @@ export default class Player extends APlayer {
     if (this.getCheckShootInput()) this.shoot();
     if (this.gameInstance.MANAGERS.InputManager.isControlDown(GameControls.CHANGE_WEAPON)) this.chooseNextWeapon();
 
-    this.handleBuildingModeInput();
+    this.handleBuildingModeInput(_deltaTime);
   }
 
   public draw() {
@@ -113,12 +115,15 @@ export default class Player extends APlayer {
     return this.gameInstance.MANAGERS.InputManager.isControlDown(GameControls.SHOOT);
   }
 
-  private handleBuildingModeInput(): void {
+  private handleBuildingModeInput(_deltaTime: number): void {
     const isPressed = this.gameInstance.MANAGERS.InputManager.isControlDown(GameControls.BUILD_MENU);
 
-    if (isPressed) {
+    if (this.buildingModeCooldownTimer > 0) this.buildingModeCooldownTimer -= _deltaTime;
+
+    if (this.buildingModeCooldownTimer <= 0 && isPressed) {
       if (this.playerState !== PlayerState.BUILDING) this.startBuildingMode();
       else this.endBuildingMode();
+      this.buildingModeCooldownTimer = this.buildingModeCooldownInterval;
     }
   }
 

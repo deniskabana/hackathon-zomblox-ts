@@ -1,3 +1,5 @@
+import type { SpriteFrame } from "../utils/classes/SpriteSheet";
+
 export interface DrawCommand {
   image: HTMLImageElement;
   x: number;
@@ -6,5 +8,6 @@ export interface DrawCommand {
   height: number;
   rotation?: number;
   alpha?: number;
-  zIndex: number;
+  zIndex?: number;
+  sourceFrame?: SpriteFrame;
 }

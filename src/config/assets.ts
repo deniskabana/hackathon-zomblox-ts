@@ -55,6 +55,8 @@ export const DEF_ASSETS_IMAGE = {
   IShopRevolver: "/images/Revolver - Colt 45 [64x32].png", // https://arcadeisland.itch.io/guns-asset-pack-v1
   IShopShotgun: "/images/[32x96]Shotgun_V1.00.png", // https://arcadeisland.itch.io/guns-asset-pack-v1
   IShopSmg: "/images/Submachine - MP5A3 [80x48].png", // https://arcadeisland.itch.io/guns-asset-pack-v1
+  // Spritesheets
+  SCoin: "/images/coin-spritesheet.png", // https://www.kindpng.com/imgv/wobTmR_coins-clipart-sprite-animated-coin-sprite-sheet-hd/
 } as const satisfies AssetDefinition;
 
 export type AssetAudioName = keyof typeof DEF_ASSETS_AUDIO;

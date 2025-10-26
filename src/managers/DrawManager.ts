@@ -1,6 +1,7 @@
 import type GameInstance from "../GameInstance";
 import type { DrawCommand } from "../types/DrawCommand";
 import { ZIndex } from "../types/ZIndex";
+import type SpriteSheet from "../utils/classes/SpriteSheet";
 import { AManager } from "./abstract/AManager";
 
 export default class DrawManager extends AManager {
@@ -142,16 +143,27 @@ export default class DrawManager extends AManager {
 
     const { CameraManager } = this.gameInstance.MANAGERS;
     const width = cmd.width * CameraManager.zoom;
-    const height = cmd.width * CameraManager.zoom;
+    const height = cmd.height * CameraManager.zoom;
 
     if (cmd.alpha !== undefined) this.ctx.globalAlpha = cmd.alpha;
 
-    if (cmd.rotation !== undefined && cmd.rotation !== 0) {
-      this.ctx.translate(cmd.x + width / 2, cmd.y + height / 2);
-      this.ctx.rotate(cmd.rotation);
-      this.ctx.drawImage(cmd.image, -width / 2, -height / 2, width, height);
+    this.ctx.translate(cmd.x + width / 2, cmd.y + height / 2);
+    if (cmd.rotation) this.ctx.rotate(cmd.rotation);
+
+    if (cmd.sourceFrame) {
+      this.ctx.drawImage(
+        cmd.image,
+        cmd.sourceFrame.x,
+        cmd.sourceFrame.y,
+        cmd.sourceFrame.width,
+        cmd.sourceFrame.height,
+        -width / 2,
+        -height / 2,
+        width,
+        height,
+      );
     } else {
-      this.ctx.drawImage(cmd.image, cmd.x, cmd.y, width, height);
+      this.ctx.drawImage(cmd.image, -width / 2, -height / 2, width, height);
     }
 
     this.ctx.restore();
@@ -184,6 +196,38 @@ export default class DrawManager extends AManager {
       rotation,
       alpha,
       zIndex,
+    });
+    this.drawQueue[zIndex] = queue;
+  }
+
+  public queueDrawSprite(
+    worldX: number,
+    worldY: number,
+    spriteSheet: SpriteSheet,
+    frameIndex: number,
+    width: number,
+    height: number,
+    zIndex: number = ZIndex.ENTITIES,
+    rotation?: number,
+    alpha?: number,
+  ): void {
+    const { CameraManager } = this.gameInstance.MANAGERS;
+    const screenPos = CameraManager.worldToScreen({ x: worldX, y: worldY });
+    if (!CameraManager.isOnScreen({ x: worldX, y: worldY }, Math.max(width, height))) return;
+
+    const { image, frame } = spriteSheet.getFrame(frameIndex);
+
+    const queue = this.drawQueue[zIndex] ?? [];
+    queue.push({
+      image,
+      x: screenPos.x,
+      y: screenPos.y,
+      width,
+      height,
+      rotation,
+      alpha,
+      zIndex,
+      sourceFrame: frame, // Include frame data for slicing
     });
     this.drawQueue[zIndex] = queue;
   }

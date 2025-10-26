@@ -1,5 +1,6 @@
 import { GRID_CONFIG, gridToWorld, WORLD_SIZE, type GridPosition, type WorldPosition } from "../config/gameGrid";
 import BlockWood from "../entities/BlockWood";
+import Coin from "../entities/Coin";
 import Player from "../entities/Player";
 import Zombie from "../entities/Zombie";
 import type GameInstance from "../GameInstance";
@@ -28,6 +29,7 @@ export default class LevelManager extends AManager {
   private lastPlayerGridPos: GridPosition = { x: -99, y: -99 };
   public zombies: Map<number, Zombie> = new Map();
   public blocks: Map<number, BlockWood> = new Map();
+  public collectables: Map<number, Coin> = new Map();
 
   // Gameplay
   private isSpawningZombies: boolean = false;
@@ -52,6 +54,8 @@ export default class LevelManager extends AManager {
     const gameSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
     this.zombieSpawnInterval = gameSettings.zombieSpawnIntervalMs;
     this.levelState = { phase: "day", daysCounter: 0 };
+
+    this.spawnCoin({ x: 3, y: 4 });
 
     // TODO: Remove, top-left
     this.spawnBlock({ x: 8, y: 2 });
@@ -122,6 +126,7 @@ export default class LevelManager extends AManager {
     this.player?.update(_deltaTime);
 
     for (const zombie of this.zombies.values()) zombie.update(_deltaTime);
+    for (const coin of this.collectables.values()) coin.update(_deltaTime);
 
     this.applyZombieSpawn(_deltaTime);
 
@@ -139,6 +144,7 @@ export default class LevelManager extends AManager {
 
     for (const zombie of this.zombies.values()) zombie.draw();
     for (const block of this.blocks.values()) block.draw();
+    for (const coin of this.collectables.values()) coin.draw();
 
     // Render ground
     this.levelGrid?.forEach((gridRow, x) => {
@@ -196,6 +202,11 @@ export default class LevelManager extends AManager {
     const entityId = this.entityIdCounter++;
     this.blocks.set(entityId, new BlockWood(pos, entityId, this.gameInstance));
     if (this.zombies.size > 1) this.updatePathFindingGrid();
+  }
+
+  public spawnCoin(pos: GridPosition): void {
+    const entityId = this.entityIdCounter++;
+    this.collectables.set(entityId, new Coin(pos, entityId, this.gameInstance));
   }
 
   // Zombies
@@ -392,5 +403,6 @@ export default class LevelManager extends AManager {
     this.player = undefined;
     this.zombies.clear();
     this.blocks.clear();
+    this.collectables.clear();
   }
 }
