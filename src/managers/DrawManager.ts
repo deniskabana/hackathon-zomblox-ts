@@ -6,7 +6,7 @@ import { AManager } from "./abstract/AManager";
 
 export default class DrawManager extends AManager {
   private canvas: HTMLCanvasElement;
-  private ctx?: CanvasRenderingContext2D;
+  private ctx: CanvasRenderingContext2D | undefined;
 
   private drawQueue: Record<number, DrawCommand[]> = {};
   private rafId: number | null = null;
@@ -33,6 +33,23 @@ export default class DrawManager extends AManager {
     const ctx = this.canvas.getContext("2d");
     if (!ctx) throw new Error("Failed to get 2D context from canvas");
     this.ctx = ctx;
+  }
+
+  public startRenderLoop(): void {
+    if (this.isRunning) return;
+
+    this.isRunning = true;
+    this.lastFrameTime = performance.now();
+    this.rafId = requestAnimationFrame(this.renderLoop.bind(this));
+  }
+
+  public stopRenderLoop(): void {
+    this.isRunning = false;
+
+    if (this.rafId !== null) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = null;
+    }
   }
 
   // Canvas
@@ -79,23 +96,6 @@ export default class DrawManager extends AManager {
   // Render loop
   // ==================================================
 
-  public startRenderLoop(): void {
-    if (this.isRunning) return;
-
-    this.isRunning = true;
-    this.lastFrameTime = performance.now();
-    this.rafId = requestAnimationFrame(this.renderLoop.bind(this));
-  }
-
-  public stopRenderLoop(): void {
-    this.isRunning = false;
-
-    if (this.rafId !== null) {
-      cancelAnimationFrame(this.rafId);
-      this.rafId = null;
-    }
-  }
-
   private renderLoop(currentTime: number): void {
     if (!this.isRunning) return;
     const { BuildModeManager, UIManager, VFXManager, LevelManager } = this.gameInstance.MANAGERS;
@@ -112,7 +112,7 @@ export default class DrawManager extends AManager {
     }
 
     this.clearCanvas();
-    this.gameInstance.update(deltaTime); // This could be decoupled
+    this.gameInstance.update(deltaTime); // This could be decoupled in the future
     this.renderDrawQueue();
     UIManager.draw(this.fps);
     VFXManager.draw(deltaTime);
@@ -171,6 +171,10 @@ export default class DrawManager extends AManager {
 
   // Direct draw methods
   // ==================================================
+
+  public getContext(): CanvasRenderingContext2D | undefined {
+    return this.ctx;
+  }
 
   public queueDraw(
     worldX: number,

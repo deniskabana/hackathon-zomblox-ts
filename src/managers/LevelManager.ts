@@ -146,6 +146,10 @@ export default class LevelManager extends AManager {
     for (const block of this.blocks.values()) block.draw();
     for (const coin of this.collectables.values()) coin.draw();
 
+    if (!this.getIsDay() && this.player) {
+      this.gameInstance.MANAGERS.LightManager.drawNightLighting(this.player.worldPos, this.player.getFacingDirection());
+    }
+
     // Render ground
     this.levelGrid?.forEach((gridRow, x) => {
       gridRow.forEach((_gridCol, y) => {
@@ -271,7 +275,6 @@ export default class LevelManager extends AManager {
     this.player?.endBuildingMode();
     this.retreatFlowFields = undefined;
     this.levelState.phase = "night";
-    this.gameInstance.MANAGERS.UIManager.showNightOverlay();
 
     this.updatePathFindingGrid();
     for (const [_, zombie] of this.zombies) zombie.startChasingPlayer();
@@ -320,7 +323,6 @@ export default class LevelManager extends AManager {
     }
 
     this.levelState.phase = "day";
-    this.gameInstance.MANAGERS.UIManager.hideNightOverlay();
     this.stopSpawningZombies();
 
     for (const [_, zombie] of this.zombies) zombie.startRetreating();

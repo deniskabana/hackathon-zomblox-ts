@@ -11,7 +11,6 @@ export default class UIManager extends AManager {
   public uiContainer: HTMLDivElement;
 
   private startGameContainer: HTMLDivElement;
-  private nightOverlay: HTMLDivElement;
   private hudContainer: HTMLDivElement;
   private hudDayCounter: HTMLDivElement;
 
@@ -51,7 +50,6 @@ export default class UIManager extends AManager {
     }
 
     this.startGameContainer = document.createElement("div");
-    this.nightOverlay = document.createElement("div");
     this.hudContainer = document.createElement("div");
     this.hudDayCounter = document.createElement("div");
 
@@ -59,7 +57,6 @@ export default class UIManager extends AManager {
 
     document.body.appendChild(this.startGameContainer);
     this.uiContainer.appendChild(this.hudContainer);
-    this.uiContainer.appendChild(this.nightOverlay);
 
     this.debugContainer = document.createElement("div");
     this.debugTextFps = document.createElement("div");
@@ -85,8 +82,6 @@ export default class UIManager extends AManager {
     this.hudContainer.className = cx(hudStyles.hudContainer);
     this.hudDayCounter.className = cx(hudStyles.hudElement);
 
-    this.nightOverlay.className = cx(styles.nightOverlay);
-
     this.uiControls = getUiControls(this.gameInstance);
 
     if (!this.gameInstance.isDev) return;
@@ -105,14 +100,6 @@ export default class UIManager extends AManager {
     const dayNo = this.gameInstance.MANAGERS.LevelManager.levelState?.daysCounter;
     const label = this.gameInstance.translation.dictionary.hud.day;
     this.hudDayCounter.innerText = `${label}: ${dayNo}`;
-  }
-
-  public showNightOverlay(): void {
-    this.nightOverlay.style.opacity = "0.3";
-  }
-
-  public hideNightOverlay(): void {
-    this.nightOverlay.style.opacity = "0";
   }
 
   private initDebugSettings(): void {

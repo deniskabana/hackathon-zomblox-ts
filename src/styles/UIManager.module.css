@@ -18,19 +18,6 @@
   font-size: 21px;
 }
 
-.nightOverlay {
-  display: block;
-  position: absolute;
-  z-index: 1;
-  background: #030403;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  transition: opacity ease-in 0.8s;
-  opacity: 0;
-}
-
 .uiText {
   color: black;
   font-size: 11px;

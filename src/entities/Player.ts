@@ -73,22 +73,6 @@ export default class Player extends APlayer {
       ZIndex.ENTITIES,
       this.facingDirection + Math.PI / 2,
     );
-
-    const length = GRID_CONFIG.TILE_SIZE * 5;
-    const laserSightVector = radiansToVector(this.facingDirection);
-    laserSightVector.x *= length;
-    laserSightVector.y *= length;
-    laserSightVector.x += this.worldPos.x;
-    laserSightVector.y += this.worldPos.y;
-
-    this.gameInstance.MANAGERS.DrawManager.drawLine(
-      this.worldPos.x,
-      this.worldPos.y,
-      laserSightVector.x,
-      laserSightVector.y,
-      "#ff00008a",
-      0.5,
-    );
   }
 
   private getAimAngle(): number {
@@ -273,6 +257,10 @@ export default class Player extends APlayer {
 
   public getPlayerState(): PlayerState {
     return this.playerState;
+  }
+
+  public getFacingDirection(): number {
+    return this.facingDirection;
   }
 
   private die(): void {

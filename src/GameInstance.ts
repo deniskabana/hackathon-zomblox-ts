@@ -5,6 +5,7 @@ import DrawManager from "./managers/DrawManager";
 import GameManager from "./managers/GameManager";
 import InputManager from "./managers/InputManager";
 import LevelManager from "./managers/LevelManager";
+import LightManager from "./managers/LightManager";
 import UIManager from "./managers/UIManager";
 import VFXManager from "./managers/VFXManager";
 import csTranslation from "./translation/cs";
@@ -23,6 +24,7 @@ export default class GameInstance {
     GameManager: GameManager;
     InputManager: InputManager;
     LevelManager: LevelManager;
+    LightManager: LightManager;
     UIManager: UIManager;
     VFXManager: VFXManager;
   };
@@ -45,6 +47,7 @@ export default class GameInstance {
       GameManager: new GameManager(this),
       InputManager: new InputManager(this),
       LevelManager: new LevelManager(this),
+      LightManager: new LightManager(this),
       UIManager: new UIManager(this),
       VFXManager: new VFXManager(this),
     };
@@ -103,6 +106,7 @@ export default class GameInstance {
       DrawManager,
       InputManager,
       LevelManager,
+      LightManager,
       VFXManager,
     } = this.MANAGERS;
     if (this.MANAGERS.GameManager.getState() !== GameState.READY) return;
@@ -122,6 +126,7 @@ export default class GameInstance {
     DrawManager.init();
     InputManager.init();
     LevelManager.init();
+    LightManager.init();
     VFXManager.init();
 
     DrawManager.startRenderLoop();
@@ -154,6 +159,7 @@ export default class GameInstance {
       DrawManager,
       InputManager,
       LevelManager,
+      LightManager,
       VFXManager,
     } = this.MANAGERS;
 
@@ -164,6 +170,7 @@ export default class GameInstance {
     GameManager.destroy();
     InputManager.destroy();
     LevelManager.destroy();
+    LightManager.destroy();
     UIManager.destroy();
     VFXManager.destroy();
   }
