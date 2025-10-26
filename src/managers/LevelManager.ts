@@ -201,6 +201,7 @@ export default class LevelManager extends AManager {
   public spawnBlock(pos: GridPosition): void {
     const entityId = this.entityIdCounter++;
     this.blocks.set(entityId, new BlockWood(pos, entityId, this.gameInstance));
+    this.levelGrid = this.generateLevelGrid();
     if (this.zombies.size > 1) this.updatePathFindingGrid();
   }
 

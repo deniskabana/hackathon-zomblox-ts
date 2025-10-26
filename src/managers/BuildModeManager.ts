@@ -129,7 +129,7 @@ export default class BuildModeManager extends AManager {
         if (isOnCorner || isPlayerPos) continue;
 
         const levelGrid = this.gameInstance.MANAGERS.LevelManager.levelGrid;
-        const isUnavailable = levelGrid?.[currentPos.x]?.[currentPos.y]?.state !== GridTileState.AVAILABLE;
+        const isUnavailable = levelGrid?.[currentPos.x]?.[currentPos.y]?.state === GridTileState.BLOCKED;
 
         if (isInsideGrid(currentPos) && !isUnavailable) {
           reachableBlocks.push(currentPos);
@@ -173,9 +173,6 @@ export default class BuildModeManager extends AManager {
       this.gameInstance.MANAGERS.AssetManager.playAudioAsset("ABlockWoodPlaced", "sound");
       hasBuilt = true;
     }
-
-    const player = this.gameInstance.MANAGERS.LevelManager.player;
-    if (player) player.endBuildingMode();
 
     return hasBuilt;
   }
