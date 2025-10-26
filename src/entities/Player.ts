@@ -135,7 +135,7 @@ export default class Player extends APlayer {
 
   public shoot(): void {
     if (this.playerState !== PlayerState.NORMAL) return;
-    if (this.gameInstance.MANAGERS.LevelManager.levelState?.phase === "day") return;
+    if (this.gameInstance.MANAGERS.LevelManager.getIsDay()) return;
     if (this.gunCooldownTimer > 0) return;
 
     const weaponSound = this.getWeaponSound();

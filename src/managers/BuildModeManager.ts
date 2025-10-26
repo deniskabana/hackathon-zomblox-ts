@@ -89,7 +89,7 @@ export default class BuildModeManager extends AManager {
    */
   public setBuildMode(active: boolean): void {
     if (active) {
-      if (this.gameInstance.MANAGERS.LevelManager.levelState?.phase !== "day") return;
+      if (!this.gameInstance.MANAGERS.LevelManager.getIsDay()) return;
       // TODO: this.gameInstance.MANAGERS.UIManager.showBuildModeToolbar();
       document.addEventListener("touchend", this.handleScreenTouch);
       document.addEventListener("mouseup", this.handleScreenTouch);

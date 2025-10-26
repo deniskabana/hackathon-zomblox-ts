@@ -19,29 +19,32 @@ export default class LevelManager extends AManager {
   public worldWidth = WORLD_SIZE.WIDTH;
   public worldHeight = WORLD_SIZE.HEIGHT;
   public levelState?: LevelState;
+  private entityIdCounter: number = 0;
+
+  // Grids
   public levelGrid?: LevelGrid;
   public flowField?: FlowField;
   public retreatFlowFields?: FlowField[];
 
   // Entities
-  private entityIdCounter: number = 0;
   public player?: Player;
-  private lastPlayerGridPos: GridPosition = { x: -99, y: -99 };
   public zombies: Map<number, Zombie> = new Map();
   public blocks: Map<number, BlockWood> = new Map();
   public collectables: Map<number, Coin> = new Map();
 
   // Gameplay
+  private lastPlayerGridPos: GridPosition = { x: -99, y: -99 };
   private isSpawningZombies: boolean = false;
-  private zombieSpawnInterval: number = 1200;
-  private spawnTimer: number = 0;
   private zombieSpawnsLeft: number = 0;
-
-  private nightEndCounter: number = 0;
 
   // Music
   private musicDay: AudioControl[] = [];
   private musicNight: AudioControl[] = [];
+
+  // Timers
+  private nightEndCounter: number = 0;
+  private spawnTimer: number = 0;
+  private zombieSpawnInterval: number = 1200;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
@@ -133,7 +136,7 @@ export default class LevelManager extends AManager {
     const hasPlayerMoved = !this.player || !areVectorsEqual(this.lastPlayerGridPos, this.player.gridPos);
     if (hasPlayerMoved || !this.flowField) this.updatePathFindingGrid();
 
-    if (this.levelState?.phase === "night" && !!this.player) {
+    if (!this.getIsDay() && !!this.player) {
       this.nightEndCounter -= _deltaTime;
       if (this.nightEndCounter <= 0) this.startDay();
     }
@@ -204,7 +207,6 @@ export default class LevelManager extends AManager {
   public spawnBlock(pos: GridPosition): void {
     const entityId = this.entityIdCounter++;
     this.blocks.set(entityId, new BlockWood(pos, entityId, this.gameInstance));
-    this.levelGrid = this.generateLevelGrid();
     if (this.zombies.size > 1) this.updatePathFindingGrid();
   }
 
@@ -265,7 +267,7 @@ export default class LevelManager extends AManager {
   // ==================================================
 
   public startGame(): void {
-    if (this.levelState?.phase === "day") this.startDay();
+    if (!this.getIsDay()) this.startDay();
     else this.startNight();
   }
 
@@ -369,14 +371,13 @@ export default class LevelManager extends AManager {
   }
 
   public raycastShot(from: WorldPosition, angleRad: number, maxDistance: number): null | GridTileRef {
-    const levelGrid = this.generateLevelGrid(true, true, true);
-    return raycast2D(from, angleRad, maxDistance, levelGrid);
+    if (!this.levelGrid) return null;
+    return raycast2D(from, angleRad, maxDistance, this.levelGrid);
   }
 
   private updatePathFindingGrid(): void {
-    if (this.levelState?.phase === "day") return;
-    this.levelGrid = this.generateLevelGrid();
-    if (!this.player) return;
+    if (this.getIsDay()) return;
+    if (!this.player || !this.levelGrid) return;
     this.lastPlayerGridPos = this.player.gridPos;
     this.flowField = generateFlowField(this.levelGrid, this.player.gridPos);
   }
