@@ -1,11 +1,11 @@
-import type GameInstance from "../GameInstance";
-import { GameControls } from "../types/GameControls";
-import type { ScreenPosition } from "../types/ScreenPosition";
-import getDirectionalAngle from "../utils/math/getDirectionalAngle";
-import { AManager } from "./abstract/AManager";
-import styles from "../styles/uiControls.module.css";
-import getVectorDistance from "../utils/math/getVectorDistance";
-import radiansToVector from "../utils/math/radiansToVector";
+import type GameInstance from "../../GameInstance";
+import { GameControls } from "../../types/GameControls";
+import type { ScreenPosition } from "../../types/ScreenPosition";
+import getDirectionalAngle from "../../utils/math/getDirectionalAngle";
+import { AManager } from "../abstract/AManager";
+import styles from "../../styles/uiControls.module.css";
+import getVectorDistance from "../../utils/math/getVectorDistance";
+import radiansToVector from "../../utils/math/radiansToVector";
 
 export default class InputManager extends AManager {
   private aimDirection: number = 0;

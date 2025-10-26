@@ -1,8 +1,8 @@
-import type GameInstance from "../GameInstance";
-import type { DrawCommand } from "../types/DrawCommand";
-import { ZIndex } from "../types/ZIndex";
-import type SpriteSheet from "../utils/classes/SpriteSheet";
-import { AManager } from "./abstract/AManager";
+import type GameInstance from "../../GameInstance";
+import type { DrawCommand } from "../../types/DrawCommand";
+import { ZIndex } from "../../types/ZIndex";
+import type SpriteSheet from "../../utils/classes/SpriteSheet";
+import { AManager } from "../abstract/AManager";
 
 export default class DrawManager extends AManager {
   private canvas: HTMLCanvasElement;

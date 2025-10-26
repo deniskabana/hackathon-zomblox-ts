@@ -1,9 +1,9 @@
-import { DEFAULT_SETTINGS, KEY_SETTINGS, type Settings } from "../config/settings";
-import type GameInstance from "../GameInstance";
-import type { DeepPartial } from "../types/DeepPartial";
-import { GameState } from "../types/GameState";
-import { mergeDeep } from "../utils/mergeDeep";
-import { AManager } from "./abstract/AManager";
+import { DEFAULT_SETTINGS, KEY_SETTINGS, type Settings } from "../../config/settings";
+import type GameInstance from "../../GameInstance";
+import type { DeepPartial } from "../../types/DeepPartial";
+import { GameState } from "../../types/GameState";
+import { mergeDeep } from "../../utils/mergeDeep";
+import { AManager } from "../abstract/AManager";
 
 export default class GameManager extends AManager {
   private gameState: GameState = GameState.INITIALIZING;

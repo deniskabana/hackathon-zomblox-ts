@@ -1,12 +1,10 @@
-import { DEF_ASSETS_AUDIO, DEF_ASSETS_IMAGE, type AssetAudioName, type AssetImageName } from "../config/assets";
-import assertNever from "../utils/assertNever";
-import viteConfig from "../../vite.config";
-import type GameInstance from "../GameInstance";
-import { AManager } from "./abstract/AManager";
-import type { AudioControl } from "../types/AudioControl";
-
-export type AssetAudio = HTMLAudioElement;
-export type AssetImage = HTMLImageElement;
+import { DEF_ASSETS_AUDIO, DEF_ASSETS_IMAGE, type AssetAudioName, type AssetImageName } from "../../config/assets";
+import assertNever from "../../utils/assertNever";
+import viteConfig from "../../../vite.config";
+import type GameInstance from "../../GameInstance";
+import { AManager } from "../abstract/AManager";
+import type { AudioControl } from "../../types/AudioControl";
+import type { AssetAudio, AssetImage } from "../../types/Asset";
 
 export default class AssetManager extends AManager {
   private assetsAudioMap: Map<AssetAudioName, AssetAudio> = new Map();

@@ -2,7 +2,7 @@ import type { AssetAudioName } from "../config/assets";
 import { GRID_CONFIG, gridToWorld, type GridPosition, type WorldPosition } from "../config/gameGrid";
 import { DEF_WEAPONS, type Weapon } from "../config/weapons";
 import type GameInstance from "../GameInstance";
-import type { AssetImage } from "../managers/AssetManager";
+import type { AssetImage } from "../types/Asset";
 import { GameControls } from "../types/GameControls";
 import { ZIndex } from "../types/ZIndex";
 import assertNever from "../utils/assertNever";

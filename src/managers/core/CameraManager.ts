@@ -1,8 +1,8 @@
-import type { WorldPosition } from "../config/gameGrid";
-import type GameInstance from "../GameInstance";
-import { clamp } from "../utils/math/clamp";
-import lerp from "../utils/math/lerp";
-import { AManager } from "./abstract/AManager";
+import type { WorldPosition } from "../../config/gameGrid";
+import type GameInstance from "../../GameInstance";
+import { clamp } from "../../utils/math/clamp";
+import lerp from "../../utils/math/lerp";
+import { AManager } from "../abstract/AManager";
 
 export default class CameraManager extends AManager {
   public x: number = 0;
