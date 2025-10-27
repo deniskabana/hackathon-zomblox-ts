@@ -22,6 +22,9 @@ export default function raycast2D(
   const deltaDistX = Math.abs(1 / direction.x);
   const deltaDistY = Math.abs(1 / direction.y);
 
+  const zombieGrid: Map<string, Zombie> = new Map();
+  for (const [_, zombie] of zombies) zombieGrid.set(`${zombie.gridPos.x},${zombie.gridPos.y}`, zombie);
+
   let tMaxX = Math.abs((startGrid.x + (stepX > 0 ? 1 : 0) - from.x / GRID_CONFIG.TILE_SIZE) / direction.x);
   let tMaxY = Math.abs((startGrid.y + (stepY > 0 ? 1 : 0) - from.y / GRID_CONFIG.TILE_SIZE) / direction.y);
 
@@ -31,20 +34,14 @@ export default function raycast2D(
 
   for (let i = 0; i < MAX_RANGE; i++) {
     if (!isInsideGrid({ x: currentX, y: currentY })) break;
-    const { ref, state } = levelGrid?.[currentX]?.[currentY] ?? { ref: null, state: GridTileState.AVAILABLE };
 
-    let zombieHit: Zombie | undefined;
-    for (const [_id, zombie] of zombies) {
-      if (zombie.gridPos.x === currentX && zombie.gridPos.y === currentY) {
-        zombieHit = zombie;
-        break;
-      }
-    }
+    const zombieHit = zombieGrid.get(`${currentX},${currentY}`);
     if (zombieHit) {
       raycastHit = zombieHit;
       break;
     }
 
+    const { ref, state } = levelGrid?.[currentX]?.[currentY] ?? { ref: null, state: GridTileState.AVAILABLE };
     if (state === GridTileState.BLOCKED) {
       raycastHit = ref;
       break;

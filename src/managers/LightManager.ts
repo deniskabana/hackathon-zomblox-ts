@@ -11,9 +11,9 @@ export default class LightManager extends AManager {
   private shadowMaskCanvas: HTMLCanvasElement | undefined;
   private shadowCtx: CanvasRenderingContext2D | undefined;
 
-  private readonly nightOverlayAlpha = 0.9;
-  private readonly playerLightRadius = GRID_CONFIG.TILE_SIZE * 2.5;
-  private readonly playerLightConeLen = GRID_CONFIG.TILE_SIZE * 7;
+  private readonly nightOverlayAlpha = 0.85;
+  private readonly playerLightRadius = GRID_CONFIG.TILE_SIZE * 3;
+  private readonly playerLightConeLen = GRID_CONFIG.TILE_SIZE * 6;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
