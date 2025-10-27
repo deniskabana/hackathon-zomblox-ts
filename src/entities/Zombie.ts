@@ -1,5 +1,6 @@
 import { GRID_CONFIG, gridToWorld, worldToGrid, type GridPosition, type WorldPosition } from "../config/gameGrid";
 import type GameInstance from "../GameInstance";
+import { EntityType } from "../types/EntityType";
 import type { Vector } from "../types/Vector";
 import { ZIndex } from "../types/ZIndex";
 import assertNever from "../utils/assertNever";
@@ -143,7 +144,7 @@ export default class Zombie extends AEnemy {
   private die(): void {
     this.gameInstance.MANAGERS.AssetManager.playAudioAsset("AZombieDeath", "sound");
     this.gameInstance.MANAGERS.VFXManager.drawBloodPool(this.worldPos);
-    this.gameInstance.MANAGERS.LevelManager.destroyEntity(this.entityId, "zombie");
+    this.gameInstance.MANAGERS.LevelManager.destroyEntity(this.entityId, EntityType.ENEMY);
   }
 
   // State based actions

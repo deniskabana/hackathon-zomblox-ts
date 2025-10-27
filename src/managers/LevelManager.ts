@@ -5,10 +5,11 @@ import Player from "../entities/Player";
 import Zombie from "../entities/Zombie";
 import type GameInstance from "../GameInstance";
 import type { AudioControl } from "../types/AudioControl";
-import { type GridTileRef, type LevelGrid } from "../types/Grid";
+import { EntityType } from "../types/EntityType";
+import { GridTileState, type GridTileRef, type LevelGrid } from "../types/Grid";
 import type { LevelState } from "../types/LevelState";
 import { ZIndex } from "../types/ZIndex";
-import fillLevelGrid from "../utils/grid/fillLevelGrid";
+import assertNever from "../utils/assertNever";
 import generateEmptyLevelGrid from "../utils/grid/generateEmptyLevelGrid";
 import generateFlowField, { type FlowField } from "../utils/grid/generateFlowFieldMap";
 import raycast2D from "../utils/grid/raycast2D";
@@ -53,6 +54,7 @@ export default class LevelManager extends AManager {
   public init(): void {
     this.player = new Player({ x: 2, y: 2 }, this.entityIdCounter++, this.gameInstance);
     this.lastPlayerGridPos = this.player.gridPos;
+    this.levelGrid = generateEmptyLevelGrid(GRID_CONFIG);
 
     const gameSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
     this.zombieSpawnInterval = gameSettings.zombieSpawnIntervalMs;
@@ -121,8 +123,6 @@ export default class LevelManager extends AManager {
     this.spawnBlock({ x: 20, y: 9 });
     this.spawnBlock({ x: 20, y: 8 });
     this.spawnBlock({ x: 17, y: 11 });
-
-    this.levelGrid = this.generateLevelGrid();
   }
 
   public update(_deltaTime: number) {
@@ -148,6 +148,7 @@ export default class LevelManager extends AManager {
     for (const zombie of this.zombies.values()) zombie.draw();
     for (const block of this.blocks.values()) block.draw();
     for (const coin of this.collectables.values()) coin.draw();
+
     // Render ground
     this.levelGrid?.forEach((gridRow, x) => {
       gridRow.forEach((_gridCol, y) => {
@@ -188,31 +189,68 @@ export default class LevelManager extends AManager {
     }
   }
 
-  public destroyEntity(entityId: number, type: "block" | "zombie"): void {
-    let entityList: typeof this.blocks | typeof this.zombies | undefined = undefined;
-    if (type === "zombie") entityList = this.zombies;
-    if (type === "block") entityList = this.blocks;
-    entityList?.delete(entityId);
-    if (type === "block") this.updatePathFindingGrid();
+  public destroyEntity(entityId: number, type: EntityType): void {
+    switch (type) {
+      case EntityType.BLOCK:
+        this.destroyBlock(entityId);
+        break;
+      case EntityType.COLLECTABLE:
+        this.destroyCoin(entityId);
+        break;
+      case EntityType.ENEMY:
+        this.destroyZombie(entityId);
+        break;
+      case EntityType.PLAYER:
+        this.destroyPlayer();
+        break;
+      default:
+        assertNever(type);
+    }
   }
 
-  public destroyPlayer(): void {
+  // Entities :: Spawn / destroy
+  // ==================================================
+
+  private destroyPlayer(): void {
     this.player = undefined;
     for (const [_id, zombie] of this.zombies) zombie.startWandering();
   }
 
-  // Blocks
-  // ==================================================
-
   public spawnBlock(pos: GridPosition): void {
     const entityId = this.entityIdCounter++;
-    this.blocks.set(entityId, new BlockWood(pos, entityId, this.gameInstance));
-    if (this.zombies.size > 1) this.updatePathFindingGrid();
+    const entity = new BlockWood(pos, entityId, this.gameInstance);
+    this.blocks.set(entityId, entity);
+    if (!this.levelGrid) return;
+    const { x, y } = pos;
+    this.levelGrid[x][y] = { ...this.levelGrid[x][y], state: GridTileState.BLOCKED, ref: entity };
+    this.updatePathFindingGrid();
+  }
+
+  private destroyBlock(entityId: number): void {
+    const entity = this.blocks.get(entityId);
+    if (!entity) return;
+    this.blocks.delete(entityId);
+    if (!this.levelGrid) return;
+    const { x, y } = entity.gridPos;
+    this.levelGrid[x][y] = { ...this.levelGrid[x][y], state: GridTileState.AVAILABLE, ref: null };
+    this.updatePathFindingGrid();
   }
 
   public spawnCoin(pos: GridPosition): void {
     const entityId = this.entityIdCounter++;
     this.collectables.set(entityId, new Coin(pos, entityId, this.gameInstance));
+  }
+
+  private destroyCoin(entityId: number): void {
+    const entity = this.collectables.get(entityId);
+    if (!entity) return;
+    this.collectables.delete(entityId);
+  }
+
+  private destroyZombie(entityId: number): void {
+    const entity = this.zombies.get(entityId);
+    if (!entity) return;
+    this.zombies.delete(entityId);
   }
 
   // Zombies
@@ -309,17 +347,13 @@ export default class LevelManager extends AManager {
   }
 
   public startDay(): void {
-    if (!this.levelState) return;
+    if (!this.levelState || !this.levelGrid) return;
 
     this.retreatFlowFields = [];
     const amount = Math.max(20, this.zombies.size);
     for (let i = 0; i < amount; i++) {
       this.retreatFlowFields.push(
-        generateFlowField(
-          this.generateLevelGrid(false),
-          ...this.getRandomEdgePositions(),
-          ...this.getRandomEdgePositions(),
-        ),
+        generateFlowField(this.levelGrid, ...this.getRandomEdgePositions(), ...this.getRandomEdgePositions()),
       );
     }
 
@@ -355,24 +389,9 @@ export default class LevelManager extends AManager {
   // Grid
   // ==================================================
 
-  private generateLevelGrid(
-    fillPlayer: boolean = true,
-    fillWithStaticObjects: boolean = true,
-    fillWithZombies: boolean = false,
-  ): LevelGrid {
-    const levelGrid: LevelGrid = generateEmptyLevelGrid(GRID_CONFIG);
-    if (!this.player) return levelGrid;
-    fillLevelGrid(
-      levelGrid,
-      { player: fillPlayer, blocks: fillWithStaticObjects, zombies: fillWithZombies },
-      { player: this.player, blocks: this.blocks, zombies: this.zombies },
-    );
-    return levelGrid;
-  }
-
   public raycastShot(from: WorldPosition, angleRad: number, maxDistance: number): null | GridTileRef {
     if (!this.levelGrid) return null;
-    return raycast2D(from, angleRad, maxDistance, this.levelGrid);
+    return raycast2D(from, angleRad, maxDistance, this.levelGrid, this.zombies);
   }
 
   private updatePathFindingGrid(): void {

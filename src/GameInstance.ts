@@ -114,12 +114,6 @@ export default class GameInstance {
     document.removeEventListener("click", this.startGame);
     document.removeEventListener("touchend", this.startGame);
 
-    if (!this.isDev) {
-      // Fullscreen
-      if (document.fullscreenElement === document.body) document.exitFullscreen();
-      else document.body.requestFullscreen();
-    }
-
     // Asset manager was initialized in loadAndPrepareGame()
     BuildModeManager.init();
     CameraManager.init();

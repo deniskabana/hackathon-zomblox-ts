@@ -1,4 +1,5 @@
 import { GRID_CONFIG, worldToGrid, type WorldPosition } from "../../config/gameGrid";
+import type Zombie from "../../entities/Zombie";
 import { GridTileState, type GridTileRef, type LevelGrid } from "../../types/Grid";
 import getVectorDistance from "../math/getVectorDistance";
 import radiansToVector from "../math/radiansToVector";
@@ -11,6 +12,7 @@ export default function raycast2D(
   angleRad: number,
   maxDistance: number,
   levelGrid: LevelGrid,
+  zombies: Map<number, Zombie>,
 ): null | GridTileRef {
   // DDA Algorithm (put together from a few articles and reddit posts)
   const direction = radiansToVector(angleRad);
@@ -30,6 +32,19 @@ export default function raycast2D(
   for (let i = 0; i < MAX_RANGE; i++) {
     if (!isInsideGrid({ x: currentX, y: currentY })) break;
     const { ref, state } = levelGrid?.[currentX]?.[currentY] ?? { ref: null, state: GridTileState.AVAILABLE };
+
+    let zombieHit: Zombie | undefined;
+    for (const [_id, zombie] of zombies) {
+      if (zombie.gridPos.x === currentX && zombie.gridPos.y === currentY) {
+        zombieHit = zombie;
+        break;
+      }
+    }
+    if (zombieHit) {
+      raycastHit = zombieHit;
+      break;
+    }
+
     if (state === GridTileState.BLOCKED) {
       raycastHit = ref;
       break;

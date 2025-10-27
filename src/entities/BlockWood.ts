@@ -1,5 +1,6 @@
 import { GRID_CONFIG, gridToWorld, type GridPosition } from "../config/gameGrid";
 import type GameInstance from "../GameInstance";
+import { EntityType } from "../types/EntityType";
 import { ZIndex } from "../types/ZIndex";
 import ABlock from "./abstract/ABlock";
 
@@ -37,7 +38,7 @@ export default class BlockWood extends ABlock {
     this.health -= amount;
     if (this.health <= 0) {
       this.gameInstance.MANAGERS.AssetManager.playAudioAsset("ABlockWoodDestroyed", "sound");
-      this.gameInstance.MANAGERS.LevelManager.destroyEntity(this.entityId, "block");
+      this.gameInstance.MANAGERS.LevelManager.destroyEntity(this.entityId, EntityType.BLOCK);
     } else {
       this.gameInstance.MANAGERS.AssetManager.playAudioAsset("ABlockWoodDamaged", "sound", 0.7);
     }

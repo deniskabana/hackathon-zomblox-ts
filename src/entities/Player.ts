@@ -3,6 +3,7 @@ import { GRID_CONFIG, gridToWorld, type GridPosition, type WorldPosition } from 
 import { DEF_WEAPONS, type Weapon } from "../config/weapons";
 import type GameInstance from "../GameInstance";
 import type { AssetImage } from "../types/Asset";
+import { EntityType } from "../types/EntityType";
 import { GameControls } from "../types/GameControls";
 import { ZIndex } from "../types/ZIndex";
 import assertNever from "../utils/assertNever";
@@ -267,7 +268,7 @@ export default class Player extends APlayer {
     this.playerState = PlayerState.DEAD;
     this.gameInstance.MANAGERS.VFXManager.drawBloodOnScreen();
     this.gameInstance.MANAGERS.AssetManager.playAudioAsset("APlayerDie", "sound");
-    this.gameInstance.MANAGERS.LevelManager.destroyPlayer();
+    this.gameInstance.MANAGERS.LevelManager.destroyEntity(-1, EntityType.PLAYER);
 
     // TODO: Game over screen
     setTimeout(this.gameInstance.restartGame.bind(this.gameInstance), 5000);
