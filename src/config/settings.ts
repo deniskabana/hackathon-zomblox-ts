@@ -41,7 +41,7 @@ export const DEFAULT_SETTINGS = {
       defaultWeapon: "Revolver" as Weapon,
     },
     blocks: {
-      woodStartHealth: 50,
+      woodStartHealth: 20,
       concreteStartHealth: 500,
     },
   },

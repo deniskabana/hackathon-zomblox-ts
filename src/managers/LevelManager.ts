@@ -152,6 +152,9 @@ export default class LevelManager extends AManager {
     // Render ground
     this.levelGrid?.forEach((gridRow, x) => {
       gridRow.forEach((_gridCol, y) => {
+        if (!this.gameInstance.MANAGERS.CameraManager.isOnScreen(gridToWorld({ x, y }))) return;
+        if (this.levelGrid?.[x]?.[y]?.state !== GridTileState.AVAILABLE) return;
+
         const tileWorldPos = gridToWorld({ x, y });
         const texture = this.gameInstance.MANAGERS.AssetManager.getImageAsset("ITextureGround");
         if (!texture) return;
@@ -185,7 +188,11 @@ export default class LevelManager extends AManager {
     });
 
     if (!this.getIsDay() && this.player) {
-      this.gameInstance.MANAGERS.LightManager.drawNightLighting(this.player.worldPos, this.player.getFacingDirection());
+      this.gameInstance.MANAGERS.LightManager.drawNightLighting(
+        this.player.worldPos,
+        this.player.getFacingDirection(),
+        this.blocks,
+      );
     }
   }
 
@@ -257,6 +264,7 @@ export default class LevelManager extends AManager {
   // ==================================================
 
   private startSpawningZombies(): void {
+    return;
     const settings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
     this.isSpawningZombies = true;
     this.zombieSpawnsLeft = settings.zombieSpawnAmount;

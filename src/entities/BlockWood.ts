@@ -14,12 +14,11 @@ export default class BlockWood extends ABlock {
     this.health = settings.woodStartHealth;
   }
 
-  update(_deltaTime: number) {}
+  public update(_deltaTime: number): void {}
 
-  draw() {
+  public draw(): void {
     const sprite = this.gameInstance.MANAGERS.AssetManager.getImageAsset("IBlockWood");
     if (!sprite) return;
-
     this.gameInstance.MANAGERS.DrawManager.queueDraw(
       this.worldPos.x,
       this.worldPos.y,
@@ -29,6 +28,19 @@ export default class BlockWood extends ABlock {
       ZIndex.BLOCKS,
       0,
     );
+  }
+
+  public drawMask(ctx: CanvasRenderingContext2D): void {
+    const { CameraManager } = this.gameInstance.MANAGERS;
+    const zoom = CameraManager.zoom;
+
+    if (!ctx || !CameraManager.isOnScreen(this.worldPos)) return;
+
+    const screenPos = CameraManager.worldToScreen(this.worldPos);
+    ctx.save();
+    ctx.fillStyle = `#000`;
+    ctx.fillRect(screenPos.x, screenPos.y, GRID_CONFIG.TILE_SIZE * zoom, GRID_CONFIG.TILE_SIZE * zoom);
+    ctx.restore();
   }
 
   damage(amount: number) {

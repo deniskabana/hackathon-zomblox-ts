@@ -1,7 +1,8 @@
 export enum ZIndex {
   GROUND = 0,
   GROUND_EFFECTS = 100,
-  BLOCKS = 200,
-  ENTITIES = 300,
-  EFFECTS = 400,
+  ENTITIES = 200,
+  LIGHT = 300,
+  BLOCKS = 400,
+  EFFECTS = 500,
 }

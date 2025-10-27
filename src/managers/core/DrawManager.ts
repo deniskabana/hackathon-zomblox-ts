@@ -181,7 +181,7 @@ export default class DrawManager extends AManager {
   public queueDraw(
     worldX: number,
     worldY: number,
-    image: HTMLImageElement,
+    image: HTMLImageElement | HTMLCanvasElement,
     width: number,
     height: number,
     zIndex: number = ZIndex.ENTITIES,

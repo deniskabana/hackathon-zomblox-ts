@@ -1,7 +1,7 @@
 import type { SpriteFrame } from "../utils/classes/SpriteSheet";
 
 export interface DrawCommand {
-  image: HTMLImageElement;
+  image: HTMLImageElement | HTMLCanvasElement;
   x: number;
   y: number;
   width: number;
