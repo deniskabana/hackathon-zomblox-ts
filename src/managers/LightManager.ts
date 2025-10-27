@@ -1,4 +1,4 @@
-import { GRID_CONFIG, gridToWorld, worldToGrid, type GridPosition, type WorldPosition } from "../config/gameGrid";
+import { GRID_CONFIG, gridToWorld, type GridPosition, type WorldPosition } from "../config/gameGrid";
 import type BlockWood from "../entities/BlockWood";
 import type GameInstance from "../GameInstance";
 import type { ScreenPosition } from "../types/ScreenPosition";
@@ -12,8 +12,8 @@ export default class LightManager extends AManager {
   private shadowCtx: CanvasRenderingContext2D | undefined;
 
   private readonly nightOverlayAlpha = 0.9;
-  private readonly playerLightRadius = GRID_CONFIG.TILE_SIZE * 4;
-  private readonly playerLightConeLen = GRID_CONFIG.TILE_SIZE * 10;
+  private readonly playerLightRadius = GRID_CONFIG.TILE_SIZE * 2.5;
+  private readonly playerLightConeLen = GRID_CONFIG.TILE_SIZE * 7;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
@@ -97,10 +97,15 @@ export default class LightManager extends AManager {
     );
     this.ctx.restore();
 
-    this.drawLightCone(playerScreenPos, facingAngle, zoom);
-    this.drawBlocksLight(playerWorldPos, blocks, zoom);
+    this.drawBlocksShadow(playerWorldPos, blocks, zoom);
+
+    this.ctx.save();
+    this.ctx.globalAlpha = this.nightOverlayAlpha / 1.3;
     this.ctx.globalCompositeOperation = "source-over";
     this.ctx.drawImage(this.shadowMaskCanvas, 0, 0);
+    this.ctx.restore();
+
+    this.drawLightCone(playerScreenPos, facingAngle, zoom);
 
     const gameCanvasCtx = DrawManager.getContext();
     if (!gameCanvasCtx) return;
@@ -109,7 +114,7 @@ export default class LightManager extends AManager {
   }
 
   /**
-   * Draws a light cone in the desired direction.
+   * Draws a light cone in facing direction; allows see-through walls
    */
   private drawLightCone(playerScreen: ScreenPosition, facingAngle: number, zoom: number): void {
     if (!this.ctx) return;
@@ -122,7 +127,7 @@ export default class LightManager extends AManager {
 
     const gradient = this.ctx.createLinearGradient(0, 0, coneLength, 0);
     gradient.addColorStop(0, `rgba(0, 0, 0, ${this.nightOverlayAlpha})`);
-    gradient.addColorStop(0.5, `rgba(0, 0, 0, ${this.nightOverlayAlpha / 2})`);
+    gradient.addColorStop(0.4, `rgba(0, 0, 0, ${this.nightOverlayAlpha / 2})`);
     gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
 
     this.ctx.globalCompositeOperation = "destination-out";
@@ -136,65 +141,20 @@ export default class LightManager extends AManager {
   }
 
   /**
-   * Draws a fake shadow from each block
+   * Draws shadows cast by blocks away from the player's light
    */
-  private drawBlocksLight(playerWorld: WorldPosition, blocks: Map<number, BlockWood>, zoom: number): void {
+  private drawBlocksShadow(playerWorld: WorldPosition, blocks: Map<number, BlockWood>, zoom: number): void {
     if (!this.shadowCtx) return;
-    const shadowDistance = GRID_CONFIG.TILE_SIZE * 8;
 
-    for (const [_id, block] of blocks) {
+    const levelGrid = this.gameInstance.MANAGERS.LevelManager.levelGrid;
+    if (!levelGrid) return;
+
+    const playerScreen = this.gameInstance.MANAGERS.CameraManager.worldToScreen(playerWorld);
+    const shadowLength = GRID_CONFIG.TILE_SIZE * 8 * zoom;
+
+    for (const block of blocks.values()) {
       if (!this.gameInstance.MANAGERS.CameraManager.isOnScreen(block.worldPos)) continue;
-
-      const corners: GridPosition[] = [
-        { x: block.gridPos.x, y: block.gridPos.y },
-        { x: block.gridPos.x + 1, y: block.gridPos.y },
-        { x: block.gridPos.x + 1, y: block.gridPos.y + 1 },
-        { x: block.gridPos.x, y: block.gridPos.y + 1 },
-      ];
-
-      const playerGrid = worldToGrid(playerWorld);
-      let closestIndex = 0;
-      let closestDist = Infinity;
-
-      for (let i = 0; i < corners.length; i++) {
-        const dx = corners[i].x - playerGrid.x;
-        const dy = corners[i].y - playerGrid.y;
-        const dist = dx * dx + dy * dy;
-
-        if (dist < closestDist) {
-          closestDist = dist;
-          closestIndex = i;
-        }
-      }
-
-      // Remove closest corner, keep the other 3
-      corners.splice(closestIndex, 1);
-
-      const playerScreen = this.gameInstance.MANAGERS.CameraManager.worldToScreen(playerWorld);
-      const projectedCorners = corners.map((corner) => {
-        const cornerWorld = gridToWorld(corner);
-        const cornerScreen = this.gameInstance.MANAGERS.CameraManager.worldToScreen(cornerWorld);
-        return this.projectPoint(cornerScreen, playerScreen, shadowDistance * zoom);
-      });
-
-      this.shadowCtx.save();
-      this.shadowCtx.fillStyle = `rgba(0, 0, 0, ${this.nightOverlayAlpha})`;
-      this.shadowCtx.beginPath();
-
-      const corner0Screen = this.gameInstance.MANAGERS.CameraManager.worldToScreen(gridToWorld(corners[0]));
-      this.shadowCtx.moveTo(corner0Screen.x, corner0Screen.y);
-      const corner1Screen = this.gameInstance.MANAGERS.CameraManager.worldToScreen(gridToWorld(corners[1]));
-      this.shadowCtx.lineTo(corner1Screen.x, corner1Screen.y);
-      const corner2Screen = this.gameInstance.MANAGERS.CameraManager.worldToScreen(gridToWorld(corners[2]));
-      this.shadowCtx.lineTo(corner2Screen.x, corner2Screen.y);
-      // Projected points (in reverse order to close the shape)
-      this.shadowCtx.lineTo(projectedCorners[2].x, projectedCorners[2].y);
-      this.shadowCtx.lineTo(projectedCorners[1].x, projectedCorners[1].y);
-      this.shadowCtx.lineTo(projectedCorners[0].x, projectedCorners[0].y);
-
-      this.shadowCtx.closePath();
-      this.shadowCtx.fill();
-      this.shadowCtx.restore();
+      this.drawEdgeShadows(block.gridPos, playerScreen, shadowLength);
     }
 
     this.shadowCtx.save();
@@ -203,6 +163,42 @@ export default class LightManager extends AManager {
     this.shadowCtx.restore();
   }
 
+  /**
+   * Draw shadows from all of the edges
+   */
+  private drawEdgeShadows(gridPos: GridPosition, playerScreen: ScreenPosition, shadowLength: number): void {
+    if (!this.shadowCtx) return;
+
+    const edges = [
+      { corner1: { x: gridPos.x, y: gridPos.y }, corner2: { x: gridPos.x + 1, y: gridPos.y } },
+      { corner1: { x: gridPos.x + 1, y: gridPos.y }, corner2: { x: gridPos.x + 1, y: gridPos.y + 1 } },
+      { corner1: { x: gridPos.x + 1, y: gridPos.y + 1 }, corner2: { x: gridPos.x, y: gridPos.y + 1 } },
+      { corner1: { x: gridPos.x, y: gridPos.y + 1 }, corner2: { x: gridPos.x, y: gridPos.y } },
+    ];
+
+    for (const edge of edges) {
+      const corner1Screen = this.gameInstance.MANAGERS.CameraManager.worldToScreen(gridToWorld(edge.corner1));
+      const corner2Screen = this.gameInstance.MANAGERS.CameraManager.worldToScreen(gridToWorld(edge.corner2));
+
+      const projected1 = this.projectPoint(corner1Screen, playerScreen, shadowLength);
+      const projected2 = this.projectPoint(corner2Screen, playerScreen, shadowLength);
+
+      this.shadowCtx.save();
+      this.shadowCtx.fillStyle = "#000000";
+      this.shadowCtx.beginPath();
+      this.shadowCtx.moveTo(corner1Screen.x, corner1Screen.y);
+      this.shadowCtx.lineTo(corner2Screen.x, corner2Screen.y);
+      this.shadowCtx.lineTo(projected2.x, projected2.y);
+      this.shadowCtx.lineTo(projected1.x, projected1.y);
+      this.shadowCtx.closePath();
+      this.shadowCtx.fill();
+      this.shadowCtx.restore();
+    }
+  }
+
+  /**
+   * Project a shadow point in a direction.
+   */
   private projectPoint(point: WorldPosition, lightSource: WorldPosition, distance: number): WorldPosition {
     const dx = point.x - lightSource.x;
     const dy = point.y - lightSource.y;
