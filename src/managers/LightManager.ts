@@ -11,9 +11,9 @@ export default class LightManager extends AManager {
   private shadowMaskCanvas: HTMLCanvasElement | undefined;
   private shadowCtx: CanvasRenderingContext2D | undefined;
 
-  private readonly nightOverlayAlpha = 0.85;
-  private readonly playerLightRadius = GRID_CONFIG.TILE_SIZE * 2.75;
-  private readonly playerLightConeLen = GRID_CONFIG.TILE_SIZE * 7;
+  private readonly nightOverlayAlpha = 1;
+  private readonly playerLightRadius = GRID_CONFIG.TILE_SIZE * 3.2;
+  private readonly playerLightConeLen = GRID_CONFIG.TILE_SIZE * 8;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
@@ -97,6 +97,7 @@ export default class LightManager extends AManager {
     );
     this.ctx.restore();
 
+    this.drawLightCone(playerScreenPos, facingAngle, zoom);
     this.drawBlocksShadow(playerWorldPos, blocks, zoom);
 
     this.ctx.save();
@@ -105,12 +106,13 @@ export default class LightManager extends AManager {
     this.ctx.drawImage(this.shadowMaskCanvas, 0, 0);
     this.ctx.restore();
 
-    this.drawLightCone(playerScreenPos, facingAngle, zoom);
-
     const gameCanvasCtx = DrawManager.getContext();
     if (!gameCanvasCtx) return;
 
+    gameCanvasCtx.save();
+    gameCanvasCtx.globalAlpha = 0.9;
     gameCanvasCtx.drawImage(this.lightMaskCanvas, 0, 0, this.lightMaskCanvas.width, this.lightMaskCanvas.height);
+    gameCanvasCtx.restore();
   }
 
   /**
@@ -119,7 +121,7 @@ export default class LightManager extends AManager {
   private drawLightCone(playerScreen: ScreenPosition, facingAngle: number, zoom: number): void {
     if (!this.ctx) return;
     const coneLength = this.playerLightConeLen * zoom;
-    const coneWidth = Math.PI / 4;
+    const coneWidth = Math.PI / 5;
 
     this.ctx.save();
     this.ctx.translate(playerScreen.x, playerScreen.y);
