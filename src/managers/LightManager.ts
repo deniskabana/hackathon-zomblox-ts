@@ -12,8 +12,8 @@ export default class LightManager extends AManager {
   private shadowCtx: CanvasRenderingContext2D | undefined;
 
   private readonly nightOverlayAlpha = 0.85;
-  private readonly playerLightRadius = GRID_CONFIG.TILE_SIZE * 3;
-  private readonly playerLightConeLen = GRID_CONFIG.TILE_SIZE * 6;
+  private readonly playerLightRadius = GRID_CONFIG.TILE_SIZE * 2.75;
+  private readonly playerLightConeLen = GRID_CONFIG.TILE_SIZE * 7;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
@@ -127,7 +127,6 @@ export default class LightManager extends AManager {
 
     const gradient = this.ctx.createLinearGradient(0, 0, coneLength, 0);
     gradient.addColorStop(0, `rgba(0, 0, 0, ${this.nightOverlayAlpha})`);
-    gradient.addColorStop(0.4, `rgba(0, 0, 0, ${this.nightOverlayAlpha / 2})`);
     gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
 
     this.ctx.globalCompositeOperation = "destination-out";
