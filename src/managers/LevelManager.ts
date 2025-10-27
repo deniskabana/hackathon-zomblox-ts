@@ -264,7 +264,6 @@ export default class LevelManager extends AManager {
   // ==================================================
 
   private startSpawningZombies(): void {
-    return;
     const settings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
     this.isSpawningZombies = true;
     this.zombieSpawnsLeft = settings.zombieSpawnAmount;
@@ -313,8 +312,7 @@ export default class LevelManager extends AManager {
   // ==================================================
 
   public startGame(): void {
-    if (!this.getIsDay()) this.startDay();
-    else this.startNight();
+    this.startDay();
   }
 
   public startNight(): void {
