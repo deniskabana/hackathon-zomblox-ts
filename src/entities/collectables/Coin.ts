@@ -18,7 +18,7 @@ export default class Coin extends ACollectable {
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     super(gameInstance, gridToWorld(gridPos), entityId, true);
     const gameSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
-    if (gameSettings.enableRewardAutoCollect) this.handleCollected();
+    if (gameSettings.enableRewardAutoCollect) setTimeout(this.handleCollected.bind(this));
     this.coinLifetimeTimer = gameSettings.coinLifetime;
 
     const coinImage = this.gameInstance.MANAGERS.AssetManager.getImageAsset("SCoin");
@@ -30,15 +30,13 @@ export default class Coin extends ACollectable {
   public update(_deltaTime: number): void {
     this.animation?.update(Math.min(_deltaTime, 1 / this.fps));
     const player = this.gameInstance.MANAGERS.LevelManager.player;
-    if (
-      player &&
-      getVectorDistance(
-        { x: player.worldPos.x - GRID_CONFIG.TILE_SIZE / 2, y: player.worldPos.y - GRID_CONFIG.TILE_SIZE / 2 },
-        this.worldPos,
-      ) <
-        GRID_CONFIG.TILE_SIZE * 0.75
-    )
-      this.handleCollected();
+    const playerDistance = player
+      ? getVectorDistance(
+          { x: player.worldPos.x - GRID_CONFIG.TILE_SIZE / 2, y: player.worldPos.y - GRID_CONFIG.TILE_SIZE / 2 },
+          this.worldPos,
+        )
+      : Infinity;
+    if (playerDistance < GRID_CONFIG.TILE_SIZE * 0.75) this.handleCollected();
 
     if (this.coinLifetimeTimer >= 0) this.coinLifetimeTimer -= _deltaTime;
     else this.gameInstance.MANAGERS.LevelManager.destroyEntity(this.entityId, EntityType.COLLECTABLE);
