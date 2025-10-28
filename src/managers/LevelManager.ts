@@ -1,6 +1,7 @@
 import { GRID_CONFIG, gridToWorld, WORLD_SIZE, type GridPosition, type WorldPosition } from "../config/gameGrid";
 import BlockWood from "../entities/BlockWood";
 import Coin from "../entities/Coin";
+import Fire from "../entities/Fire";
 import Player from "../entities/Player";
 import Zombie from "../entities/Zombie";
 import type GameInstance from "../GameInstance";
@@ -47,6 +48,8 @@ export default class LevelManager extends AManager {
   private spawnTimer: number = 0;
   private zombieSpawnInterval: number = 1200;
 
+  private testLightSource: Fire | undefined;
+
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
   }
@@ -61,6 +64,8 @@ export default class LevelManager extends AManager {
     this.levelState = { phase: "day", daysCounter: 0 };
 
     this.spawnCoin({ x: 3, y: 4 });
+
+    this.testLightSource = new Fire({ x: 6, y: 5 }, -1, this.gameInstance);
 
     // TODO: Remove, top-left
     this.spawnBlock({ x: 8, y: 2 });
@@ -127,6 +132,7 @@ export default class LevelManager extends AManager {
 
   public update(_deltaTime: number) {
     this.player?.update(_deltaTime);
+    this.testLightSource?.update(_deltaTime);
 
     for (const zombie of this.zombies.values()) zombie.update(_deltaTime);
     for (const coin of this.collectables.values()) coin.update(_deltaTime);
@@ -144,6 +150,7 @@ export default class LevelManager extends AManager {
 
   public drawEntities(): void {
     this.player?.draw();
+    this.testLightSource?.draw();
 
     for (const zombie of this.zombies.values()) zombie.draw();
     for (const block of this.blocks.values()) block.draw();

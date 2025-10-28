@@ -44,6 +44,7 @@ export const DEF_ASSETS_IMAGE = {
   IPlayerUnarmed: "/images/survivor_unarmed.png", // https://fightswithbears.itch.io/2d-topdown-survival-character
   // Blocks
   IBlockWood: "/images/RTS_Crate.png", // https://opengameart.org/content/2d-wooden-box
+  IBlockBarrel: "/images/barrel-png-20852.png", // https://www.freeiconspng.com/img/20852
   // Zombies
   IZombie1: "/images/zombie.png", // https://fightswithbears.itch.io/2d-topdown-survival-character
   // FX
@@ -57,6 +58,7 @@ export const DEF_ASSETS_IMAGE = {
   IShopSmg: "/images/Submachine - MP5A3 [80x48].png", // https://arcadeisland.itch.io/guns-asset-pack-v1
   // Spritesheets
   SCoin: "/images/coin-spritesheet.png", // https://www.kindpng.com/imgv/wobTmR_coins-clipart-sprite-animated-coin-sprite-sheet-hd/
+  SFire: "/images/fire-spritesheet.png", // https://devkidd.itch.io/pixel-fire-asset-pack-2
 } as const satisfies AssetDefinition;
 
 export type AssetAudioName = keyof typeof DEF_ASSETS_AUDIO;
