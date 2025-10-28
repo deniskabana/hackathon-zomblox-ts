@@ -47,12 +47,13 @@ export default class LightManager extends AManager {
   // ==================================================
 
   public addLightSource(worldPos: WorldPosition): number {
-    const id = this.lightSourceIdCount++;
+    const id = ++this.lightSourceIdCount;
     this.lightSources.set(id, worldPos);
     return id;
   }
 
   public removeLightSource(id: number): void {
+    console.log("this should work, bitches");
     this.lightSources.delete(id);
   }
 

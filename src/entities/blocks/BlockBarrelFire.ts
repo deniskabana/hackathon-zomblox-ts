@@ -1,12 +1,13 @@
 import { GRID_CONFIG, gridToWorld, type GridPosition } from "../../config/gameGrid";
 import type GameInstance from "../../GameInstance";
 import type { AssetImage } from "../../types/Asset";
+import { EntityType } from "../../types/EntityType";
 import { ZIndex } from "../../types/ZIndex";
 import { AnimatedSpriteSheet } from "../../utils/classes/AnimatedSpriteSheet";
 import ABlock from "../abstract/ABlock";
 
 export default class BlockBarrelFire extends ABlock {
-  public health: number = -1;
+  public health: number;
 
   private animation: AnimatedSpriteSheet | undefined;
   private fps: number;
@@ -18,6 +19,9 @@ export default class BlockBarrelFire extends ABlock {
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     super(gameInstance, gridToWorld(gridPos), entityId, true);
 
+    const settings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.blocks;
+    this.health = settings.woodStartHealth;
+
     const fire = this.gameInstance.MANAGERS.AssetManager.getImageAsset("SFire");
     this.fps = 15;
     this.spriteSize = GRID_CONFIG.TILE_SIZE;
@@ -27,6 +31,7 @@ export default class BlockBarrelFire extends ABlock {
     if (barrel) this.barrelSprite = barrel;
 
     this.lightSourceId = this.gameInstance.MANAGERS.LightManager.addLightSource(this.worldPos);
+    console.log("id", this.lightSourceId);
   }
 
   public update(_deltaTime: number): void {
@@ -61,7 +66,18 @@ export default class BlockBarrelFire extends ABlock {
 
   public drawMask(): void {}
 
-  public damage(): void {}
+  public damage(amount: number): void {
+    const settings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
+    if (!settings.enableBlocksDestruction) return;
+
+    this.health -= amount;
+    if (this.health <= 0) {
+      this.gameInstance.MANAGERS.AssetManager.playAudioAsset("ABlockWoodDestroyed", "sound");
+      this.gameInstance.MANAGERS.LevelManager.destroyEntity(this.entityId, EntityType.BLOCK);
+    } else {
+      this.gameInstance.MANAGERS.AssetManager.playAudioAsset("ABlockWoodDamaged", "sound", 0.7);
+    }
+  }
 
   public destroy(): void {
     if (this.lightSourceId) this.gameInstance.MANAGERS.LightManager.removeLightSource(this.lightSourceId);

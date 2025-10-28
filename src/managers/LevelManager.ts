@@ -66,6 +66,8 @@ export default class LevelManager extends AManager {
     this.spawnCoin({ x: 3, y: 4 });
 
     this.spawnBlock({ x: 6, y: 5 }, "barrel-fire");
+    this.spawnBlock({ x: 4, y: 14 }, "barrel-fire");
+    this.spawnBlock({ x: 19, y: 12 }, "barrel-fire");
 
     // TODO: Remove, top-left
     this.spawnBlock({ x: 8, y: 2 });
@@ -224,8 +226,9 @@ export default class LevelManager extends AManager {
   // ==================================================
 
   private destroyPlayer(): void {
+    this.player?.destroy();
     this.player = undefined;
-    for (const [_id, zombie] of this.zombies) zombie.startWandering();
+    for (const zombie of this.zombies.values()) zombie.startWandering();
   }
 
   public spawnBlock(pos: GridPosition, type: "wood" | "barrel-fire" = "wood"): void {
@@ -255,6 +258,7 @@ export default class LevelManager extends AManager {
   private destroyBlock(entityId: number): void {
     const entity = this.blocks.get(entityId);
     if (!entity) return;
+    entity.destroy();
     this.blocks.delete(entityId);
     if (!this.levelGrid) return;
     const { x, y } = entity.gridPos;
@@ -270,12 +274,14 @@ export default class LevelManager extends AManager {
   private destroyCoin(entityId: number): void {
     const entity = this.collectables.get(entityId);
     if (!entity) return;
+    entity.destroy();
     this.collectables.delete(entityId);
   }
 
   private destroyZombie(entityId: number): void {
     const entity = this.zombies.get(entityId);
     if (!entity) return;
+    entity.destroy();
     this.zombies.delete(entityId);
   }
 
