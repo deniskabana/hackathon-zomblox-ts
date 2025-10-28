@@ -63,8 +63,6 @@ export default class LevelManager extends AManager {
     this.zombieSpawnInterval = gameSettings.zombieSpawnIntervalMs;
     this.levelState = { phase: "day", daysCounter: 0 };
 
-    this.spawnCoin({ x: 3, y: 4 });
-
     this.spawnBlock({ x: 6, y: 5 }, "barrel-fire");
     this.spawnBlock({ x: 4, y: 14 }, "barrel-fire");
     this.spawnBlock({ x: 19, y: 12 }, "barrel-fire");

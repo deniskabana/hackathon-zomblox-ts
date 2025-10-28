@@ -1,7 +1,9 @@
 import { GRID_CONFIG, gridToWorld, type GridPosition } from "../../config/gameGrid";
 import type GameInstance from "../../GameInstance";
+import { EntityType } from "../../types/EntityType";
 import { ZIndex } from "../../types/ZIndex";
 import { AnimatedSpriteSheet } from "../../utils/classes/AnimatedSpriteSheet";
+import getVectorDistance from "../../utils/math/getVectorDistance";
 import ACollectable from "../abstract/ACollectable";
 
 export default class Coin extends ACollectable {
@@ -11,8 +13,13 @@ export default class Coin extends ACollectable {
   private fps: number;
   private spriteSize: number;
 
+  private coinLifetimeTimer: number;
+
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     super(gameInstance, gridToWorld(gridPos), entityId, true);
+    const gameSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
+    if (gameSettings.enableRewardAutoCollect) this.handleCollected();
+    this.coinLifetimeTimer = gameSettings.coinLifetime;
 
     const coinImage = this.gameInstance.MANAGERS.AssetManager.getImageAsset("SCoin");
     this.fps = 10;
@@ -22,6 +29,19 @@ export default class Coin extends ACollectable {
 
   public update(_deltaTime: number): void {
     this.animation?.update(Math.min(_deltaTime, 1 / this.fps));
+    const player = this.gameInstance.MANAGERS.LevelManager.player;
+    if (
+      player &&
+      getVectorDistance(
+        { x: player.worldPos.x - GRID_CONFIG.TILE_SIZE / 2, y: player.worldPos.y - GRID_CONFIG.TILE_SIZE / 2 },
+        this.worldPos,
+      ) <
+        GRID_CONFIG.TILE_SIZE * 0.75
+    )
+      this.handleCollected();
+
+    if (this.coinLifetimeTimer >= 0) this.coinLifetimeTimer -= _deltaTime;
+    else this.gameInstance.MANAGERS.LevelManager.destroyEntity(this.entityId, EntityType.COLLECTABLE);
   }
 
   public draw(): void {
@@ -41,4 +61,9 @@ export default class Coin extends ACollectable {
 
   public damage(): void {}
   public destroy(): void {}
+
+  private handleCollected(): void {
+    this.gameInstance.MANAGERS.AssetManager.playAudioAsset("AFXCoinCollected", "sound", 0.3);
+    this.gameInstance.MANAGERS.LevelManager.destroyEntity(this.entityId, EntityType.COLLECTABLE);
+  }
 }

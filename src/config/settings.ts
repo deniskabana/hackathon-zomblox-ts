@@ -9,7 +9,8 @@ export const DEFAULT_SETTINGS = {
   rules: {
     game: {
       startCurrency: 0,
-      enableRewardAutoCollect: true,
+      enableRewardAutoCollect: false,
+      coinLifetime: 30,
       rewardCoef: 1,
       zombieSpawnIntervalMs: 1200,
       zombieSpawnAmount: 25,

@@ -28,6 +28,7 @@ export const DEF_ASSETS_AUDIO = {
   // FX
   AFXShopPurchase: "/audio/coin-donation-2-180438.mp3", // https://pixabay.com/users/floraphonic-38928062/
   AFXZombieAmbience: "/audio/zombie-sound-224167.mp3", // https://pixabay.com/users/alice_soundz-44907632/
+  AFXCoinCollected: "/audio/drop-coin-384921.mp3", // https://pixabay.com/users/freesound_crunchpixstudio-49769582/
   AFXMorningRooster: "/audio/rooster-233738.mp3", // https://pixabay.com/users/stefan_grace-8153913/
   AFXUiClick: "/audio/computer-mouse-click-352734.mp3", // https://pixabay.com/users/universfield-28281460/
   // Music

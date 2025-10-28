@@ -142,8 +142,15 @@ export default class Zombie extends AEnemy {
   }
 
   private die(): void {
+    this.gameInstance.MANAGERS.LevelManager.spawnCoin({
+      x: this.worldPos.x / GRID_CONFIG.TILE_SIZE - 0.5,
+      y: this.worldPos.y / GRID_CONFIG.TILE_SIZE - 0.5,
+    });
     this.gameInstance.MANAGERS.AssetManager.playAudioAsset("AZombieDeath", "sound");
-    this.gameInstance.MANAGERS.VFXManager.drawBloodPool(this.worldPos);
+    this.gameInstance.MANAGERS.VFXManager.drawBloodPool({
+      x: this.worldPos.x - GRID_CONFIG.TILE_SIZE / 2,
+      y: this.worldPos.y - GRID_CONFIG.TILE_SIZE / 2,
+    });
     this.gameInstance.MANAGERS.LevelManager.destroyEntity(this.entityId, EntityType.ENEMY);
   }
 

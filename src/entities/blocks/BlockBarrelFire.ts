@@ -31,7 +31,6 @@ export default class BlockBarrelFire extends ABlock {
     if (barrel) this.barrelSprite = barrel;
 
     this.lightSourceId = this.gameInstance.MANAGERS.LightManager.addLightSource(this.worldPos);
-    console.log("id", this.lightSourceId);
   }
 
   public update(_deltaTime: number): void {
@@ -75,7 +74,7 @@ export default class BlockBarrelFire extends ABlock {
       this.gameInstance.MANAGERS.AssetManager.playAudioAsset("ABlockWoodDestroyed", "sound");
       this.gameInstance.MANAGERS.LevelManager.destroyEntity(this.entityId, EntityType.BLOCK);
     } else {
-      this.gameInstance.MANAGERS.AssetManager.playAudioAsset("ABlockWoodDamaged", "sound", 0.7);
+      this.gameInstance.MANAGERS.AssetManager.playAudioAsset("ABlockWoodDamaged", "sound", 0.5);
     }
   }
 

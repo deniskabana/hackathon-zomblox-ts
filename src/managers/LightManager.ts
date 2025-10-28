@@ -53,7 +53,6 @@ export default class LightManager extends AManager {
   }
 
   public removeLightSource(id: number): void {
-    console.log("this should work, bitches");
     this.lightSources.delete(id);
   }
 
