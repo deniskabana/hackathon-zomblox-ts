@@ -60,11 +60,15 @@ export default class LightManager extends AManager {
   /**
    * Draws a lightning radius around the player
    */
-  public drawNightLighting(playerWorldPos: WorldPosition, facingAngle: number, blocks: Map<number, BlockWood>): void {
+  public drawNightLighting(
+    players: WorldPosition[],
+    facingAngle: number,
+    blocks: Map<number, BlockWood>,
+    lightSources?: WorldPosition[],
+  ): void {
     if (!this.ctx || !this.lightMaskCanvas || !this.shadowCtx || !this.shadowMaskCanvas) return;
 
     const { CameraManager, DrawManager } = this.gameInstance.MANAGERS;
-    const playerScreenPos = CameraManager.worldToScreen(playerWorldPos);
     const zoom = CameraManager.zoom;
 
     this.ctx.clearRect(0, 0, this.lightMaskCanvas.width, this.lightMaskCanvas.height);
@@ -74,43 +78,86 @@ export default class LightManager extends AManager {
     this.ctx.fillStyle = `rgba(0, 0, 0, ${this.nightOverlayAlpha})`;
     this.ctx.fillRect(0, 0, this.lightMaskCanvas.width, this.lightMaskCanvas.height);
 
-    const lightRadius = this.playerLightRadius * zoom;
-    const gradient = this.ctx.createRadialGradient(
-      playerScreenPos.x,
-      playerScreenPos.y,
-      0,
-      playerScreenPos.x,
-      playerScreenPos.y,
-      lightRadius,
-    );
-    gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
-    gradient.addColorStop(0.5, `rgba(0, 0, 0, ${this.nightOverlayAlpha})`);
-    gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+    // TODO: This method could use refactoring
 
-    this.ctx.globalCompositeOperation = "destination-out";
-    this.ctx.fillStyle = gradient;
-    this.ctx.fillRect(
-      playerScreenPos.x - lightRadius,
-      playerScreenPos.y - lightRadius,
-      lightRadius * 2,
-      lightRadius * 2,
-    );
+    for (const player of players) {
+      const lightScreenPos = CameraManager.worldToScreen(player);
+      const lightRadius = this.playerLightRadius * zoom;
+      const gradient = this.ctx.createRadialGradient(
+        lightScreenPos.x,
+        lightScreenPos.y,
+        0,
+        lightScreenPos.x,
+        lightScreenPos.y,
+        lightRadius,
+      );
+      gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
+      gradient.addColorStop(0.5, `rgba(0, 0, 0, ${this.nightOverlayAlpha})`);
+      gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+
+      this.ctx.globalCompositeOperation = "destination-out";
+      this.ctx.fillStyle = gradient;
+      this.ctx.fillRect(
+        lightScreenPos.x - lightRadius,
+        lightScreenPos.y - lightRadius,
+        lightRadius * 2,
+        lightRadius * 2,
+      );
+    }
+
+    this.ctx.globalCompositeOperation = "source-over";
     this.ctx.restore();
 
-    this.drawLightCone(playerScreenPos, facingAngle, zoom);
-    this.drawBlocksShadow(playerWorldPos, blocks, zoom);
+    for (const player of players) {
+      const screenPos = CameraManager.worldToScreen(player);
+      this.drawLightCone(screenPos, facingAngle, zoom);
+      this.drawBlocksShadow(screenPos, blocks, zoom);
+    }
+
+    this.ctx.drawImage(this.shadowMaskCanvas, 0, 0);
+
+    // Other light sources
+    this.ctx.save();
+    if (lightSources) {
+      for (const lightSource of lightSources) {
+        const lightScreenPos = CameraManager.worldToScreen({
+          x: lightSource.x + GRID_CONFIG.TILE_SIZE / 2,
+          y: lightSource.y + GRID_CONFIG.TILE_SIZE / 2,
+        });
+        const lightRadius = this.playerLightRadius * zoom * 1.65;
+        const gradient = this.ctx.createRadialGradient(
+          lightScreenPos.x,
+          lightScreenPos.y,
+          0,
+          lightScreenPos.x,
+          lightScreenPos.y,
+          lightRadius,
+        );
+        gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
+        gradient.addColorStop(0.5, `rgba(0, 0, 0, ${this.nightOverlayAlpha})`);
+        gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+
+        this.ctx.globalCompositeOperation = "destination-out";
+        this.ctx.fillStyle = gradient;
+        this.ctx.fillRect(
+          lightScreenPos.x - lightRadius,
+          lightScreenPos.y - lightRadius,
+          lightRadius * 2,
+          lightRadius * 2,
+        );
+      }
+    }
+    this.ctx.restore();
 
     this.ctx.save();
-    this.ctx.globalAlpha = this.nightOverlayAlpha / 1.3;
     this.ctx.globalCompositeOperation = "source-over";
-    this.ctx.drawImage(this.shadowMaskCanvas, 0, 0);
     this.ctx.restore();
 
     const gameCanvasCtx = DrawManager.getContext();
     if (!gameCanvasCtx) return;
 
     gameCanvasCtx.save();
-    gameCanvasCtx.globalAlpha = 0.85;
+    gameCanvasCtx.globalAlpha = 0.9;
     gameCanvasCtx.drawImage(this.lightMaskCanvas, 0, 0, this.lightMaskCanvas.width, this.lightMaskCanvas.height);
     gameCanvasCtx.restore();
   }
@@ -118,14 +165,14 @@ export default class LightManager extends AManager {
   /**
    * Draws a light cone in facing direction; allows see-through walls
    */
-  private drawLightCone(playerScreen: ScreenPosition, facingAngle: number, zoom: number): void {
+  private drawLightCone(lightScreenPos: ScreenPosition, facingAngle: number, zoom: number): void {
     if (!this.ctx) return;
     const coneLength = this.playerLightConeLen * zoom;
     const startWidth = GRID_CONFIG.TILE_SIZE * 1 * zoom;
     const endWidth = GRID_CONFIG.TILE_SIZE * 4.5 * zoom;
 
     this.ctx.save();
-    this.ctx.translate(playerScreen.x, playerScreen.y);
+    this.ctx.translate(lightScreenPos.x, lightScreenPos.y);
     this.ctx.rotate(facingAngle);
 
     const gradient = this.ctx.createLinearGradient(0, 0, coneLength, 0);
@@ -150,13 +197,12 @@ export default class LightManager extends AManager {
   /**
    * Draws shadows cast by blocks away from the player
    */
-  private drawBlocksShadow(playerWorld: WorldPosition, blocks: Map<number, BlockWood>, zoom: number): void {
+  private drawBlocksShadow(playerScreen: ScreenPosition, blocks: Map<number, BlockWood>, zoom: number): void {
     if (!this.shadowCtx) return;
 
     const levelGrid = this.gameInstance.MANAGERS.LevelManager.levelGrid;
     if (!levelGrid) return;
 
-    const playerScreen = this.gameInstance.MANAGERS.CameraManager.worldToScreen(playerWorld);
     const shadowLength = GRID_CONFIG.TILE_SIZE * 8 * zoom;
 
     for (const block of blocks.values()) {

@@ -196,9 +196,10 @@ export default class LevelManager extends AManager {
 
     if (!this.getIsDay() && this.player) {
       this.gameInstance.MANAGERS.LightManager.drawNightLighting(
-        this.player.worldPos,
+        [this.player.worldPos],
         this.player.getFacingDirection(),
         this.blocks,
+        this.testLightSource?.worldPos ? [this.testLightSource?.worldPos] : undefined,
       );
     }
   }
