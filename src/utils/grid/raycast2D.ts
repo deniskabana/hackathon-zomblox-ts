@@ -1,5 +1,5 @@
 import { GRID_CONFIG, worldToGrid, type WorldPosition } from "../../config/gameGrid";
-import type Zombie from "../../entities/Zombie";
+import type AEnemy from "../../entities/abstract/AEnemy";
 import { GridTileState, type GridTileRef, type LevelGrid } from "../../types/Grid";
 import getVectorDistance from "../math/getVectorDistance";
 import radiansToVector from "../math/radiansToVector";
@@ -12,7 +12,7 @@ export default function raycast2D(
   angleRad: number,
   maxDistance: number,
   levelGrid: LevelGrid,
-  zombies: Map<number, Zombie>,
+  zombies: Map<number, AEnemy>,
 ): null | GridTileRef {
   // DDA Algorithm (put together from a few articles and reddit posts)
   const direction = radiansToVector(angleRad);
@@ -22,7 +22,7 @@ export default function raycast2D(
   const deltaDistX = Math.abs(1 / direction.x);
   const deltaDistY = Math.abs(1 / direction.y);
 
-  const zombieGrid: Map<string, Zombie> = new Map();
+  const zombieGrid: Map<string, AEnemy> = new Map();
   for (const [_, zombie] of zombies) zombieGrid.set(`${zombie.gridPos.x},${zombie.gridPos.y}`, zombie);
 
   let tMaxX = Math.abs((startGrid.x + (stepX > 0 ? 1 : 0) - from.x / GRID_CONFIG.TILE_SIZE) / direction.x);

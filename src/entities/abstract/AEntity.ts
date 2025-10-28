@@ -29,9 +29,9 @@ export default abstract class AEntity {
   }
 
   public abstract update(_deltaTime: number): void;
-  public abstract draw(_deltaTime: number): void;
-
+  public abstract draw(): void;
   public abstract damage(amount: number): void;
+  public abstract destroy(): void;
 
   public adjustMovementForCollisions(
     futurePos: WorldPosition,

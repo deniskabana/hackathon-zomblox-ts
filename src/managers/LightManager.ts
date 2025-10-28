@@ -1,5 +1,5 @@
 import { GRID_CONFIG, gridToWorld, type GridPosition, type WorldPosition } from "../config/gameGrid";
-import type BlockWood from "../entities/BlockWood";
+import type ABlock from "../entities/abstract/ABlock";
 import type GameInstance from "../GameInstance";
 import type { ScreenPosition } from "../types/ScreenPosition";
 import { AManager } from "./abstract/AManager";
@@ -12,8 +12,11 @@ export default class LightManager extends AManager {
   private shadowCtx: CanvasRenderingContext2D | undefined;
 
   private readonly nightOverlayAlpha = 1;
-  private readonly playerLightRadius = GRID_CONFIG.TILE_SIZE * 2;
+  private readonly playerLightRadius = 1.8;
   private readonly playerLightConeLen = GRID_CONFIG.TILE_SIZE * 7;
+
+  private lightSourceIdCount: number = 0;
+  private lightSources: Map<number, WorldPosition> = new Map();
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
@@ -37,10 +40,21 @@ export default class LightManager extends AManager {
     this.lightMaskCanvas = undefined;
     this.shadowMaskCanvas?.remove();
     this.shadowMaskCanvas = undefined;
+    this.lightSources.clear();
   }
 
   // Utils
   // ==================================================
+
+  public addLightSource(worldPos: WorldPosition): number {
+    const id = this.lightSourceIdCount++;
+    this.lightSources.set(id, worldPos);
+    return id;
+  }
+
+  public removeLightSource(id: number): void {
+    this.lightSources.delete(id);
+  }
 
   public updateCanvasSize(): void {
     if (!this.lightMaskCanvas || !this.shadowMaskCanvas) return;
@@ -60,16 +74,10 @@ export default class LightManager extends AManager {
   /**
    * Draws a lightning radius around the player
    */
-  public drawNightLighting(
-    players: WorldPosition[],
-    facingAngle: number,
-    blocks: Map<number, BlockWood>,
-    lightSources?: WorldPosition[],
-  ): void {
-    if (!this.ctx || !this.lightMaskCanvas || !this.shadowCtx || !this.shadowMaskCanvas) return;
-
+  public drawNightLighting(players: WorldPosition[], facingAngle: number, blocks: Map<number, ABlock>): void {
     const { CameraManager, DrawManager } = this.gameInstance.MANAGERS;
     const zoom = CameraManager.zoom;
+    if (!this.ctx || !this.lightMaskCanvas || !this.shadowCtx || !this.shadowMaskCanvas) return;
 
     this.ctx.clearRect(0, 0, this.lightMaskCanvas.width, this.lightMaskCanvas.height);
     this.shadowCtx.clearRect(0, 0, this.shadowMaskCanvas.width, this.shadowMaskCanvas.height);
@@ -77,94 +85,57 @@ export default class LightManager extends AManager {
     this.ctx.save();
     this.ctx.fillStyle = `rgba(0, 0, 0, ${this.nightOverlayAlpha})`;
     this.ctx.fillRect(0, 0, this.lightMaskCanvas.width, this.lightMaskCanvas.height);
-
-    // TODO: This method could use refactoring
+    this.ctx.restore();
 
     for (const player of players) {
       const lightScreenPos = CameraManager.worldToScreen(player);
-      const lightRadius = this.playerLightRadius * zoom;
-      const gradient = this.ctx.createRadialGradient(
-        lightScreenPos.x,
-        lightScreenPos.y,
-        0,
-        lightScreenPos.x,
-        lightScreenPos.y,
-        lightRadius,
-      );
-      gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
-      gradient.addColorStop(0.5, `rgba(0, 0, 0, ${this.nightOverlayAlpha})`);
-      gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
-
-      this.ctx.globalCompositeOperation = "destination-out";
-      this.ctx.fillStyle = gradient;
-      this.ctx.fillRect(
-        lightScreenPos.x - lightRadius,
-        lightScreenPos.y - lightRadius,
-        lightRadius * 2,
-        lightRadius * 2,
-      );
+      this.drawRadialLight(lightScreenPos, this.playerLightRadius);
+      this.drawLightCone(lightScreenPos, facingAngle, zoom);
+      this.drawBlocksShadow(lightScreenPos, blocks, zoom);
     }
-
-    this.ctx.globalCompositeOperation = "source-over";
-    this.ctx.restore();
-
-    for (const player of players) {
-      const screenPos = CameraManager.worldToScreen(player);
-      this.drawLightCone(screenPos, facingAngle, zoom);
-      this.drawBlocksShadow(screenPos, blocks, zoom);
-    }
-
     this.ctx.drawImage(this.shadowMaskCanvas, 0, 0);
 
-    // Other light sources
-    this.ctx.save();
-    if (lightSources) {
-      for (const lightSource of lightSources) {
-        const lightScreenPos = CameraManager.worldToScreen({
-          x: lightSource.x + GRID_CONFIG.TILE_SIZE / 2,
-          y: lightSource.y + GRID_CONFIG.TILE_SIZE / 2,
-        });
-        const lightRadius = this.playerLightRadius * zoom * 1.65;
-        const gradient = this.ctx.createRadialGradient(
-          lightScreenPos.x,
-          lightScreenPos.y,
-          0,
-          lightScreenPos.x,
-          lightScreenPos.y,
-          lightRadius,
-        );
-        gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
-        gradient.addColorStop(0.5, `rgba(0, 0, 0, ${this.nightOverlayAlpha})`);
-        gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
-
-        this.ctx.globalCompositeOperation = "destination-out";
-        this.ctx.fillStyle = gradient;
-        this.ctx.fillRect(
-          lightScreenPos.x - lightRadius,
-          lightScreenPos.y - lightRadius,
-          lightRadius * 2,
-          lightRadius * 2,
-        );
-      }
+    for (const lightSource of this.lightSources.values()) {
+      const lightScreenPos = CameraManager.worldToScreen({
+        x: lightSource.x + GRID_CONFIG.TILE_SIZE / 2,
+        y: lightSource.y + GRID_CONFIG.TILE_SIZE / 2,
+      });
+      this.drawRadialLight(lightScreenPos, 3);
     }
-    this.ctx.restore();
-
-    this.ctx.save();
-    this.ctx.globalCompositeOperation = "source-over";
-    this.ctx.restore();
 
     const gameCanvasCtx = DrawManager.getContext();
     if (!gameCanvasCtx) return;
-
     gameCanvasCtx.save();
     gameCanvasCtx.globalAlpha = 0.9;
     gameCanvasCtx.drawImage(this.lightMaskCanvas, 0, 0, this.lightMaskCanvas.width, this.lightMaskCanvas.height);
     gameCanvasCtx.restore();
   }
 
-  /**
-   * Draws a light cone in facing direction; allows see-through walls
-   */
+  private drawRadialLight(lightScreenPos: ScreenPosition, strength: number = 1): void {
+    if (!this.ctx) return;
+    const zoom = this.gameInstance.MANAGERS.CameraManager.zoom;
+
+    this.ctx.save();
+    const lightRadius = GRID_CONFIG.TILE_SIZE * zoom * strength;
+    const gradient = this.ctx.createRadialGradient(
+      lightScreenPos.x,
+      lightScreenPos.y,
+      0,
+      lightScreenPos.x,
+      lightScreenPos.y,
+      lightRadius,
+    );
+    gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
+    gradient.addColorStop(0.5, `rgba(0, 0, 0, ${this.nightOverlayAlpha})`);
+    gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+
+    this.ctx.globalCompositeOperation = "destination-out";
+    this.ctx.fillStyle = gradient;
+    this.ctx.fillRect(lightScreenPos.x - lightRadius, lightScreenPos.y - lightRadius, lightRadius * 2, lightRadius * 2);
+    this.ctx.globalCompositeOperation = "source-over";
+    this.ctx.restore();
+  }
+
   private drawLightCone(lightScreenPos: ScreenPosition, facingAngle: number, zoom: number): void {
     if (!this.ctx) return;
     const coneLength = this.playerLightConeLen * zoom;
@@ -191,19 +162,15 @@ export default class LightManager extends AManager {
     this.ctx.closePath();
 
     this.ctx.fill();
+    this.ctx.globalCompositeOperation = "source-over";
     this.ctx.restore();
   }
 
-  /**
-   * Draws shadows cast by blocks away from the player
-   */
-  private drawBlocksShadow(playerScreen: ScreenPosition, blocks: Map<number, BlockWood>, zoom: number): void {
-    if (!this.shadowCtx) return;
-
+  private drawBlocksShadow(playerScreen: ScreenPosition, blocks: Map<number, ABlock>, zoom: number): void {
     const levelGrid = this.gameInstance.MANAGERS.LevelManager.levelGrid;
-    if (!levelGrid) return;
-
     const shadowLength = GRID_CONFIG.TILE_SIZE * 8 * zoom;
+
+    if (!this.shadowCtx || !levelGrid) return;
 
     for (const block of blocks.values()) {
       if (!this.gameInstance.MANAGERS.CameraManager.isOnScreen(block.worldPos)) continue;
@@ -213,12 +180,10 @@ export default class LightManager extends AManager {
     this.shadowCtx.save();
     this.shadowCtx.globalCompositeOperation = "destination-out";
     for (const block of blocks.values()) block.drawMask(this.shadowCtx);
+    this.shadowCtx.globalCompositeOperation = "source-over";
     this.shadowCtx.restore();
   }
 
-  /**
-   * Draw shadows from all of the edges
-   */
   private drawEdgeShadows(gridPos: GridPosition, playerScreen: ScreenPosition, shadowLength: number): void {
     if (!this.shadowCtx) return;
 
@@ -249,15 +214,11 @@ export default class LightManager extends AManager {
     }
   }
 
-  /**
-   * Project a shadow point in a direction.
-   */
   private projectPoint(point: WorldPosition, lightSource: WorldPosition, distance: number): WorldPosition {
     const dx = point.x - lightSource.x;
     const dy = point.y - lightSource.y;
     const length = Math.sqrt(dx * dx + dy * dy);
     if (length === 0) return point;
-
     return {
       x: point.x + (dx / length) * distance,
       y: point.y + (dy / length) * distance,

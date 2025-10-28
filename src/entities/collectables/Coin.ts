@@ -1,13 +1,11 @@
-import { GRID_CONFIG, gridToWorld, type GridPosition } from "../config/gameGrid";
-import type GameInstance from "../GameInstance";
-import { EntityType } from "../types/EntityType";
-import { ZIndex } from "../types/ZIndex";
-import { AnimatedSpriteSheet } from "../utils/classes/AnimatedSpriteSheet";
-import AEntity from "./abstract/AEntity";
+import { GRID_CONFIG, gridToWorld, type GridPosition } from "../../config/gameGrid";
+import type GameInstance from "../../GameInstance";
+import { ZIndex } from "../../types/ZIndex";
+import { AnimatedSpriteSheet } from "../../utils/classes/AnimatedSpriteSheet";
+import ACollectable from "../abstract/ACollectable";
 
-export default class Coin extends AEntity {
+export default class Coin extends ACollectable {
   public health: number = -1;
-  public entityType = EntityType.COLLECTABLE;
 
   private animation: AnimatedSpriteSheet | undefined;
   private fps: number;
@@ -42,4 +40,5 @@ export default class Coin extends AEntity {
   }
 
   public damage(): void {}
+  public destroy(): void {}
 }

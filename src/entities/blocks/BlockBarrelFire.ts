@@ -1,19 +1,19 @@
-import { GRID_CONFIG, gridToWorld, type GridPosition } from "../config/gameGrid";
-import type GameInstance from "../GameInstance";
-import type { AssetImage } from "../types/Asset";
-import { EntityType } from "../types/EntityType";
-import { ZIndex } from "../types/ZIndex";
-import { AnimatedSpriteSheet } from "../utils/classes/AnimatedSpriteSheet";
-import AEntity from "./abstract/AEntity";
+import { GRID_CONFIG, gridToWorld, type GridPosition } from "../../config/gameGrid";
+import type GameInstance from "../../GameInstance";
+import type { AssetImage } from "../../types/Asset";
+import { ZIndex } from "../../types/ZIndex";
+import { AnimatedSpriteSheet } from "../../utils/classes/AnimatedSpriteSheet";
+import ABlock from "../abstract/ABlock";
 
-export default class Fire extends AEntity {
+export default class BlockBarrelFire extends ABlock {
   public health: number = -1;
-  public entityType = EntityType.COLLECTABLE;
 
   private animation: AnimatedSpriteSheet | undefined;
   private fps: number;
   private spriteSize: number;
   private barrelSprite: AssetImage | undefined;
+
+  private lightSourceId: number | undefined;
 
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     super(gameInstance, gridToWorld(gridPos), entityId, true);
@@ -25,6 +25,8 @@ export default class Fire extends AEntity {
 
     const barrel = this.gameInstance.MANAGERS.AssetManager.getImageAsset("IBlockBarrel");
     if (barrel) this.barrelSprite = barrel;
+
+    this.lightSourceId = this.gameInstance.MANAGERS.LightManager.addLightSource(this.worldPos);
   }
 
   public update(_deltaTime: number): void {
@@ -57,5 +59,11 @@ export default class Fire extends AEntity {
     );
   }
 
+  public drawMask(): void {}
+
   public damage(): void {}
+
+  public destroy(): void {
+    if (this.lightSourceId) this.gameInstance.MANAGERS.LightManager.removeLightSource(this.lightSourceId);
+  }
 }

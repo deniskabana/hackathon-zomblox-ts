@@ -1,9 +1,11 @@
 import { GRID_CONFIG, gridToWorld, WORLD_SIZE, type GridPosition, type WorldPosition } from "../config/gameGrid";
-import BlockWood from "../entities/BlockWood";
-import Coin from "../entities/Coin";
-import Fire from "../entities/Fire";
-import Player from "../entities/Player";
-import Zombie from "../entities/Zombie";
+import type ABlock from "../entities/abstract/ABlock";
+import type ACollectable from "../entities/abstract/ACollectable";
+import BlockBarrelFire from "../entities/blocks/BlockBarrelFire";
+import BlockWood from "../entities/blocks/BlockWood";
+import Coin from "../entities/collectables/Coin";
+import Zombie from "../entities/enemies/Zombie";
+import Player from "../entities/players/Player";
 import type GameInstance from "../GameInstance";
 import type { AudioControl } from "../types/AudioControl";
 import { EntityType } from "../types/EntityType";
@@ -31,8 +33,8 @@ export default class LevelManager extends AManager {
   // Entities
   public player?: Player;
   public zombies: Map<number, Zombie> = new Map();
-  public blocks: Map<number, BlockWood> = new Map();
-  public collectables: Map<number, Coin> = new Map();
+  public blocks: Map<number, ABlock> = new Map();
+  public collectables: Map<number, ACollectable> = new Map();
 
   // Gameplay
   private lastPlayerGridPos: GridPosition = { x: -99, y: -99 };
@@ -47,8 +49,6 @@ export default class LevelManager extends AManager {
   private nightEndCounter: number = 0;
   private spawnTimer: number = 0;
   private zombieSpawnInterval: number = 1200;
-
-  private testLightSource: Fire | undefined;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
@@ -65,7 +65,7 @@ export default class LevelManager extends AManager {
 
     this.spawnCoin({ x: 3, y: 4 });
 
-    this.testLightSource = new Fire({ x: 6, y: 5 }, -1, this.gameInstance);
+    this.spawnBlock({ x: 6, y: 5 }, "barrel-fire");
 
     // TODO: Remove, top-left
     this.spawnBlock({ x: 8, y: 2 });
@@ -132,9 +132,9 @@ export default class LevelManager extends AManager {
 
   public update(_deltaTime: number) {
     this.player?.update(_deltaTime);
-    this.testLightSource?.update(_deltaTime);
 
     for (const zombie of this.zombies.values()) zombie.update(_deltaTime);
+    for (const block of this.blocks.values()) block.update(_deltaTime);
     for (const coin of this.collectables.values()) coin.update(_deltaTime);
 
     this.applyZombieSpawn(_deltaTime);
@@ -150,7 +150,6 @@ export default class LevelManager extends AManager {
 
   public drawEntities(): void {
     this.player?.draw();
-    this.testLightSource?.draw();
 
     for (const zombie of this.zombies.values()) zombie.draw();
     for (const block of this.blocks.values()) block.draw();
@@ -160,7 +159,6 @@ export default class LevelManager extends AManager {
     this.levelGrid?.forEach((gridRow, x) => {
       gridRow.forEach((_gridCol, y) => {
         if (!this.gameInstance.MANAGERS.CameraManager.isOnScreen(gridToWorld({ x, y }))) return;
-        if (this.levelGrid?.[x]?.[y]?.state !== GridTileState.AVAILABLE) return;
 
         const tileWorldPos = gridToWorld({ x, y });
         const texture = this.gameInstance.MANAGERS.AssetManager.getImageAsset("ITextureGround");
@@ -199,7 +197,6 @@ export default class LevelManager extends AManager {
         [this.player.worldPos],
         this.player.getFacingDirection(),
         this.blocks,
-        this.testLightSource?.worldPos ? [this.testLightSource?.worldPos] : undefined,
       );
     }
   }
@@ -231,9 +228,23 @@ export default class LevelManager extends AManager {
     for (const [_id, zombie] of this.zombies) zombie.startWandering();
   }
 
-  public spawnBlock(pos: GridPosition): void {
+  public spawnBlock(pos: GridPosition, type: "wood" | "barrel-fire" = "wood"): void {
     const entityId = this.entityIdCounter++;
-    const entity = new BlockWood(pos, entityId, this.gameInstance);
+    let entity: ABlock;
+
+    switch (type) {
+      case "barrel-fire":
+        entity = new BlockBarrelFire(pos, entityId, this.gameInstance);
+        break;
+
+      case "wood":
+        entity = new BlockWood(pos, entityId, this.gameInstance);
+        break;
+
+      default:
+        return assertNever(type);
+    }
+
     this.blocks.set(entityId, entity);
     if (!this.levelGrid) return;
     const { x, y } = pos;

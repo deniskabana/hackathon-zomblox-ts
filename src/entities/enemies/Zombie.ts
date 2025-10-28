@@ -1,15 +1,15 @@
-import { GRID_CONFIG, gridToWorld, worldToGrid, type GridPosition, type WorldPosition } from "../config/gameGrid";
-import type GameInstance from "../GameInstance";
-import { EntityType } from "../types/EntityType";
-import type { Vector } from "../types/Vector";
-import { ZIndex } from "../types/ZIndex";
-import assertNever from "../utils/assertNever";
-import isInsideGrid from "../utils/grid/isInsideGrid";
-import getDirectionalAngle from "../utils/math/getDirectionalAngle";
-import getVectorDistance from "../utils/math/getVectorDistance";
-import radialLerp from "../utils/math/radialLerp";
-import radiansToVector from "../utils/math/radiansToVector";
-import AEnemy from "./abstract/AEnemy";
+import { GRID_CONFIG, gridToWorld, worldToGrid, type GridPosition, type WorldPosition } from "../../config/gameGrid";
+import type GameInstance from "../../GameInstance";
+import { EntityType } from "../../types/EntityType";
+import type { Vector } from "../../types/Vector";
+import { ZIndex } from "../../types/ZIndex";
+import assertNever from "../../utils/assertNever";
+import isInsideGrid from "../../utils/grid/isInsideGrid";
+import getDirectionalAngle from "../../utils/math/getDirectionalAngle";
+import getVectorDistance from "../../utils/math/getVectorDistance";
+import radialLerp from "../../utils/math/radialLerp";
+import radiansToVector from "../../utils/math/radiansToVector";
+import AEnemy from "../abstract/AEnemy";
 
 export enum ZombieState {
   CHASING_PLAYER = "CHASING_PLAYER",
@@ -368,4 +368,6 @@ export default class Zombie extends AEnemy {
       );
     }
   }
+
+  public destroy(): void {}
 }

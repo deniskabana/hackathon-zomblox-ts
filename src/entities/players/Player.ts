@@ -1,17 +1,17 @@
-import type { AssetAudioName } from "../config/assets";
-import { GRID_CONFIG, gridToWorld, type GridPosition, type WorldPosition } from "../config/gameGrid";
-import { DEF_WEAPONS, type Weapon } from "../config/weapons";
-import type GameInstance from "../GameInstance";
-import type { AssetImage } from "../types/Asset";
-import { EntityType } from "../types/EntityType";
-import { GameControls } from "../types/GameControls";
-import { ZIndex } from "../types/ZIndex";
-import assertNever from "../utils/assertNever";
-import areVectorsEqual from "../utils/math/areVectorsEqual";
-import getVectorDistance from "../utils/math/getVectorDistance";
-import normalizeVector from "../utils/math/normalizeVector";
-import radiansToVector from "../utils/math/radiansToVector";
-import APlayer from "./abstract/APlayer";
+import type { AssetAudioName } from "../../config/assets";
+import { GRID_CONFIG, gridToWorld, type GridPosition, type WorldPosition } from "../../config/gameGrid";
+import { DEF_WEAPONS, type Weapon } from "../../config/weapons";
+import type GameInstance from "../../GameInstance";
+import type { AssetImage } from "../../types/Asset";
+import { EntityType } from "../../types/EntityType";
+import { GameControls } from "../../types/GameControls";
+import { ZIndex } from "../../types/ZIndex";
+import assertNever from "../../utils/assertNever";
+import areVectorsEqual from "../../utils/math/areVectorsEqual";
+import getVectorDistance from "../../utils/math/getVectorDistance";
+import normalizeVector from "../../utils/math/normalizeVector";
+import radiansToVector from "../../utils/math/radiansToVector";
+import APlayer from "../abstract/APlayer";
 
 export enum PlayerState {
   NORMAL = "NORMAL",
@@ -281,4 +281,6 @@ export default class Player extends APlayer {
     // TODO: Game over screen
     setTimeout(this.gameInstance.restartGame.bind(this.gameInstance), 5000);
   }
+
+  public destroy(): void {}
 }

@@ -1,8 +1,8 @@
-import { GRID_CONFIG, gridToWorld, type GridPosition } from "../config/gameGrid";
-import type GameInstance from "../GameInstance";
-import { EntityType } from "../types/EntityType";
-import { ZIndex } from "../types/ZIndex";
-import ABlock from "./abstract/ABlock";
+import { GRID_CONFIG, gridToWorld, type GridPosition } from "../../config/gameGrid";
+import type GameInstance from "../../GameInstance";
+import { EntityType } from "../../types/EntityType";
+import { ZIndex } from "../../types/ZIndex";
+import ABlock from "../abstract/ABlock";
 
 export default class BlockWood extends ABlock {
   public health: number;
@@ -55,4 +55,6 @@ export default class BlockWood extends ABlock {
       this.gameInstance.MANAGERS.AssetManager.playAudioAsset("ABlockWoodDamaged", "sound", 0.7);
     }
   }
+
+  public destroy(): void {}
 }
