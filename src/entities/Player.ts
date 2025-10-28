@@ -135,6 +135,7 @@ export default class Player extends APlayer {
   }
 
   public shoot(): void {
+    if (this.isMoving) return;
     if (this.playerState !== PlayerState.NORMAL) return;
     if (this.gameInstance.MANAGERS.LevelManager.getIsDay()) return;
     if (this.gunCooldownTimer > 0) return;
@@ -219,6 +220,11 @@ export default class Player extends APlayer {
     if (joystickMoveIntensity !== undefined) speed *= joystickMoveIntensity;
 
     this.facingDirection = this.getAimAngle();
+
+    if (movementVector.x === 0 && movementVector.y === 0) {
+      this.isMoving = false;
+      return;
+    }
 
     const futurePos = {
       x: this.worldPos.x + movementVector.x * _deltaTime * speed,

@@ -12,8 +12,8 @@ export default class LightManager extends AManager {
   private shadowCtx: CanvasRenderingContext2D | undefined;
 
   private readonly nightOverlayAlpha = 1;
-  private readonly playerLightRadius = GRID_CONFIG.TILE_SIZE * 3.2;
-  private readonly playerLightConeLen = GRID_CONFIG.TILE_SIZE * 8;
+  private readonly playerLightRadius = GRID_CONFIG.TILE_SIZE * 2;
+  private readonly playerLightConeLen = GRID_CONFIG.TILE_SIZE * 7;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
@@ -84,7 +84,7 @@ export default class LightManager extends AManager {
       lightRadius,
     );
     gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
-    gradient.addColorStop(0.7, `rgba(0, 0, 0, ${this.nightOverlayAlpha})`);
+    gradient.addColorStop(0.5, `rgba(0, 0, 0, ${this.nightOverlayAlpha})`);
     gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
 
     this.ctx.globalCompositeOperation = "destination-out";
@@ -110,7 +110,7 @@ export default class LightManager extends AManager {
     if (!gameCanvasCtx) return;
 
     gameCanvasCtx.save();
-    gameCanvasCtx.globalAlpha = 0.9;
+    gameCanvasCtx.globalAlpha = 0.85;
     gameCanvasCtx.drawImage(this.lightMaskCanvas, 0, 0, this.lightMaskCanvas.width, this.lightMaskCanvas.height);
     gameCanvasCtx.restore();
   }
@@ -121,7 +121,8 @@ export default class LightManager extends AManager {
   private drawLightCone(playerScreen: ScreenPosition, facingAngle: number, zoom: number): void {
     if (!this.ctx) return;
     const coneLength = this.playerLightConeLen * zoom;
-    const coneWidth = Math.PI / 5;
+    const startWidth = GRID_CONFIG.TILE_SIZE * 1 * zoom;
+    const endWidth = GRID_CONFIG.TILE_SIZE * 4.5 * zoom;
 
     this.ctx.save();
     this.ctx.translate(playerScreen.x, playerScreen.y);
@@ -129,20 +130,25 @@ export default class LightManager extends AManager {
 
     const gradient = this.ctx.createLinearGradient(0, 0, coneLength, 0);
     gradient.addColorStop(0, `rgba(0, 0, 0, ${this.nightOverlayAlpha})`);
+    gradient.addColorStop(0.6, `rgba(0, 0, 0, ${this.nightOverlayAlpha})`);
     gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
 
     this.ctx.globalCompositeOperation = "destination-out";
     this.ctx.fillStyle = gradient;
+
     this.ctx.beginPath();
-    this.ctx.moveTo(0, 0);
-    this.ctx.arc(0, 0, coneLength, -coneWidth / 2, coneWidth / 2);
+    this.ctx.moveTo(0, -startWidth / 2);
+    this.ctx.lineTo(coneLength, -endWidth / 2);
+    this.ctx.lineTo(coneLength, endWidth / 2);
+    this.ctx.lineTo(0, startWidth / 2);
     this.ctx.closePath();
+
     this.ctx.fill();
     this.ctx.restore();
   }
 
   /**
-   * Draws shadows cast by blocks away from the player's light
+   * Draws shadows cast by blocks away from the player
    */
   private drawBlocksShadow(playerWorld: WorldPosition, blocks: Map<number, BlockWood>, zoom: number): void {
     if (!this.shadowCtx) return;
