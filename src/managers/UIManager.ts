@@ -3,7 +3,7 @@ import styles from "../styles/UIManager.module.css";
 import debugStyles from "../styles/debug.module.css";
 import hudStyles from "../styles/hud.module.css";
 import uiControlsStyles from "../styles/uiControls.module.css";
-import getUiControls, { type UiControls } from "../ui/uiControls";
+import getUiControls from "../ui/uiControls";
 import cx from "../utils/cx";
 import { AManager } from "./abstract/AManager";
 
@@ -14,7 +14,7 @@ export default class UIManager extends AManager {
   private hudContainer: HTMLDivElement;
   private hudDayCounter: HTMLDivElement;
 
-  private uiControls: UiControls = {};
+  private uiControls: ReturnType<typeof getUiControls> | undefined;
 
   private debugContainer: HTMLDivElement;
   private debugTextFps: HTMLDivElement;
@@ -48,7 +48,6 @@ export default class UIManager extends AManager {
       this.uiContainer.appendChild(this.joystickLeftHandle);
       this.uiContainer.appendChild(this.joystickRightHandle);
     }
-
     this.startGameContainer = document.createElement("div");
     this.hudContainer = document.createElement("div");
     this.hudDayCounter = document.createElement("div");
@@ -83,6 +82,7 @@ export default class UIManager extends AManager {
     this.hudDayCounter.className = cx(hudStyles.hudElement);
 
     this.uiControls = getUiControls(this.gameInstance);
+    if (!("ontouchend" in document)) this.uiControls?.shootButton.destroy();
 
     if (!this.gameInstance.isDev) return;
 
@@ -192,6 +192,7 @@ export default class UIManager extends AManager {
   }
 
   private uiControlsDraw(): void {
+    if (!this.uiControls) return;
     for (const control of Object.values(this.uiControls)) control.draw();
   }
 
@@ -210,7 +211,9 @@ export default class UIManager extends AManager {
   }
 
   public destroy(): void {
-    for (const control of Object.values(this.uiControls)) control.destroy();
-    this.uiControls = {};
+    if (this.uiControls) {
+      for (const control of Object.values(this.uiControls)) control.destroy();
+      this.uiControls = undefined;
+    }
   }
 }

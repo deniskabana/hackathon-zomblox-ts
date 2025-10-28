@@ -7,13 +7,14 @@ export interface UiControls {
   [key: string]: { draw: VoidFunction; destroy: VoidFunction };
 }
 
-export default function getUiControls(gameInstance: GameInstance): UiControls {
+export default function getUiControls(gameInstance: GameInstance) {
   return {
     fullScreenButton: getFullScreenButton(gameInstance),
     sleepUntilNightButton: getSleepUntilNightButton(gameInstance),
     masterVolumeToggleButton: getMasterVolumeToggleButton(gameInstance),
     buildModeButton: getBuildModeButton(gameInstance),
-  };
+    shootButton: getShootButton(gameInstance),
+  } satisfies UiControls;
 }
 
 function getFullScreenButton(gameInstance: GameInstance): UiControls[string] {
@@ -141,6 +142,42 @@ function getBuildModeButton(gameInstance: GameInstance): UiControls[string] {
     destroy: () => {
       buttonEl.removeEventListener("click", handleClick);
       buttonEl.removeEventListener("touchend", handleClick);
+      buttonEl.remove();
+    },
+  };
+}
+
+export function getShootButton(gameInstance: GameInstance): UiControls[string] {
+  const buttonEl = document.createElement("div");
+  gameInstance.MANAGERS.UIManager.uiContainer.appendChild(buttonEl);
+  buttonEl.className = cx(styles.uiControl, styles.shootButton);
+  buttonEl.innerHTML = `💥 ${gameInstance.translation.dictionary.hud.shootBtn}!`;
+
+  const handleClick = () => {
+    gameInstance.MANAGERS.InputManager.simulateControlPress(GameControls.SHOOT);
+    buttonEl.classList.add(styles.uiControlActive);
+  };
+  const handleRelase = () => {
+    gameInstance.MANAGERS.InputManager.simulateControlRelease(GameControls.SHOOT);
+    buttonEl.classList.remove(styles.uiControlActive);
+  };
+
+  buttonEl.addEventListener("touchstart", handleClick);
+  buttonEl.addEventListener("touchmove", handleClick);
+  buttonEl.addEventListener("touchend", handleRelase);
+  buttonEl.addEventListener("touchcancel", handleRelase);
+
+  return {
+    draw: () => {
+      const isDay = gameInstance.MANAGERS.LevelManager.getIsDay();
+      const desiredOpacity = !isDay ? "1" : "0";
+      if (buttonEl.style.opacity !== desiredOpacity) buttonEl.style.opacity = desiredOpacity;
+    },
+    destroy: () => {
+      buttonEl.removeEventListener("touchstart", handleClick);
+      buttonEl.removeEventListener("touchend", handleClick);
+      buttonEl.removeEventListener("touchmove", handleRelase);
+      buttonEl.removeEventListener("touchcancel", handleRelase);
       buttonEl.remove();
     },
   };

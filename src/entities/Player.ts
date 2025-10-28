@@ -205,6 +205,8 @@ export default class Player extends APlayer {
 
   public damage(amount: number): void {
     this.health -= amount;
+    this.gunCooldownTimer += 0.4;
+
     if (this.health <= 0) {
       this.die();
     } else {

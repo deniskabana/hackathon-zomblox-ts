@@ -151,11 +151,10 @@ export default class InputManager extends AManager {
 
       if (event.target === joystickRight) {
         this.aimDirection = angle;
-        this.simulateControlPress(GameControls.SHOOT);
-
         const targetDistance = Math.min(this.joystickMaxDistance, distance) - this.joystickMinDistance;
         const moveIntensityNilToOne = targetDistance / (this.joystickMaxDistance - this.joystickMinDistance);
-        this.updateTouchJoystickHandles(angle, moveIntensityNilToOne, joystickCenter, joystickLeftHandle);
+
+        this.updateTouchJoystickHandles(angle, moveIntensityNilToOne, joystickCenter, joystickRightHandle);
       }
     }
 
@@ -177,7 +176,6 @@ export default class InputManager extends AManager {
 
     if (event.target === joystickRight) {
       target = joystickRight;
-      this.simulateControlRelease(GameControls.SHOOT);
       joystickRightHandle.classList.remove(styles.joystickHandleActive);
     }
 
