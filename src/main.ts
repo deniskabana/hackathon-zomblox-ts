@@ -3,6 +3,7 @@ import csTranslation from "./translation/cs";
 import enTranslation from "./translation/en";
 import GameInstance from "./GameInstance";
 import type { Translation } from "./types/Translation";
+import { version } from "../package.json";
 
 (function () {
   const game = new GameInstance();
@@ -79,6 +80,14 @@ import type { Translation } from "./types/Translation";
       if (document.fullscreenElement === document.body) document.exitFullscreen();
       else document.body.requestFullscreen();
     });
+  }
+
+  // Game version
+  // ==================================================
+
+  const versionElem = document.getElementsByClassName("pregame-menu__version");
+  if ("innerText" in versionElem[0]) {
+    versionElem[0].innerText = version;
   }
 
   // Launch game
