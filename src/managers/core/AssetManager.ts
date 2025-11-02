@@ -52,7 +52,9 @@ export default class AssetManager extends AManager {
       const promise = new Promise<void>((resolve) => {
         const audio = new Audio();
         const name = audioName;
+        audio.preload = "auto";
         audio.oncanplaythrough = () => resolve();
+        audio.onload = () => resolve();
         audio.onerror = () => {
           ERRORS.push(`Failed to load audio: ${name}`);
           resolve();

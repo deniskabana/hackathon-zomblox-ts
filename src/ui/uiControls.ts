@@ -97,7 +97,7 @@ function getSleepUntilNightButton(gameInstance: GameInstance): UiControls[string
       const isDay = gameInstance.MANAGERS.LevelManager.getIsDay();
       const desiredOpacity = isDay ? "1" : "0";
       if (buttonEl.style.opacity !== desiredOpacity) buttonEl.style.opacity = desiredOpacity;
-      const label = gameInstance.translation.dictionary.hud.sleepUntilNight;
+      const label = gameInstance.translation.dictionary["hud.sleepUntilNight"];
       buttonEl.innerHTML = "🌙 &nbsp;" + label;
     },
     destroy: () => {
@@ -136,8 +136,8 @@ function getBuildModeButton(gameInstance: GameInstance): UiControls[string] {
       if (buttonEl.style.opacity !== desiredOpacity) buttonEl.style.opacity = desiredOpacity;
 
       const active = gameInstance.MANAGERS.BuildModeManager.isBuildModeActive;
-      if (active) buttonEl.innerHTML = "🛠️ &nbsp;" + gameInstance.translation.dictionary.hud.closeBuildMenu;
-      else buttonEl.innerHTML = "🛠️ &nbsp;" + gameInstance.translation.dictionary.hud.openBuildMenu;
+      if (active) buttonEl.innerHTML = "🛠️ &nbsp;" + gameInstance.translation.dictionary["hud.closeBuildMenu"];
+      else buttonEl.innerHTML = "🛠️ &nbsp;" + gameInstance.translation.dictionary["hud.openBuildMenu"];
     },
     destroy: () => {
       buttonEl.removeEventListener("click", handleClick);
@@ -151,7 +151,7 @@ export function getShootButton(gameInstance: GameInstance): UiControls[string] {
   const buttonEl = document.createElement("div");
   gameInstance.MANAGERS.UIManager.uiContainer.appendChild(buttonEl);
   buttonEl.className = cx(styles.uiControl, styles.shootButton);
-  buttonEl.innerHTML = `💥 ${gameInstance.translation.dictionary.hud.shootBtn}!`;
+  buttonEl.innerHTML = `💥 ${gameInstance.translation.dictionary["hud.shootBtn"]}!`;
 
   const handleClick = () => {
     gameInstance.MANAGERS.InputManager.simulateControlPress(GameControls.SHOOT);

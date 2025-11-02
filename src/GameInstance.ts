@@ -39,6 +39,12 @@ export default class GameInstance {
     this.isDev = import.meta.env.NODE_ENV === "development" || !!location.hash.match("debug");
     this.canvas = this.createCanvas();
 
+    const preferredTranslation = this.translations.find(({ code }) =>
+      code.includes(localStorage.getItem("language") ?? ""),
+    );
+    if (preferredTranslation) this.translation = preferredTranslation;
+    else this.translation = this.translations[0];
+
     this.MANAGERS = {
       AssetManager: new AssetManager(this),
       BuildModeManager: new BuildModeManager(this),
@@ -51,16 +57,16 @@ export default class GameInstance {
       UIManager: new UIManager(this),
       VFXManager: new VFXManager(this),
     };
-
-    const preferredTranslation = this.translations.find(({ code }) => code.includes(navigator.language.slice(0, 2)));
-    if (preferredTranslation) this.translation = preferredTranslation;
-    else this.translation = this.translations[0];
   }
 
-  init() {
-    document.addEventListener("click", this.startGame);
-    document.addEventListener("touchend", this.startGame);
-    this.loadAndPrepareGame();
+  async init() {
+    await this.loadAndPrepareGame();
+
+    const preferredTranslation = this.translations.find(({ code }) =>
+      code.includes(localStorage.getItem("language") ?? ""),
+    );
+    if (preferredTranslation) this.translation = preferredTranslation;
+    else this.translation = this.translations[0];
   }
 
   private createCanvas(): HTMLCanvasElement {
@@ -97,7 +103,7 @@ export default class GameInstance {
     UIManager.showStartGameContainer();
   }
 
-  private startGame = (): void => {
+  public startGame = (): void => {
     const {
       BuildModeManager,
       UIManager,
@@ -110,9 +116,6 @@ export default class GameInstance {
       VFXManager,
     } = this.MANAGERS;
     if (this.MANAGERS.GameManager.getState() !== GameState.READY) return;
-
-    document.removeEventListener("click", this.startGame);
-    document.removeEventListener("touchend", this.startGame);
 
     // Asset manager was initialized in loadAndPrepareGame()
     BuildModeManager.init();
@@ -137,10 +140,8 @@ export default class GameInstance {
   }
 
   public async restartGame(): Promise<void> {
-    document.addEventListener("click", this.startGame);
-    document.addEventListener("touchend", this.startGame);
     this.stopAndQuitGame();
-    await this.loadAndPrepareGame();
+    window.location.reload();
   }
 
   private destroy(): void {
