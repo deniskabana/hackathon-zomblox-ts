@@ -63,17 +63,99 @@ body {
 }
 @keyframes zoom-in-out {
   0% {
-    transform: scale3d(1, 1, 1);
+    transform: scale3d(1, 1, 1) rotateZ(2deg);
   }
   50% {
-    transform: scale3d(1.08, 1.08, 1);
+    transform: scale3d(1.02, 1.02, 1) rotateZ(0deg);
   }
   100% {
-    transform: scale3d(1, 1, 1);
+    transform: scale3d(1, 1, 1) rotateZ(2deg);
   }
 }
-.pregame-menu::before {
+@keyframes corrupt {
+  0%,
+  100% {
+    transform: translate(0) scale(1);
+    filter: brightness(1);
+  }
+  10% {
+    transform: translate(-10px, 5px) scale(1.05, 0.95);
+    filter: brightness(1.3);
+  }
+  20% {
+    transform: translate(8px, -3px) scale(0.98, 1.02);
+    filter: brightness(0.7);
+  }
+  30% {
+    transform: translate(-5px, -8px) scale(1.02, 0.98);
+    filter: brightness(1.5);
+  }
+  40% {
+    transform: translate(12px, 4px) scale(0.95, 1.03);
+    filter: brightness(0.9);
+  }
+  50% {
+    transform: translate(-3px, 6px) scale(1.01, 0.99);
+    filter: brightness(1.2);
+  }
+  60% {
+    transform: translate(6px, -10px) scale(0.97, 1.04);
+    filter: brightness(0.8);
+  }
+  70% {
+    transform: translate(-8px, 2px) scale(1.03, 0.96);
+    filter: brightness(1.4);
+  }
+  80% {
+    transform: translate(4px, -6px) scale(0.99, 1.01);
+    filter: brightness(1.1);
+  }
+  90% {
+    transform: translate(-6px, 8px) scale(1.02, 0.97);
+    filter: brightness(0.85);
+  }
+}
+@keyframes scan-line {
+  0% {
+    transform: translateY(-300%);
+  }
+  100% {
+    transform: translateY(110vh);
+  }
+}
+.pregame-menu__scan-line::after {
   content: "";
+  display: block;
+  position: fixed;
+  z-index: -10;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60vh;
+  mix-blend-mode: multiply;
+  backdrop-filter: contrast(10) saturate(2);
+  opacity: 0.25;
+  animation: scan-line 5s infinite ease-out;
+  animation-direction: alternate;
+}
+.pregame-menu__scan-line::after {
+  content: "";
+  display: block;
+  position: fixed;
+  z-index: -10;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 30vh;
+  mix-blend-mode: multiply;
+  backdrop-filter: contrast(10) saturate(2);
+  opacity: 0.3;
+  animation: scan-line 3s infinite linear;
+}
+.pregame-menu__background,
+.pregame-menu__background::before,
+.pregame-menu__background::after {
+  display: block;
   z-index: -200;
   position: fixed;
   left: 0;
@@ -84,10 +166,20 @@ body {
   background: url(/images/menu_bg.jpg);
   background-size: cover;
   background-position: center;
-  background-attachment: fixed;
+  opacity: 0.4;
+  animation: zoom-in-out 4s infinite ease-in-out;
+}
+.pregame-menu__background::before {
+  content: "";
+  animation: corrupt 0.3s infinite steps(1);
   opacity: 0.3;
-  filter: blur(2px);
-  animation: zoom-in-out 6s infinite ease-in-out;
+  clip-path: inset(0% 25% 40% 10%);
+}
+.pregame-menu__background::after {
+  content: "";
+  opacity: 0.3;
+  animation: corrupt 0.5s infinite steps(1);
+  clip-path: inset(34% 2% 10% 0);
 }
 .pregame-menu__container {
   display: flex;
