@@ -11,12 +11,14 @@ export default class LightManager extends AManager {
   private shadowMaskCanvas: HTMLCanvasElement | undefined;
   private shadowCtx: CanvasRenderingContext2D | undefined;
 
-  private readonly nightOverlayAlpha = 0.95;
-  private readonly playerLightRadius = 1.8;
-  private readonly playerLightConeLen = GRID_CONFIG.TILE_SIZE * 7;
+  private readonly nightOverlayAlpha = 0.85;
+  private readonly shadowOverlayAlpha = 0.5;
+  private readonly playerLightRadius = 2.15;
+  private readonly playerLightConeLen = GRID_CONFIG.TILE_SIZE * 8;
 
   private lightSourceIdCount: number = 0;
   private lightSources: Map<number, WorldPosition> = new Map();
+  private readonly lightSourceRadius = 4;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
@@ -83,7 +85,7 @@ export default class LightManager extends AManager {
     this.shadowCtx.clearRect(0, 0, this.shadowMaskCanvas.width, this.shadowMaskCanvas.height);
 
     this.ctx.save();
-    this.ctx.fillStyle = `rgba(0, 0, 0, ${this.nightOverlayAlpha})`;
+    this.ctx.fillStyle = "#000000";
     this.ctx.fillRect(0, 0, this.lightMaskCanvas.width, this.lightMaskCanvas.height);
     this.ctx.restore();
 
@@ -94,7 +96,7 @@ export default class LightManager extends AManager {
       this.drawBlocksShadow(lightScreenPos, blocks);
     }
     this.ctx.save();
-    // this.ctx.globalAlpha = this.nightOverlayAlpha;
+    this.ctx.globalAlpha = this.shadowOverlayAlpha;
     this.ctx.drawImage(this.shadowMaskCanvas, 0, 0);
     this.ctx.restore();
 
@@ -103,7 +105,7 @@ export default class LightManager extends AManager {
         x: lightSource.x + GRID_CONFIG.TILE_SIZE / 2,
         y: lightSource.y + GRID_CONFIG.TILE_SIZE / 2,
       });
-      this.drawRadialLight(lightScreenPos, 3);
+      this.drawRadialLight(lightScreenPos, this.lightSourceRadius);
     }
 
     const gameCanvasCtx = DrawManager.getContext();
@@ -171,7 +173,7 @@ export default class LightManager extends AManager {
 
   private drawBlocksShadow(playerScreen: ScreenPosition, blocks: Map<number, ABlock>): void {
     const levelGrid = this.gameInstance.MANAGERS.LevelManager.levelGrid;
-    const shadowLength = window.innerWidth / 2;
+    const shadowLength = this.playerLightConeLen * 10;
 
     if (!this.shadowCtx || !levelGrid) return;
 
