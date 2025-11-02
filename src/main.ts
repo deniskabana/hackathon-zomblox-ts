@@ -95,6 +95,5 @@ import type { Translation } from "./types/Translation";
 
   if (submitButton) {
     submitButton.addEventListener("click", launchGame);
-    submitButton.addEventListener("touchend", launchGame);
   }
 })();

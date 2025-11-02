@@ -44,20 +44,23 @@ body {
   width: 100%;
   z-index: 101;
   background: #000;
-  display: flex;
-  justify-content: center;
   color: #888;
-  max-height: 100%;
+  height: 100%;
   overflow-y: auto;
+  flex-direction: column;
+  display: flex;
 }
 .pregame-menu__container {
-  padding: 30px;
   display: flex;
+  flex-grow: 1;
+  justify-content: center;
   flex-direction: column;
   gap: 24px;
   min-width: 320px;
   max-width: 500px;
   width: 80%;
+  padding: 48px 0;
+  margin: 0 auto;
 }
 .pregame-menu__title {
   color: #ccc;
