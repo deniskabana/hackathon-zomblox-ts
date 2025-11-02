@@ -7,7 +7,8 @@ const csTranslation: TranslationDictionary = {
   "mainMenu.fullscreen": "Celá obrazovka",
   "mainMenu.appName": "Zomblocks",
   "mainMenu.languageTitle": "Jazyk",
-  "mainMenu.volumeTitle": "Hlasitost",
+  "mainMenu.volumeMusicTitle": "Hlasitost hudby",
+  "mainMenu.volumeSoundTitle": "Hlasitost efektů",
   "mainMenu.launchGame": "Spustit Zomblocks",
 
   "menuSettings.title": "Nastavení",

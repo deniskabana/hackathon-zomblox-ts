@@ -5,7 +5,8 @@ const enTranslation = {
   "mainMenu.fullscreen": "Full screen",
   "mainMenu.appName": "Zomblocks",
   "mainMenu.languageTitle": "Language",
-  "mainMenu.volumeTitle": "Volume",
+  "mainMenu.volumeMusicTitle": "Music volume",
+  "mainMenu.volumeSoundTitle": "Effects volume",
   "mainMenu.launchGame": "Launch Zomblocks",
 
   "menuSettings.title": "Settings",

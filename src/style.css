@@ -57,14 +57,14 @@ body {
   padding: 30px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
   min-width: 320px;
-  max-width: 768px;
+  max-width: 500px;
   width: 80%;
 }
 .pregame-menu__title {
   color: #ccc;
-  font-size: 42px;
+  font-size: 36px;
   font-weight: bold;
   margin: 0;
   text-align: center;
@@ -72,19 +72,19 @@ body {
 .pregame-menu__group-title {
   margin: 0;
   text-align: center;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: normal;
 }
 .pregame-menu__group {
   display: flex;
-  justify-content: center;
-  gap: 16px;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
 }
 .pregame-menu__lng-btn {
-  margin-top: 8px;
   display: flex;
   font-weight: normal;
-  font-size: 16px;
+  font-size: 14px;
   appearance: none;
   border: none;
   background: #222;
@@ -93,28 +93,29 @@ body {
   border-radius: 16px;
 }
 .pregame-menu__lng-btn.active {
-  background: #ccc;
-  color: #222;
+  background: #933;
   font-weight: bold;
 }
 .pregame-menu__launch-btn {
-  background: #369;
+  background: #933;
   border: none;
   border-radius: 30px;
-  font-size: 18px;
+  font-size: 16px;
   padding: 12px 16px;
   appearance: none;
   display: flex;
   justify-content: center;
-  max-width: 450px;
-  width: 100%;
-  margin: 0 auto;
 }
 .pregame-menu__separator {
   display: block;
   width: 100%;
   height: 1px;
   border-bottom: 1px dashed #555;
+}
+input[type="range"] {
+  width: 200px;
+  accent-color: #933;
+  height: 4px;
 }
 
 .hidden {
