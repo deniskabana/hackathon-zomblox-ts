@@ -11,7 +11,7 @@ export default class LightManager extends AManager {
   private shadowMaskCanvas: HTMLCanvasElement | undefined;
   private shadowCtx: CanvasRenderingContext2D | undefined;
 
-  private readonly nightOverlayAlpha = 0.5;
+  private readonly nightOverlayAlpha = 0.95;
   private readonly playerLightRadius = 1.8;
   private readonly playerLightConeLen = GRID_CONFIG.TILE_SIZE * 7;
 
@@ -91,9 +91,12 @@ export default class LightManager extends AManager {
       const lightScreenPos = CameraManager.worldToScreen(player);
       this.drawRadialLight(lightScreenPos, this.playerLightRadius);
       this.drawLightCone(lightScreenPos, facingAngle, zoom);
-      this.drawBlocksShadow(lightScreenPos, blocks, zoom);
+      this.drawBlocksShadow(lightScreenPos, blocks);
     }
+    this.ctx.save();
+    // this.ctx.globalAlpha = this.nightOverlayAlpha;
     this.ctx.drawImage(this.shadowMaskCanvas, 0, 0);
+    this.ctx.restore();
 
     for (const lightSource of this.lightSources.values()) {
       const lightScreenPos = CameraManager.worldToScreen({
@@ -106,7 +109,7 @@ export default class LightManager extends AManager {
     const gameCanvasCtx = DrawManager.getContext();
     if (!gameCanvasCtx) return;
     gameCanvasCtx.save();
-    gameCanvasCtx.globalAlpha = 0.9;
+    gameCanvasCtx.globalAlpha = this.nightOverlayAlpha;
     gameCanvasCtx.drawImage(this.lightMaskCanvas, 0, 0, this.lightMaskCanvas.width, this.lightMaskCanvas.height);
     gameCanvasCtx.restore();
   }
@@ -166,9 +169,9 @@ export default class LightManager extends AManager {
     this.ctx.restore();
   }
 
-  private drawBlocksShadow(playerScreen: ScreenPosition, blocks: Map<number, ABlock>, zoom: number): void {
+  private drawBlocksShadow(playerScreen: ScreenPosition, blocks: Map<number, ABlock>): void {
     const levelGrid = this.gameInstance.MANAGERS.LevelManager.levelGrid;
-    const shadowLength = GRID_CONFIG.TILE_SIZE * 8 * zoom;
+    const shadowLength = window.innerWidth / 2;
 
     if (!this.shadowCtx || !levelGrid) return;
 
