@@ -6,6 +6,11 @@ import type { Translation } from "./types/Translation";
 
 (function () {
   const game = new GameInstance();
+  game.canvas.classList.add("hidden");
+
+  // Translations
+  // ==================================================
+
   let dictionary: Translation["dictionary"];
 
   function applyTranslation(lang: string = "en") {
@@ -50,10 +55,40 @@ import type { Translation } from "./types/Translation";
     }
   }
 
+  // Volume sliders
+  // ==================================================
+
+  const volumeSliders = document.querySelectorAll<HTMLInputElement>("input.pregame-menu__volume-slider");
+  for (const slider of volumeSliders) {
+    const max = parseInt(slider.max);
+    const type = (slider.dataset["volume"] || "master") as "master" | "music" | "effects";
+    slider.value = String((game.MANAGERS.GameManager.getSettings().volume[type] ?? 1) * max);
+    slider.addEventListener("change", () => {
+      const inputValue = parseInt(slider.value);
+      const value = inputValue / max;
+      game.MANAGERS.GameManager.setSettings({ volume: { [type]: value } });
+    });
+  }
+
+  // Fullscreen button
+  // ==================================================
+
+  const fullscreenButton = document.querySelector<HTMLButtonElement>("button.pregame-menu__fullscreen-btn");
+  if (fullscreenButton) {
+    fullscreenButton.addEventListener("click", () => {
+      if (document.fullscreenElement === document.body) document.exitFullscreen();
+      else document.body.requestFullscreen();
+    });
+  }
+
+  // Launch game
+  // ==================================================
+
   const submitButton = document.getElementById("launch-game");
 
   async function launchGame() {
     document.getElementById("pregame")?.classList.add("hidden");
+    game.canvas.classList.remove("hidden");
     await game.init();
     game.startGame();
   }

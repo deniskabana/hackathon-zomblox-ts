@@ -3,6 +3,7 @@ const enTranslation = {
   "mainMenu.settings": "Settings",
   "mainMenu.mapEditor": "Map editor",
   "mainMenu.fullscreen": "Full screen",
+  "mainMenu.fullscreenBtn": "Toggle full screen",
   "mainMenu.appName": "Zomblocks",
   "mainMenu.languageTitle": "Language",
   "mainMenu.volumeMusicTitle": "Music volume",

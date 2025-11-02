@@ -75,7 +75,7 @@ export default class GameInstance {
     canvas.height = window.innerHeight;
     canvas.oncontextmenu = (e) => e.preventDefault();
 
-    document.body.appendChild(canvas);
+    (document.getElementById("game") ?? document.body).appendChild(canvas);
     return canvas;
   }
 

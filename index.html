@@ -25,7 +25,7 @@
           <h2 class="pregame-menu__group-title" data-tkey="mainMenu.volumeMusicTitle"></h2>
           <div class="pregame-menu__group">
             <span>🎵</span>
-            <input type="range" min="0" max="5" value="5" />
+            <input type="range" min="0" max="8" value="8" class="pregame-menu__volume-slider" data-volume="music" />
           </div>
         </div>
 
@@ -33,15 +33,24 @@
           <h2 class="pregame-menu__group-title" data-tkey="mainMenu.volumeSoundTitle"></h2>
           <div class="pregame-menu__group">
             <span>🔈</span>
-            <input type="range" min="0" max="5" value="5" />
+            <input type="range" min="0" max="8" value="8" class="pregame-menu__volume-slider" data-volume="effects" />
           </div>
+        </div>
+
+        <div class="pregame-menu__group">
+          <h2 class="pregame-menu__group-title" data-tkey="mainMenu.fullscreen"></h2>
+          <button class="pregame-menu__fullscreen-btn" data-tkey="mainMenu.fullscreenBtn"></button>
         </div>
 
         <div class="pregame-menu__separator"></div>
 
-        <button class="pregame-menu__launch-btn" data-tkey="mainMenu.launchGame" id="launch-game"></button>
+        <div class="pregame-menu__group">
+          <button class="pregame-menu__launch-btn" data-tkey="mainMenu.launchGame" id="launch-game"></button>
+        </div>
       </div>
     </div>
+
+    <div id="game"></div>
 
     <script type="module" src="/src/main.ts"></script>
   </body>

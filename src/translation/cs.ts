@@ -5,6 +5,7 @@ const csTranslation: TranslationDictionary = {
   "mainMenu.settings": "Nastavení",
   "mainMenu.mapEditor": "Editor mapy",
   "mainMenu.fullscreen": "Celá obrazovka",
+  "mainMenu.fullscreenBtn": "Přepnout režim",
   "mainMenu.appName": "Zomblocks",
   "mainMenu.languageTitle": "Jazyk",
   "mainMenu.volumeMusicTitle": "Hlasitost hudby",

@@ -11,7 +11,7 @@ export default function getUiControls(gameInstance: GameInstance) {
   return {
     fullScreenButton: getFullScreenButton(gameInstance),
     sleepUntilNightButton: getSleepUntilNightButton(gameInstance),
-    masterVolumeToggleButton: getMasterVolumeToggleButton(gameInstance),
+    // masterVolumeToggleButton: getMasterVolumeToggleButton(gameInstance),
     buildModeButton: getBuildModeButton(gameInstance),
     shootButton: getShootButton(gameInstance),
   } satisfies UiControls;
@@ -42,7 +42,8 @@ function getFullScreenButton(gameInstance: GameInstance): UiControls[string] {
   };
 }
 
-function getMasterVolumeToggleButton(gameInstance: GameInstance): UiControls[string] {
+// @ts-expect-error TODO: Remove or uncomment
+function _getMasterVolumeToggleButton(gameInstance: GameInstance): UiControls[string] {
   const buttonEl = document.createElement("div");
   gameInstance.MANAGERS.UIManager.uiContainer.appendChild(buttonEl);
   buttonEl.className = cx(styles.uiControl, styles.masterVolumeToggleButton);
