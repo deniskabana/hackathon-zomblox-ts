@@ -1,13 +1,18 @@
 :root {
   user-select: none;
   cursor: crosshair;
-  font-family: Avenir, sans-serif;
   line-height: 1.5;
+  letter-spacing: 0.25px;
   font-weight: 400;
 
   color-scheme: dark;
   color: rgba(255, 255, 255, 0.87);
   background-color: #000;
+
+  --color-border: #888;
+  --color-text: #ccc;
+  --color-text-dimmed: #666;
+  --color-accent: #933;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -17,6 +22,13 @@
 
 html {
   height: 100%;
+  font-size: 18px;
+}
+
+*,
+*::before,
+*::after {
+  font-family: "Rubik Glitch", system-ui;
 }
 
 body {
@@ -43,12 +55,38 @@ body {
 .pregame-menu {
   width: 100%;
   z-index: 101;
-  background: #000;
-  color: #888;
+  color: var(--color-text-dimmed);
   height: 100%;
   overflow-y: auto;
   flex-direction: column;
   display: flex;
+}
+@keyframes zoom-in-out {
+  0% {
+    transform: scale3d(1, 1, 1) rotateZ(2deg);
+  }
+  50% {
+    transform: scale3d(1.05, 1.05, 1.05) rotateZ(0deg);
+  }
+  100% {
+    transform: scale3d(1, 1, 1) rotateZ(2deg);
+  }
+}
+.pregame-menu::before {
+  content: "";
+  z-index: -200;
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  background: url(/images/menu_bg.jpg);
+  background-size: cover;
+  background-position: center;
+  opacity: 0.3;
+  filter: blur(2px);
+  animation: zoom-in-out 18s infinite ease-in-out;
 }
 .pregame-menu__container {
   display: flex;
@@ -63,8 +101,8 @@ body {
   margin: 0 auto;
 }
 .pregame-menu__title {
-  color: #ccc;
-  font-size: 36px;
+  color: var(--color-text);
+  font-size: 2.5rem;
   font-weight: bold;
   margin: 0;
   text-align: center;
@@ -72,7 +110,7 @@ body {
 .pregame-menu__group-title {
   margin: 0;
   text-align: left;
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: normal;
 }
 .pregame-menu__group {
@@ -84,7 +122,7 @@ body {
 .pregame-menu__lng-btn {
   display: flex;
   font-weight: normal;
-  font-size: 14px;
+  font-size: 0.8rem;
   appearance: none;
   border: none;
   background: #444;
@@ -93,11 +131,11 @@ body {
   border-radius: 16px;
 }
 .pregame-menu__lng-btn.active {
-  background: #933;
+  background: var(--color-accent);
   font-weight: bold;
 }
 .pregame-menu__launch-btn {
-  background: #933;
+  background: var(--color-accent);
   border: none;
   border-radius: 30px;
   font-size: 15px;
@@ -108,8 +146,8 @@ body {
   flex-grow: 1;
 }
 .pregame-menu__fullscreen-btn {
-  border: 2px solid #ccc;
-  color: #ccc;
+  border: 2px solid var(--color-text);
+  color: var(--color-text);
   background: none;
   padding: 4px 12px;
   appearance: none;
@@ -123,10 +161,10 @@ body {
   display: block;
   width: 100%;
   height: 1px;
-  border-bottom: 1px dashed #888;
+  border-bottom: 1px dashed var(--color-border);
 }
 input[type="range"] {
-  accent-color: #933;
+  accent-color: var(--color-accent);
   height: 4px;
 }
 
