@@ -6,8 +6,14 @@ import isInsideGrid from "../utils/grid/isInsideGrid";
 import areVectorsEqual from "../utils/math/areVectorsEqual";
 import { AManager } from "./abstract/AManager";
 
+export enum BlockTypes {
+  Wood = "Wood",
+  FireBarrel = "FireBarrel",
+}
+
 export default class BuildModeManager extends AManager {
   public isBuildModeActive: boolean;
+  private activeBlockType: BlockTypes | undefined;
   private activeGridTile: GridPosition | undefined;
   private reachableBlocks: GridPosition[] | undefined;
   private unreachableBlocks: GridPosition[] | undefined;
@@ -93,6 +99,7 @@ export default class BuildModeManager extends AManager {
       // TODO: this.gameInstance.MANAGERS.UIManager.showBuildModeToolbar();
       document.addEventListener("touchend", this.handleScreenTouch);
       document.addEventListener("mouseup", this.handleScreenTouch);
+      this.setBlockType(BlockTypes.Wood); // TODO: Add a mechanism to switch these
     } else {
       // TODO: this.gameInstance.MANAGERS.UIManager.hideBuildModeToolbar();
       document.removeEventListener("touchend", this.handleScreenTouch);
@@ -168,8 +175,8 @@ export default class BuildModeManager extends AManager {
       (acc, val) => (areVectorsEqual(gridPos, val) ? true : acc),
       false,
     );
-    if (isAvailable) {
-      this.gameInstance.MANAGERS.LevelManager.spawnBlock(gridPos);
+    if (isAvailable && this.activeBlockType) {
+      this.gameInstance.MANAGERS.LevelManager.spawnBlock(gridPos, this.activeBlockType);
       this.gameInstance.MANAGERS.AssetManager.playAudioAsset("ABlockWoodPlaced", "sound");
       hasBuilt = true;
     }
@@ -198,6 +205,14 @@ export default class BuildModeManager extends AManager {
     if (!isAvailable) return;
 
     this.activeGridTile = gridPos;
+  }
+
+  /**
+   * Set the type of block the player is building.
+   * @param type - A class reference of the block
+   */
+  public setBlockType(type: BlockTypes): void {
+    this.activeBlockType = type;
   }
 
   /**

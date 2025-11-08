@@ -18,6 +18,7 @@ import generateFlowField, { type FlowField } from "../utils/grid/generateFlowFie
 import raycast2D from "../utils/grid/raycast2D";
 import areVectorsEqual from "../utils/math/areVectorsEqual";
 import { AManager } from "./abstract/AManager";
+import { BlockTypes } from "./BuildModeManager";
 
 export default class LevelManager extends AManager {
   public worldWidth = WORLD_SIZE.WIDTH;
@@ -63,9 +64,9 @@ export default class LevelManager extends AManager {
     this.zombieSpawnInterval = gameSettings.zombieSpawnIntervalMs;
     this.levelState = { phase: "day", daysCounter: 0 };
 
-    this.spawnBlock({ x: 6, y: 5 }, "barrel-fire");
-    this.spawnBlock({ x: 4, y: 14 }, "barrel-fire");
-    this.spawnBlock({ x: 19, y: 12 }, "barrel-fire");
+    this.spawnBlock({ x: 6, y: 5 }, BlockTypes.FireBarrel);
+    this.spawnBlock({ x: 4, y: 14 }, BlockTypes.FireBarrel);
+    this.spawnBlock({ x: 19, y: 12 }, BlockTypes.FireBarrel);
 
     // TODO: Remove, top-left
     this.spawnBlock({ x: 8, y: 2 });
@@ -229,19 +230,17 @@ export default class LevelManager extends AManager {
     for (const zombie of this.zombies.values()) zombie.startWandering();
   }
 
-  public spawnBlock(pos: GridPosition, type: "wood" | "barrel-fire" = "wood"): void {
+  public spawnBlock(pos: GridPosition, type: BlockTypes = BlockTypes.Wood): void {
     const entityId = this.entityIdCounter++;
     let entity: ABlock;
 
     switch (type) {
-      case "barrel-fire":
-        entity = new BlockBarrelFire(pos, entityId, this.gameInstance);
-        break;
-
-      case "wood":
+      case BlockTypes.Wood:
         entity = new BlockWood(pos, entityId, this.gameInstance);
         break;
-
+      case BlockTypes.FireBarrel:
+        entity = new BlockBarrelFire(pos, entityId, this.gameInstance);
+        break;
       default:
         return assertNever(type);
     }
