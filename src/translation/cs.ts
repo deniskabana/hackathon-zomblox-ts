@@ -12,6 +12,7 @@ const csTranslation: TranslationDictionary = {
   "mainMenu.volumeMusicTitle": "Hlasitost hudby",
   "mainMenu.volumeSoundTitle": "Hlasitost efektů",
   "mainMenu.launchGame": "Spustit Zomblocks",
+  "mainMenu.links.gitHub": "Zdrojový kód (GitHub)",
 
   "menuSettings.title": "Nastavení",
   "menuSettings.touchControlsEnabled": "Dotykové ovládání zapnuto",

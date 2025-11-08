@@ -10,6 +10,7 @@ const enTranslation = {
   "mainMenu.volumeMusicTitle": "Music volume",
   "mainMenu.volumeSoundTitle": "Effects volume",
   "mainMenu.launchGame": "Launch Zomblocks",
+  "mainMenu.links.gitHub": "View source (GitHub)",
 
   "menuSettings.title": "Settings",
   "menuSettings.touchControlsEnabled": "Touch controls enabled",

@@ -288,6 +288,17 @@ body {
   height: 4px;
   flex: 1;
 }
+.pregame-menu__external-links {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: -1rem;
+}
+.pregame-menu__link {
+  color: var(--color-text-dimmed);
+  font-size: 0.8rem;
+  font-weight: 100;
+}
 
 .hidden {
   display: none;
