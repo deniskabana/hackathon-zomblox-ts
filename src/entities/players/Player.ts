@@ -160,6 +160,13 @@ export default class Player extends APlayer {
         raycastHit ? getVectorDistance(this.worldPos, raycastHit.worldPos) : maxDistance,
       );
     }
+
+    this.gameInstance.MANAGERS.CameraManager.effectZoom(
+      3 + weaponDef.damage / 2 + weaponDef.shots * 4 - weaponDef.cooldown * 2,
+    );
+    this.gameInstance.MANAGERS.CameraManager.effectShake(
+      3 + weaponDef.damage / 2 + weaponDef.shots * 4 - weaponDef.cooldown * 2,
+    );
   }
 
   private getPlayerSprite(): AssetImage {
@@ -206,6 +213,9 @@ export default class Player extends APlayer {
   public damage(amount: number): void {
     this.health -= amount;
     this.gunCooldownTimer += 0.4;
+
+    this.gameInstance.MANAGERS.CameraManager.effectZoom(amount * 2);
+    this.gameInstance.MANAGERS.CameraManager.effectShake(amount * 2.5);
 
     if (this.health <= 0) {
       this.die();

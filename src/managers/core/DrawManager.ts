@@ -144,8 +144,8 @@ export default class DrawManager extends AManager {
     this.ctx.save();
 
     const { CameraManager } = this.gameInstance.MANAGERS;
-    const width = cmd.width * CameraManager.zoom;
-    const height = cmd.height * CameraManager.zoom;
+    const width = cmd.width * CameraManager.zoom * 1.001;
+    const height = cmd.height * CameraManager.zoom * 1.001;
 
     if (cmd.alpha !== undefined) this.ctx.globalAlpha = cmd.alpha;
 

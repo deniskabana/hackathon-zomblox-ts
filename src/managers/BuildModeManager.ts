@@ -18,6 +18,8 @@ export default class BuildModeManager extends AManager {
   private reachableBlocks: GridPosition[] | undefined;
   private unreachableBlocks: GridPosition[] | undefined;
 
+  private readonly allAvailableBlocks: BlockTypes[] = [BlockTypes.Wood, BlockTypes.FireBarrel];
+
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
 
@@ -138,7 +140,7 @@ export default class BuildModeManager extends AManager {
         const levelGrid = this.gameInstance.MANAGERS.LevelManager.levelGrid;
         const isUnavailable = levelGrid?.[currentPos.x]?.[currentPos.y]?.state === GridTileState.BLOCKED;
 
-        if (isInsideGrid(currentPos) && !isUnavailable) {
+        if (isInsideGrid(currentPos, GRID_CONFIG, 2) && !isUnavailable) {
           reachableBlocks.push(currentPos);
         } else {
           unreachableBlocks.push(currentPos);

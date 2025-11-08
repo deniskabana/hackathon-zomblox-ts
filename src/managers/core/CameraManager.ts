@@ -18,6 +18,7 @@ export default class CameraManager extends AManager {
   private readonly maxZoom: number = 2;
 
   private readonly targetWorldWidth: number = 768;
+  private readonly followSpeed: number = 3;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
@@ -29,8 +30,14 @@ export default class CameraManager extends AManager {
   }
 
   public update(_deltaTime: number): void {
-    if (this.zoom !== this.targetZoom)
-      this.zoom = Math.round(lerp(this.zoom, this.targetZoom, _deltaTime * 9) * 100) / 100;
+    if (this.zoom !== this.targetZoom) {
+      if (Math.abs(this.zoom - this.targetZoom) < 0.002) {
+        this.zoom = this.targetZoom;
+        return;
+      }
+
+      this.zoom = Math.round(lerp(this.zoom, this.targetZoom, _deltaTime * 6) * 100) / 100;
+    }
   }
 
   private onResize = (): void => {
@@ -46,8 +53,17 @@ export default class CameraManager extends AManager {
   public followPlayer(_deltaTime: number, playerPos: WorldPosition): void {
     const levelManager = this.gameInstance.MANAGERS.LevelManager;
 
-    this.x = playerPos.x;
-    this.y = playerPos.y;
+    if (Math.abs(this.x - playerPos.x) < 0.1) {
+      this.x = playerPos.x;
+    } else {
+      this.x = lerp(this.x, playerPos.x, _deltaTime * this.followSpeed);
+    }
+
+    if (Math.abs(this.y - playerPos.y) < 0.1) {
+      this.y = playerPos.y;
+    } else {
+      this.y = lerp(this.y, playerPos.y, _deltaTime * this.followSpeed);
+    }
 
     const halfViewWidth = this.viewportWidth / 2 / this.zoom;
     const halfViewHeight = this.viewportHeight / 2 / this.zoom;
@@ -88,6 +104,15 @@ export default class CameraManager extends AManager {
       screen.y >= -zoomedMargin &&
       screen.y <= this.viewportHeight + zoomedMargin
     );
+  }
+
+  public effectZoom(strength: number = 5) {
+    this.zoom -= (Math.abs(this.zoom - this.targetZoom) / 30) * strength;
+  }
+
+  public effectShake(strength: number = 1) {
+    this.x += strength * -0.5 + Math.random() * strength;
+    this.y += strength * -0.5 + Math.random() * strength;
   }
 
   public setViewportSize(width?: number, height?: number): void {
