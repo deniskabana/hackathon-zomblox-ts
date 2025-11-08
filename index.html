@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Rubik+Glitch&family=Syne+Mono&display=swap" rel="stylesheet" />
   </head>
   <body>
-    <div id="pregame" class="pregame-menu">
+    <div id="pregame" class="pregame-menu" style="display: none">
       <div class="pregame-menu__background"></div>
       <div class="pregame-menu__scan-line"></div>
 
@@ -83,6 +83,19 @@
 
         <div class="pregame-menu__group">
           <button class="pregame-menu__launch-btn" data-tkey="mainMenu.launchGame" id="launch-game"></button>
+        </div>
+      </div>
+    </div>
+
+    <div id="build-toolbar" class="build-toolbar" style="display: none">
+      <div class="build-toolbar__container">
+        <div class="build-toolbar__button-group">
+          <div class="build-toolbar__button-arrow" data-direction="prev">←</div>
+          <div class="build-toolbar__active-block">
+            <img class="build-toolbar__active-block-img" />
+            <div class="build-toolbar__active-block-stock"></div>
+          </div>
+          <div class="build-toolbar__button-arrow" data-direction="next">→</div>
         </div>
       </div>
     </div>

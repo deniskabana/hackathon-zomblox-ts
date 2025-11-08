@@ -59,7 +59,8 @@ body {
   height: 100%;
   overflow-y: auto;
   flex-direction: column;
-  display: flex;
+  /* eslint-disable css/no-important */
+  display: flex !important;
   justify-content: center;
 }
 @keyframes zoom-in-out {
@@ -194,6 +195,7 @@ body {
   background: #20202078;
   border-radius: 2rem;
   backdrop-filter: blur(20px);
+  box-shadow: 0 0 3rem rgba(0, 0, 0, 0.4);
 }
 .pregame-menu__title-wrapper {
   display: flex;
@@ -300,7 +302,8 @@ body {
 }
 
 .hidden {
-  display: none;
+  /* eslint-disable css/no-important */
+  display: none !important;
 }
 .grow {
   flex-grow: 1;
