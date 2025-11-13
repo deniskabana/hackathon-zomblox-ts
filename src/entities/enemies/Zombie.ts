@@ -190,7 +190,7 @@ export default class Zombie extends AEnemy {
         return acc;
       }, this.gridPos);
 
-      this.moveTargetPos = gridToWorld(lowestDistanceNeighbor, true);
+      this.moveTargetPos = gridToWorld(lowestDistanceNeighbor, { center: true });
     } else {
       this.moveTargetPos = { ...player.worldPos };
     }
@@ -215,7 +215,7 @@ export default class Zombie extends AEnemy {
     if (x <= 0 || x >= GRID_CONFIG.GRID_WIDTH - 1 || y <= 0 || y >= GRID_CONFIG.GRID_HEIGHT - 1) {
       const offsetX = x <= 0 ? -10 : x >= GRID_CONFIG.GRID_WIDTH - 1 ? 10 : 0;
       const offsetY = y <= 0 ? -10 : y >= GRID_CONFIG.GRID_HEIGHT - 1 ? 10 : 0;
-      this.moveTargetPos = gridToWorld({ x: x + offsetX, y: y + offsetY }, true);
+      this.moveTargetPos = gridToWorld({ x: x + offsetX, y: y + offsetY }, { center: true });
       return;
     }
 
@@ -231,7 +231,7 @@ export default class Zombie extends AEnemy {
       return acc;
     }, this.gridPos);
 
-    this.moveTargetPos = gridToWorld(lowestDistanceNeighbor, true);
+    this.moveTargetPos = gridToWorld(lowestDistanceNeighbor, { center: true });
   }
 
   private zombieAttackPlayer(_deltaTime: number): void {

@@ -21,10 +21,15 @@ export interface WorldPosition {
   y: number;
 }
 
-export function gridToWorld(gridPos: GridPosition, center?: boolean): WorldPosition {
+export function gridToWorld(
+  gridPos: GridPosition,
+  config?: { center?: boolean; gridConfig?: GridConfig },
+): WorldPosition {
+  const center = config?.center;
+  const gridConfig = config?.gridConfig ?? GRID_CONFIG;
   return {
-    x: gridPos.x * GRID_CONFIG.TILE_SIZE + (center ? GRID_CONFIG.TILE_SIZE / 2 : 0),
-    y: gridPos.y * GRID_CONFIG.TILE_SIZE + (center ? GRID_CONFIG.TILE_SIZE / 2 : 0),
+    x: gridPos.x * gridConfig.TILE_SIZE + (center ? gridConfig.TILE_SIZE / 2 : 0),
+    y: gridPos.y * gridConfig.TILE_SIZE + (center ? gridConfig.TILE_SIZE / 2 : 0),
   };
 }
 

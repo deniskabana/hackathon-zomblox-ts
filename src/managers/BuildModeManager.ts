@@ -18,7 +18,7 @@ export default class BuildModeManager extends AManager {
   private reachableBlocks: GridPosition[] | undefined;
   private unreachableBlocks: GridPosition[] | undefined;
 
-  private readonly allAvailableBlocks: BlockTypes[] = [BlockTypes.Wood, BlockTypes.FireBarrel];
+  // private readonly allAvailableBlocks: BlockTypes[] = [BlockTypes.Wood, BlockTypes.FireBarrel];
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
