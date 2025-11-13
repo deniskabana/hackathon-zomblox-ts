@@ -1,5 +1,5 @@
 import testmap00 from "../../public/levels/basicmap-01.json";
-import { gridToWorld, worldToGrid, type GridConfig, type GridPosition } from "../config/gameGrid";
+import { worldToGrid, type GridConfig, type GridPosition } from "../config/gameGrid";
 import assertNever from "../utils/assertNever";
 import type { AnyLayer, LayerGroup, LayerObjectGroup, LayerTiles, MapObject } from "./map.types";
 

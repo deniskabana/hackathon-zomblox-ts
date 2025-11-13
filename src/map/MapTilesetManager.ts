@@ -3,10 +3,8 @@ import SpriteSheet, { type SpriteFrame } from "../utils/classes/SpriteSheet";
 export default class MapTilesetManager {
   private spriteSheet: SpriteSheet;
   private columns: number;
-  private tileSize: number;
 
   constructor(tilesetImage: HTMLImageElement, tileSize: number = 48) {
-    this.tileSize = tileSize;
     this.columns = Math.floor(tilesetImage.width / tileSize);
 
     // Calculate total tiles

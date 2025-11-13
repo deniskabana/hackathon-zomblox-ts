@@ -106,7 +106,8 @@ export default class CameraManager extends AManager {
     );
   }
 
-  public effectZoom(strength: number = 5) {
+  public effectZoom(_strength: number = 5) {
+    return;
     // this.zoom -= (Math.abs(this.zoom - this.targetZoom) / 30) * strength;
   }
 

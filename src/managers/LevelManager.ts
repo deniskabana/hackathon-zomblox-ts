@@ -170,17 +170,11 @@ export default class LevelManager extends AManager {
       height: camera.viewportHeight / camera.zoom,
     };
 
-    // return {
-    //   minX: Math.max(0, Math.floor((camera.x - viewport.width / 2) / GRID_CONFIG.TILE_SIZE)),
-    //   maxX: Math.min(GRID_CONFIG.GRID_WIDTH - 1, Math.ceil((camera.x + viewport.width / 2) / GRID_CONFIG.TILE_SIZE)),
-    //   minY: Math.max(0, Math.floor((camera.y - viewport.height / 2) / GRID_CONFIG.TILE_SIZE)),
-    //   maxY: Math.min(GRID_CONFIG.GRID_HEIGHT - 1, Math.ceil((camera.y + viewport.height / 2) / GRID_CONFIG.TILE_SIZE)),
-    // };
     return {
-      minX: 0,
-      minY: 0,
-      maxX: GRID_CONFIG.GRID_WIDTH - 1,
-      maxY: GRID_CONFIG.GRID_HEIGHT - 1,
+      minX: Math.max(0, Math.floor((camera.x - viewport.width / 2) / GRID_CONFIG.TILE_SIZE)),
+      maxX: Math.min(GRID_CONFIG.GRID_WIDTH - 1, Math.ceil((camera.x + viewport.width / 2) / GRID_CONFIG.TILE_SIZE)),
+      minY: Math.max(0, Math.floor((camera.y - viewport.height / 2) / GRID_CONFIG.TILE_SIZE)),
+      maxY: Math.min(GRID_CONFIG.GRID_HEIGHT - 1, Math.ceil((camera.y + viewport.height / 2) / GRID_CONFIG.TILE_SIZE)),
     };
   }
 
