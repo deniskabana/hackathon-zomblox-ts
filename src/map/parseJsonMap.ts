@@ -1,5 +1,5 @@
-import testmap00 from "../../public/levels/testmap-00.json";
-import { gridToWorld, type GridConfig, type GridPosition } from "../config/gameGrid";
+import testmap00 from "../../public/levels/basicmap-01.json";
+import { gridToWorld, worldToGrid, type GridConfig, type GridPosition } from "../config/gameGrid";
 import assertNever from "../utils/assertNever";
 import type { AnyLayer, LayerGroup, LayerObjectGroup, LayerTiles, MapObject } from "./map.types";
 
@@ -65,9 +65,9 @@ function parseLayer(mapLayer: Record<string, unknown> | AnyLayer, parsedMap: Gam
 
     case "":
       if (typedLayer.point === true) {
-        parsedMap.spawn = gridToWorld({ x: typedLayer.x, y: typedLayer.y }, { gridConfig: mapConfig });
+        parsedMap.spawn = worldToGrid({ x: typedLayer.x, y: typedLayer.y }, { gridConfig: mapConfig });
       } else {
-        parsedMap.objects.push(gridToWorld({ x: typedLayer.x, y: typedLayer.y }, { gridConfig: mapConfig }));
+        parsedMap.objects.push(worldToGrid({ x: typedLayer.x, y: typedLayer.y }, { gridConfig: mapConfig }));
       }
       break;
 

@@ -1,4 +1,11 @@
-import { GRID_CONFIG, gridToWorld, WORLD_SIZE, type GridPosition, type WorldPosition } from "../config/gameGrid";
+import {
+  GRID_CONFIG,
+  gridToWorld,
+  setGridConfig,
+  WORLD_SIZE,
+  type GridPosition,
+  type WorldPosition,
+} from "../config/gameGrid";
 import type ABlock from "../entities/abstract/ABlock";
 import type ACollectable from "../entities/abstract/ACollectable";
 import BlockBarrelFire from "../entities/blocks/BlockBarrelFire";
@@ -7,10 +14,14 @@ import Coin from "../entities/collectables/Coin";
 import Zombie from "../entities/enemies/Zombie";
 import Player from "../entities/players/Player";
 import type GameInstance from "../GameInstance";
+import MapTilesetManager from "../map/MapTilesetManager";
+import type { GameMap } from "../map/parseJsonMap";
+import parseJsonMap from "../map/parseJsonMap";
 import type { AudioControl } from "../types/AudioControl";
 import { EntityType } from "../types/EntityType";
 import { GridTileState, type GridTileRef, type LevelGrid } from "../types/Grid";
 import type { LevelState } from "../types/LevelState";
+import type { TileBounds } from "../types/TileBounds";
 import { ZIndex } from "../types/ZIndex";
 import assertNever from "../utils/assertNever";
 import generateEmptyLevelGrid from "../utils/grid/generateEmptyLevelGrid";
@@ -21,8 +32,8 @@ import { AManager } from "./abstract/AManager";
 import { BlockTypes } from "./BuildModeManager";
 
 export default class LevelManager extends AManager {
-  public worldWidth = WORLD_SIZE.WIDTH;
-  public worldHeight = WORLD_SIZE.HEIGHT;
+  public worldWidth: number = WORLD_SIZE.WIDTH;
+  public worldHeight: number = WORLD_SIZE.HEIGHT;
   public levelState?: LevelState;
   private entityIdCounter: number = 0;
 
@@ -30,6 +41,10 @@ export default class LevelManager extends AManager {
   public levelGrid?: LevelGrid;
   public flowField?: FlowField;
   public retreatFlowFields?: FlowField[];
+
+  // Map data
+  private tileLayers?: GameMap["tileLayers"];
+  private tileset?: MapTilesetManager;
 
   // Entities
   public player?: Player;
@@ -56,9 +71,21 @@ export default class LevelManager extends AManager {
   }
 
   public init(): void {
-    this.player = new Player({ x: 2, y: 2 }, this.entityIdCounter++, this.gameInstance);
+    const { map, config } = parseJsonMap();
+    setGridConfig(config);
+
+    this.worldWidth = config.TILE_SIZE * config.GRID_WIDTH;
+    this.worldHeight = config.TILE_SIZE * config.GRID_HEIGHT;
+
+    const tilesetImage = this.gameInstance.MANAGERS.AssetManager.getImageAsset("TMapTilesetDemo");
+    if (!tilesetImage) throw new Error("Tileset image not loaded");
+    this.tileset = new MapTilesetManager(tilesetImage, config.TILE_SIZE);
+    this.tileLayers = map.tileLayers;
+
+    this.levelGrid = generateEmptyLevelGrid(config, map.objects);
+
+    this.player = new Player(map.spawn, this.entityIdCounter++, this.gameInstance);
     this.lastPlayerGridPos = this.player.gridPos;
-    this.levelGrid = generateEmptyLevelGrid(GRID_CONFIG);
 
     const gameSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
     this.zombieSpawnInterval = gameSettings.zombieSpawnIntervalMs;
@@ -84,48 +111,12 @@ export default class LevelManager extends AManager {
   }
 
   public drawEntities(): void {
-    this.player?.draw();
+    if (this.tileLayers && this.tileset) this.drawTileLayers();
 
     for (const zombie of this.zombies.values()) zombie.draw();
     for (const block of this.blocks.values()) block.draw();
     for (const coin of this.collectables.values()) coin.draw();
-
-    // Render ground
-    this.levelGrid?.forEach((gridRow, x) => {
-      gridRow.forEach((_gridCol, y) => {
-        if (!this.gameInstance.MANAGERS.CameraManager.isOnScreen(gridToWorld({ x, y }))) return;
-
-        const tileWorldPos = gridToWorld({ x, y });
-        const texture = this.gameInstance.MANAGERS.AssetManager.getImageAsset("ITextureGround");
-        if (!texture) return;
-
-        const settings = this.gameInstance.MANAGERS.GameManager.getSettings();
-        if (!settings.debug.enableFlowFieldRender) {
-          this.gameInstance.MANAGERS.DrawManager.queueDraw(
-            tileWorldPos.x,
-            tileWorldPos.y,
-            texture,
-            GRID_CONFIG.TILE_SIZE,
-            GRID_CONFIG.TILE_SIZE,
-            ZIndex.GROUND,
-          );
-        } else {
-          // Debug renderer (flow field distance map)
-          let distance = 0;
-          if (this.retreatFlowFields) distance = this.retreatFlowFields[0]?.[x][y].distance ?? 0;
-          else distance = this.flowField?.[x][y].distance ?? 0;
-          this.gameInstance.MANAGERS.DrawManager.drawText(
-            String(distance),
-            tileWorldPos.x + GRID_CONFIG.TILE_SIZE / 2,
-            tileWorldPos.y + GRID_CONFIG.TILE_SIZE / 2,
-            `rgb(${distance * 10}, ${205 - distance * 5}, 40)`,
-            14,
-            "Arial",
-            "center",
-          );
-        }
-      });
-    });
+    this.player?.draw();
 
     if (!this.getIsDay() && this.player) {
       this.gameInstance.MANAGERS.LightManager.drawNightLighting(
@@ -134,6 +125,63 @@ export default class LevelManager extends AManager {
         this.blocks,
       );
     }
+  }
+
+  private drawTileLayers(): void {
+    if (!this.tileLayers || !this.tileset) return;
+
+    const visibleBounds = this.getVisibleTileBounds();
+
+    this.renderLayer(this.tileLayers.ground, ZIndex.MAP_GROUND, visibleBounds);
+    this.renderLayer(this.tileLayers.groundDecor, ZIndex.MAP_GROUND_DECOR, visibleBounds);
+    this.renderLayer(this.tileLayers.overlay, ZIndex.MAP_OVERLAY, visibleBounds);
+    this.renderLayer(this.tileLayers.overlayDecor, ZIndex.MAP_OVERLAY_DECOR, visibleBounds);
+  }
+
+  private renderLayer(layer: number[], zIndex: number, bounds: TileBounds): void {
+    for (let y = bounds.minY; y <= bounds.maxY; y++) {
+      for (let x = bounds.minX; x <= bounds.maxX; x++) {
+        const index = y * GRID_CONFIG.GRID_WIDTH + x;
+        const tileId = layer[index];
+
+        if (tileId === 0) continue;
+
+        const tileData = this.tileset!.getTileFrame(tileId);
+        if (!tileData) continue;
+
+        const worldPos = gridToWorld({ x, y });
+        this.gameInstance.MANAGERS.DrawManager.queueDrawSprite(
+          worldPos.x - 1,
+          worldPos.y - 1,
+          tileData.spriteSheet,
+          tileData.frameIndex,
+          GRID_CONFIG.TILE_SIZE + 2,
+          GRID_CONFIG.TILE_SIZE + 2,
+          zIndex,
+        );
+      }
+    }
+  }
+
+  private getVisibleTileBounds(): TileBounds {
+    const camera = this.gameInstance.MANAGERS.CameraManager;
+    const viewport = {
+      width: camera.viewportWidth / camera.zoom,
+      height: camera.viewportHeight / camera.zoom,
+    };
+
+    // return {
+    //   minX: Math.max(0, Math.floor((camera.x - viewport.width / 2) / GRID_CONFIG.TILE_SIZE)),
+    //   maxX: Math.min(GRID_CONFIG.GRID_WIDTH - 1, Math.ceil((camera.x + viewport.width / 2) / GRID_CONFIG.TILE_SIZE)),
+    //   minY: Math.max(0, Math.floor((camera.y - viewport.height / 2) / GRID_CONFIG.TILE_SIZE)),
+    //   maxY: Math.min(GRID_CONFIG.GRID_HEIGHT - 1, Math.ceil((camera.y + viewport.height / 2) / GRID_CONFIG.TILE_SIZE)),
+    // };
+    return {
+      minX: 0,
+      minY: 0,
+      maxX: GRID_CONFIG.GRID_WIDTH - 1,
+      maxY: GRID_CONFIG.GRID_HEIGHT - 1,
+    };
   }
 
   public destroyEntity(entityId: number, type: EntityType): void {

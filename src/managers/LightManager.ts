@@ -11,14 +11,14 @@ export default class LightManager extends AManager {
   private shadowMaskCanvas: HTMLCanvasElement | undefined;
   private shadowCtx: CanvasRenderingContext2D | undefined;
 
-  private readonly nightOverlayAlpha = 0.85;
+  private readonly nightOverlayAlpha = 1;
   private readonly shadowOverlayAlpha = 0.85;
-  private readonly playerLightRadius = 2.15;
-  private readonly playerLightConeLen = GRID_CONFIG.TILE_SIZE * 8;
+  private readonly playerLightRadius = 3;
+  private readonly playerLightConeLen = GRID_CONFIG.TILE_SIZE * 9;
 
   private lightSourceIdCount: number = 0;
   private lightSources: Map<number, WorldPosition> = new Map();
-  private readonly lightSourceRadius = 4;
+  private readonly lightSourceRadius = 4.5;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);

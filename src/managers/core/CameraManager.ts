@@ -17,7 +17,7 @@ export default class CameraManager extends AManager {
   private readonly minZoom: number = 0.5;
   private readonly maxZoom: number = 2;
 
-  private readonly targetWorldWidth: number = 768;
+  private readonly targetWorldWidth: number = 1024;
   private readonly followSpeed: number = 3;
 
   constructor(gameInstance: GameInstance) {
@@ -107,7 +107,7 @@ export default class CameraManager extends AManager {
   }
 
   public effectZoom(strength: number = 5) {
-    this.zoom -= (Math.abs(this.zoom - this.targetZoom) / 30) * strength;
+    // this.zoom -= (Math.abs(this.zoom - this.targetZoom) / 30) * strength;
   }
 
   public effectShake(strength: number = 1) {
