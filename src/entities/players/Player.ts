@@ -9,6 +9,7 @@ import { ZIndex } from "../../types/ZIndex";
 import assertNever from "../../utils/assertNever";
 import areVectorsEqual from "../../utils/math/areVectorsEqual";
 import getVectorDistance from "../../utils/math/getVectorDistance";
+import lerp from "../../utils/math/lerp";
 import normalizeVector from "../../utils/math/normalizeVector";
 import radiansToVector from "../../utils/math/radiansToVector";
 import APlayer from "../abstract/APlayer";
@@ -231,7 +232,7 @@ export default class Player extends APlayer {
     const joystickMoveIntensity = this.gameInstance.MANAGERS.InputManager.getMoveIntensity();
     if (joystickMoveIntensity !== undefined) speed *= joystickMoveIntensity;
 
-    this.facingDirection = this.getAimAngle();
+    this.facingDirection = lerp(this.facingDirection, this.getAimAngle(), _deltaTime * 16);
 
     if (movementVector.x === 0 && movementVector.y === 0) {
       this.isMoving = false;
