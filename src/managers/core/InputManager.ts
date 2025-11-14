@@ -6,6 +6,7 @@ import { AManager } from "../abstract/AManager";
 import styles from "../../styles/uiControls.module.css";
 import getVectorDistance from "../../utils/math/getVectorDistance";
 import radiansToVector from "../../utils/math/radiansToVector";
+import { Direction, getCardinalDirection } from "../../utils/getCardinalDirection";
 
 export default class InputManager extends AManager {
   private aimDirection: number = 0;
@@ -140,11 +141,28 @@ export default class InputManager extends AManager {
       }
 
       const angle = getDirectionalAngle({ x: touch.clientX, y: touch.clientY }, joystickCenter);
+      const direction = getCardinalDirection(angle);
 
       if (event.target === joystickLeft) {
         this.moveDirection = angle;
-        const targetDistance = Math.min(this.joystickMaxDistance, distance) - this.joystickMinDistance;
-        this.moveIntensityNilToOne = targetDistance / (this.joystickMaxDistance - this.joystickMinDistance);
+        switch (direction) {
+          case Direction.RIGHT:
+            this.moveDirection = 0;
+            break;
+          case Direction.UP:
+            this.moveDirection = Math.PI / 2; // 90°
+            break;
+          case Direction.LEFT:
+            this.moveDirection = Math.PI; // 180°
+            break;
+          case Direction.DOWN:
+            this.moveDirection = (3 * Math.PI) / 2; // 270°
+            break;
+        }
+        this.aimDirection = this.moveDirection;
+        // const targetDistance = Math.min(this.joystickMaxDistance, distance) - this.joystickMinDistance;
+        // this.moveIntensityNilToOne = targetDistance / (this.joystickMaxDistance - this.joystickMinDistance);
+        this.moveIntensityNilToOne = 1;
 
         this.updateTouchJoystickHandles(angle, this.moveIntensityNilToOne, joystickCenter, joystickLeftHandle);
       }

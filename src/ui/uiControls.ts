@@ -170,11 +170,7 @@ export function getShootButton(gameInstance: GameInstance): UiControls[string] {
   buttonEl.addEventListener("touchcancel", handleRelase);
 
   return {
-    draw: () => {
-      const isDay = gameInstance.MANAGERS.LevelManager.getIsDay();
-      const desiredOpacity = !isDay ? "1" : "0";
-      if (buttonEl.style.opacity !== desiredOpacity) buttonEl.style.opacity = desiredOpacity;
-    },
+    draw: () => {},
     destroy: () => {
       buttonEl.removeEventListener("touchstart", handleClick);
       buttonEl.removeEventListener("touchend", handleClick);
