@@ -88,7 +88,10 @@ export default class LevelManager extends AManager {
     this.lastPlayerGridPos = this.player.gridPos;
 
     const gameSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
-    this.zombieSpawnInterval = gameSettings.zombieSpawnIntervalMs;
+    this.zombieSpawnInterval = Math.min(
+      gameSettings.zombieSpawnIntervalMs,
+      (gameSettings.nightDurationSec * 1000) / this.zombieSpawnsLeft,
+    );
     this.levelState = { phase: "day", daysCounter: 0 };
   }
 
@@ -266,6 +269,9 @@ export default class LevelManager extends AManager {
     this.isSpawningZombies = true;
     const dayCountCoef = (this.levelState?.daysCounter ?? 1) - 1;
     this.zombieSpawnsLeft = Math.ceil(settings.zombieSpawnAmount * settings.zombieSpawnCoef ** dayCountCoef);
+    this.zombieSpawnInterval = Math.floor(
+      Math.min(settings.zombieSpawnIntervalMs, (settings.nightDurationSec * 1000) / this.zombieSpawnsLeft),
+    );
 
     for (let i = 0; i < settings.startZombiesAmount; i++) {
       if (this.zombieSpawnsLeft <= 0) return;
