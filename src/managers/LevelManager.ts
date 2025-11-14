@@ -264,7 +264,8 @@ export default class LevelManager extends AManager {
   private startSpawningZombies(): void {
     const settings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
     this.isSpawningZombies = true;
-    this.zombieSpawnsLeft = settings.zombieSpawnAmount;
+    const dayCountCoef = (this.levelState?.daysCounter ?? 1) - 1;
+    this.zombieSpawnsLeft = Math.ceil(settings.zombieSpawnAmount * settings.zombieSpawnCoef ** dayCountCoef);
 
     for (let i = 0; i < settings.startZombiesAmount; i++) {
       if (this.zombieSpawnsLeft <= 0) return;

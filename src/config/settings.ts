@@ -12,12 +12,12 @@ export const DEFAULT_SETTINGS = {
       enableRewardAutoCollect: false,
       coinLifetime: 20,
       rewardCoef: 1,
-      zombieSpawnIntervalMs: 1500,
-      zombieSpawnAmount: 20,
-      zombieSpawnCoef: 1.2,
+      zombieSpawnIntervalMs: 900,
+      zombieSpawnAmount: 15,
+      zombieSpawnCoef: 1.15,
       nightDurationSec: 40,
       enableBlocksDestruction: true,
-      startZombiesAmount: 3,
+      startZombiesAmount: 5,
     },
     zombie: {
       enableErraticBehavior: true,
@@ -39,7 +39,7 @@ export const DEFAULT_SETTINGS = {
     player: {
       startHealth: 100,
       movementSpeed: 180,
-      defaultWeapon: "Revolver" as Weapon,
+      defaultWeapon: "Shotgun" as Weapon,
     },
     blocks: {
       woodStartHealth: 30,
