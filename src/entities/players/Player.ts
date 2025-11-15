@@ -136,7 +136,6 @@ export default class Player extends APlayer {
   }
 
   public shoot(): void {
-    this.die();
     if (this.playerState !== PlayerState.NORMAL) return;
     if (this.gunCooldownTimer > 0) return;
 
@@ -289,13 +288,14 @@ export default class Player extends APlayer {
   }
 
   private die(): void {
+    const { VFXManager, AssetManager, LevelManager, UIManager } = this.gameInstance.MANAGERS;
     this.playerState = PlayerState.DEAD;
-    this.gameInstance.MANAGERS.VFXManager.drawBloodOnScreen(600);
-    this.gameInstance.MANAGERS.AssetManager.playAudioAsset("APlayerDie", "sound");
-    this.gameInstance.MANAGERS.LevelManager.destroyEntity(-1, EntityType.PLAYER);
-
-    // TODO: Game over screen
-    // setTimeout(this.gameInstance.restartGame.bind(this.gameInstance), 5000);
+    VFXManager.drawBloodOnScreen(600);
+    AssetManager.playAudioAsset("APlayerDie", "sound");
+    LevelManager.destroyEntity(-1, EntityType.PLAYER);
+    const levelState = LevelManager.levelState;
+    if (!levelState) return;
+    UIManager.showGameOverScreen(levelState);
   }
 
   public destroy(): void {}

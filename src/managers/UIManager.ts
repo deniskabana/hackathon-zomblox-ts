@@ -3,6 +3,7 @@ import styles from "../styles/UIManager.module.css";
 import debugStyles from "../styles/debug.module.css";
 import hudStyles from "../styles/hud.module.css";
 import uiControlsStyles from "../styles/uiControls.module.css";
+import type { LevelState } from "../types/LevelState";
 import getUiControls from "../ui/uiControls";
 import cx from "../utils/cx";
 import { AManager } from "./abstract/AManager";
@@ -222,5 +223,46 @@ export default class UIManager extends AManager {
       for (const control of Object.values(this.uiControls)) control.destroy();
       this.uiControls = undefined;
     }
+  }
+
+  public showGameOverScreen(levelState: LevelState): void {
+    const gameOverScreen = document.getElementById("game-over");
+    if (!gameOverScreen) return;
+    gameOverScreen.style.display = "flex";
+    const dictionary = this.gameInstance.translation.dictionary;
+
+    const titleArr = this.gameInstance.translation.dictionary["gameOver.funnyTitles"];
+    const titleElem = document.getElementsByClassName("game-over__title");
+    if (titleElem[0]) titleElem[0].innerHTML = titleArr[Math.floor(titleArr.length * Math.random())];
+
+    const subtitleArr = this.gameInstance.translation.dictionary["gameOver.funnyQuotes"];
+    const subtitleElem = document.getElementsByClassName("game-over__subtitle");
+    if (subtitleElem[0])
+      subtitleElem[0].innerHTML = '"' + subtitleArr[Math.floor(subtitleArr.length * Math.random())] + '"';
+
+    const counters: (keyof LevelState)[] = ["daysCounter", "zombiesKillCounter", "currencyTotalCounter"];
+
+    for (const counter of counters) {
+      const keyElem = document.querySelector(`.game-over__stat-key[data-id="${counter}"]`);
+      if (!keyElem) continue;
+
+      switch (counter) {
+        case "daysCounter":
+          keyElem.innerHTML = dictionary["gameOver.survivedDays"](levelState.daysCounter);
+          break;
+        case "zombiesKillCounter":
+          keyElem.innerHTML = dictionary["gameOver.killedZombies"](levelState.zombiesKillCounter);
+          break;
+        case "currencyTotalCounter":
+          keyElem.innerHTML = dictionary["gameOver.madeMoney"](levelState.currencyTotalCounter);
+          break;
+      }
+    }
+
+    const restartButton = document.getElementsByClassName("game-over__action-btn");
+    if (restartButton[0])
+      restartButton[0].addEventListener("click", this.gameInstance.restartGame.bind(this.gameInstance));
+    if (restartButton[0])
+      restartButton[0].addEventListener("touchend", this.gameInstance.restartGame.bind(this.gameInstance));
   }
 }
