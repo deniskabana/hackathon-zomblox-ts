@@ -17,7 +17,7 @@ export default class CameraManager extends AManager {
   private readonly minZoom: number = 0.5;
   private readonly maxZoom: number = 2;
 
-  private readonly targetWorldWidth: number = 1000;
+  private readonly targetWorldWidth: number = 940;
   private readonly followSpeed: number = 2;
 
   constructor(gameInstance: GameInstance) {
@@ -56,13 +56,13 @@ export default class CameraManager extends AManager {
     if (Math.abs(this.x - playerPos.x) < 0.1) {
       this.x = playerPos.x;
     } else {
-      this.x = lerp(this.x, playerPos.x, _deltaTime * this.followSpeed);
+      this.x = Math.round(lerp(this.x, playerPos.x, _deltaTime * this.followSpeed) * 10) / 10;
     }
 
     if (Math.abs(this.y - playerPos.y) < 0.1) {
       this.y = playerPos.y;
     } else {
-      this.y = lerp(this.y, playerPos.y, _deltaTime * this.followSpeed);
+      this.y = Math.round(lerp(this.y, playerPos.y, _deltaTime * this.followSpeed) * 10) / 10;
     }
 
     const halfViewWidth = this.viewportWidth / 2 / this.zoom;

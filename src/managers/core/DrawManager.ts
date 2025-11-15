@@ -32,6 +32,7 @@ export default class DrawManager extends AManager {
 
     const ctx = this.canvas.getContext("2d");
     if (!ctx) throw new Error("Failed to get 2D context from canvas");
+    ctx.imageSmoothingEnabled = false;
     this.ctx = ctx;
   }
 
@@ -144,8 +145,22 @@ export default class DrawManager extends AManager {
     this.ctx.save();
 
     const { CameraManager } = this.gameInstance.MANAGERS;
-    const width = cmd.width * CameraManager.zoom * 1.001;
-    const height = cmd.height * CameraManager.zoom * 1.001;
+
+    let extraThreshold = 0;
+    if (typeof cmd.zIndex !== "undefined") {
+      switch (cmd.zIndex) {
+        case ZIndex.MAP_GROUND:
+        case ZIndex.MAP_GROUND_DECOR:
+          extraThreshold = 1.5;
+          break;
+        case ZIndex.MAP_OVERLAY:
+        case ZIndex.MAP_OVERLAY_DECOR:
+          extraThreshold = 0;
+          break;
+      }
+    }
+    const width = cmd.width * CameraManager.zoom + extraThreshold;
+    const height = cmd.height * CameraManager.zoom + extraThreshold;
 
     if (cmd.alpha !== undefined) this.ctx.globalAlpha = cmd.alpha;
 
@@ -155,14 +170,14 @@ export default class DrawManager extends AManager {
     if (cmd.sourceFrame) {
       this.ctx.drawImage(
         cmd.image,
-        cmd.sourceFrame.x,
-        cmd.sourceFrame.y,
-        cmd.sourceFrame.width,
-        cmd.sourceFrame.height,
-        -width / 2,
-        -height / 2,
-        width,
-        height,
+        Math.round(cmd.sourceFrame.x),
+        Math.round(cmd.sourceFrame.y),
+        Math.round(cmd.sourceFrame.width),
+        Math.round(cmd.sourceFrame.height),
+        Math.round(-(cmd.width * CameraManager.zoom) / 2),
+        Math.round(-(cmd.height * CameraManager.zoom) / 2),
+        Math.round(width),
+        Math.round(height),
       );
     } else {
       this.ctx.drawImage(cmd.image, -width / 2, -height / 2, width, height);
@@ -226,10 +241,10 @@ export default class DrawManager extends AManager {
     const queue = this.drawQueue[zIndex] ?? [];
     queue.push({
       image,
-      x: screenPos.x,
-      y: screenPos.y,
-      width,
-      height,
+      x: Math.round(screenPos.x * 10) / 10,
+      y: Math.round(screenPos.y * 10) / 10,
+      width: Math.ceil(width * 10) / 10,
+      height: Math.ceil(height * 10) / 10,
       rotation,
       alpha,
       zIndex,

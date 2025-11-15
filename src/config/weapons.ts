@@ -21,7 +21,7 @@ export const DEF_WEAPONS = {
     displayName: "Revolver",
     shots: 1,
     radius: 3,
-    cooldown: 0.5,
+    cooldown: 0.3,
     damage: 14,
     reloadTimeSec: 4,
     cost: 0,

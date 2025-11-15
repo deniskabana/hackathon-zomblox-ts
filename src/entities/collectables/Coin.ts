@@ -61,7 +61,9 @@ export default class Coin extends ACollectable {
   public destroy(): void {}
 
   private handleCollected(): void {
-    this.gameInstance.MANAGERS.AssetManager.playAudioAsset("AFXCoinCollected", "sound", 0.3);
-    this.gameInstance.MANAGERS.LevelManager.destroyEntity(this.entityId, EntityType.COLLECTABLE);
+    const { AssetManager, LevelManager } = this.gameInstance.MANAGERS;
+    AssetManager.playAudioAsset("AFXCoinCollected", "sound", 0.3);
+    LevelManager.addCurrency(1);
+    LevelManager.destroyEntity(this.entityId, EntityType.COLLECTABLE);
   }
 }

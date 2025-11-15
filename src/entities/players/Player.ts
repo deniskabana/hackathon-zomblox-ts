@@ -288,7 +288,7 @@ export default class Player extends APlayer {
     this.gameInstance.MANAGERS.LevelManager.destroyEntity(-1, EntityType.PLAYER);
 
     // TODO: Game over screen
-    setTimeout(this.gameInstance.restartGame.bind(this.gameInstance), 5000);
+    // setTimeout(this.gameInstance.restartGame.bind(this.gameInstance), 5000);
   }
 
   public destroy(): void {}

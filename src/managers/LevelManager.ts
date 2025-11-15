@@ -92,7 +92,13 @@ export default class LevelManager extends AManager {
       gameSettings.zombieSpawnIntervalMs,
       (gameSettings.nightDurationSec * 1000) / this.zombieSpawnsLeft,
     );
-    this.levelState = { phase: "day", daysCounter: 0 };
+    this.levelState = {
+      phase: "day",
+      daysCounter: 0,
+      currencyTotalCounter: 0,
+      zombiesKillCounter: 0,
+      currency: gameSettings.startCurrency,
+    };
   }
 
   public update(_deltaTime: number) {
@@ -131,9 +137,7 @@ export default class LevelManager extends AManager {
 
   private drawTileLayers(): void {
     if (!this.tileLayers || !this.tileset) return;
-
     const visibleBounds = this.getVisibleTileBounds();
-
     this.renderLayer(this.tileLayers.ground, ZIndex.MAP_GROUND, visibleBounds);
     this.renderLayer(this.tileLayers.groundDecor, ZIndex.MAP_GROUND_DECOR, visibleBounds);
     this.renderLayer(this.tileLayers.overlay, ZIndex.MAP_OVERLAY, visibleBounds);
@@ -145,20 +149,17 @@ export default class LevelManager extends AManager {
       for (let x = bounds.minX; x <= bounds.maxX; x++) {
         const index = y * GRID_CONFIG.GRID_WIDTH + x;
         const tileId = layer[index];
-
         if (tileId === 0) continue;
-
         const tileData = this.tileset!.getTileFrame(tileId);
         if (!tileData) continue;
-
         const worldPos = gridToWorld({ x, y });
         this.gameInstance.MANAGERS.DrawManager.queueDrawSprite(
-          worldPos.x - 1,
-          worldPos.y - 1,
+          worldPos.x,
+          worldPos.y,
           tileData.spriteSheet,
           tileData.frameIndex,
-          GRID_CONFIG.TILE_SIZE + 2,
-          GRID_CONFIG.TILE_SIZE + 2,
+          GRID_CONFIG.TILE_SIZE,
+          GRID_CONFIG.TILE_SIZE,
           zIndex,
         );
       }
@@ -190,6 +191,7 @@ export default class LevelManager extends AManager {
         break;
       case EntityType.ENEMY:
         this.destroyZombie(entityId);
+        if (this.levelState) this.levelState.zombiesKillCounter += 1;
         break;
       case EntityType.PLAYER:
         this.destroyPlayer();
@@ -436,5 +438,11 @@ export default class LevelManager extends AManager {
     this.zombies.clear();
     this.blocks.clear();
     this.collectables.clear();
+  }
+
+  public addCurrency(amount: number = 1): void {
+    if (!this.levelState) return;
+    this.levelState.currency += amount;
+    this.levelState.currencyTotalCounter += amount;
   }
 }
