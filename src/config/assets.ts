@@ -56,6 +56,7 @@ export const DEF_ASSETS_IMAGE = {
   // Textures
   ITextureGround: "/images/Texture_11_Diffuse.png", // https://oleekconder.itch.io/stylized-nature-textures
   // Shop
+  ICoinSingle: "/images/coin-single.png",
   IShopRevolver: "/images/Revolver - Colt 45 [64x32].png", // https://arcadeisland.itch.io/guns-asset-pack-v1
   IShopShotgun: "/images/[32x96]Shotgun_V1.00.png", // https://arcadeisland.itch.io/guns-asset-pack-v1
   IShopSmg: "/images/Submachine - MP5A3 [80x48].png", // https://arcadeisland.itch.io/guns-asset-pack-v1

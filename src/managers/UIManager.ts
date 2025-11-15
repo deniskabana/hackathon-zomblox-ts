@@ -14,6 +14,7 @@ export default class UIManager extends AManager {
   private startGameContainer: HTMLDivElement;
   private hudContainer: HTMLDivElement;
   private hudDayCounter: HTMLDivElement;
+  private hudCurrencyCounter: HTMLDivElement;
 
   private uiControls: ReturnType<typeof getUiControls> | undefined;
 
@@ -52,8 +53,10 @@ export default class UIManager extends AManager {
     this.startGameContainer = document.createElement("div");
     this.hudContainer = document.createElement("div");
     this.hudDayCounter = document.createElement("div");
+    this.hudCurrencyCounter = document.createElement("div");
 
     this.hudContainer.appendChild(this.hudDayCounter);
+    this.hudContainer.appendChild(this.hudCurrencyCounter);
 
     document.body.appendChild(this.startGameContainer);
     this.uiContainer.appendChild(this.hudContainer);
@@ -81,6 +84,11 @@ export default class UIManager extends AManager {
 
     this.hudContainer.className = cx(hudStyles.hudContainer);
     this.hudDayCounter.className = cx(hudStyles.hudElement);
+    this.hudCurrencyCounter.className = cx(hudStyles.hudElement);
+
+    const coinImage = this.gameInstance.MANAGERS.AssetManager.getImageAsset("ICoinSingle");
+    if (coinImage) this.hudCurrencyCounter.appendChild(coinImage);
+    this.hudCurrencyCounter.appendChild(document.createElement("span"));
 
     this.uiControls = getUiControls(this.gameInstance);
     if (!("ontouchend" in document)) this.uiControls?.shootButton.destroy();
@@ -98,9 +106,13 @@ export default class UIManager extends AManager {
   }
 
   private drawHud(): void {
-    const dayNo = this.gameInstance.MANAGERS.LevelManager.levelState?.daysCounter;
+    const levelState = this.gameInstance.MANAGERS.LevelManager.levelState;
+    if (!levelState) return;
+    const { daysCounter, currency } = levelState;
     const label = this.gameInstance.translation.dictionary["hud.day"];
-    this.hudDayCounter.innerText = `${label}: ${dayNo}`;
+    this.hudDayCounter.innerText = `${label}: ${daysCounter}`;
+    const textChild = this.hudCurrencyCounter.getElementsByTagName("span")[0];
+    if (textChild) textChild.innerText = `${currency}`;
   }
 
   private initDebugSettings(): void {

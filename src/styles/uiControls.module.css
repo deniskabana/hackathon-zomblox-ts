@@ -28,7 +28,7 @@
 }
 .fullScreenButton {
   top: 16px;
-  right: calc(16px + 40px + 8px);
+  right: calc(50% - 16px);
 }
 .sleepUntilNightButton {
   top: 8px;
