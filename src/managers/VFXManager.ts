@@ -2,6 +2,7 @@ import { GRID_CONFIG, type WorldPosition } from "../config/gameGrid";
 import type GameInstance from "../GameInstance";
 import type { Effect } from "../types/Effects";
 import { ZIndex } from "../types/ZIndex";
+import SpriteSheet from "../utils/classes/SpriteSheet";
 import radiansToVector from "../utils/math/radiansToVector";
 import { AManager } from "./abstract/AManager";
 
@@ -52,16 +53,20 @@ export default class VFXManager extends AManager {
     const sizeDeviation = 0.8 + Math.random() * 0.3;
     const angle = 2 * Math.PI * Math.random();
 
+    const bloodImage = this.gameInstance.MANAGERS.AssetManager.getImageAsset("SFXBloodSplat");
+    if (!bloodImage) return;
+
+    const bloodSpriteSheet = SpriteSheet.fromTileset(bloodImage, 128, 128);
+
+    const frameIndex = Math.floor(Math.random() * bloodSpriteSheet.getFrameCount() + 0.1);
+
     this.effects.set(this.effectIdCount++, {
       duration,
       render: () => {
-        const bloodSprite = this.gameInstance.MANAGERS.AssetManager.getImageAsset("IFXBloodSplat");
-        if (!bloodSprite) return;
-
         this.gameInstance.MANAGERS.DrawManager.queueDraw(
           pos.x,
           pos.y,
-          bloodSprite,
+          bloodSpriteSheet.getFrame(frameIndex).image,
           GRID_CONFIG.TILE_SIZE * sizeDeviation,
           GRID_CONFIG.TILE_SIZE * sizeDeviation,
           ZIndex.GROUND_EFFECTS,
