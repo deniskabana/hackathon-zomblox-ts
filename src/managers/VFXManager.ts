@@ -49,7 +49,7 @@ export default class VFXManager extends AManager {
   }
 
   public drawBloodPool(pos: WorldPosition, duration: number = 300): void {
-    const alpha = Math.random() * 0.3 + 0.6;
+    const alpha = Math.random() * 0.25 + 0.65;
     const sizeDeviation = 0.9 + Math.random() * 0.6;
     const angle = 2 * Math.PI * Math.random();
 
