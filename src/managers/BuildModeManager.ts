@@ -18,7 +18,7 @@ export default class BuildModeManager extends AManager {
   private reachableBlocks: GridPosition[] | undefined;
   private unreachableBlocks: GridPosition[] | undefined;
 
-  // private readonly allAvailableBlocks: BlockTypes[] = [BlockTypes.Wood, BlockTypes.FireBarrel];
+  private readonly allAvailableBlocks: BlockTypes[] = [BlockTypes.Wood, BlockTypes.FireBarrel];
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
@@ -38,7 +38,7 @@ export default class BuildModeManager extends AManager {
   public draw(): void {
     if (!this.isBuildModeActive) return;
 
-    const sprite = this.gameInstance.MANAGERS.AssetManager.getImageAsset("IBlockWood");
+    const sprite = this.getActiveBlockSprite();
     if (this.activeGridTile && sprite) {
       const worldPos = gridToWorld(this.activeGridTile);
       this.gameInstance.MANAGERS.DrawManager.queueDraw(
@@ -101,7 +101,7 @@ export default class BuildModeManager extends AManager {
       this.gameInstance.MANAGERS.UIManager.showBuildModeToolbar();
       document.addEventListener("touchend", this.handleScreenTouch);
       document.addEventListener("mouseup", this.handleScreenTouch);
-      this.setBlockType(BlockTypes.Wood); // TODO: Add a mechanism to switch these
+      this.setBlockType(this.allAvailableBlocks[0]);
     } else {
       this.gameInstance.MANAGERS.UIManager.hideBuildModeToolbar();
       document.removeEventListener("touchend", this.handleScreenTouch);
@@ -215,6 +215,34 @@ export default class BuildModeManager extends AManager {
    */
   public setBlockType(type: BlockTypes): void {
     this.activeBlockType = type;
+    const sprite = this.getActiveBlockSprite();
+    if (sprite) this.gameInstance.MANAGERS.UIManager.setBuildModeState(sprite, 0);
+  }
+
+  public nextBlockType(): void {
+    const currentIndex = this.allAvailableBlocks.findIndex((type) => type === this.activeBlockType);
+    if (currentIndex === -1) return;
+    this.setBlockType(this.allAvailableBlocks[(currentIndex + 1) % this.allAvailableBlocks.length]);
+    this.gameInstance.MANAGERS.AssetManager.playAudioAsset("AFXUiClick", "sound");
+  }
+
+  public prevBlockType(): void {
+    const currentIndex = this.allAvailableBlocks.findIndex((type) => type === this.activeBlockType);
+    if (currentIndex === -1) return;
+    this.setBlockType(this.allAvailableBlocks[(currentIndex - 1) % this.allAvailableBlocks.length]);
+    this.gameInstance.MANAGERS.AssetManager.playAudioAsset("AFXUiClick", "sound");
+  }
+
+  private getActiveBlockSprite(): HTMLImageElement | undefined {
+    if (!this.activeBlockType) return undefined;
+    const { AssetManager } = this.gameInstance.MANAGERS;
+
+    switch (this.activeBlockType) {
+      case BlockTypes.Wood:
+        return AssetManager.getImageAsset("IBlockWood");
+      case BlockTypes.FireBarrel:
+        return AssetManager.getImageAsset("IBlockBarrel");
+    }
   }
 
   /**

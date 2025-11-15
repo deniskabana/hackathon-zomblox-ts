@@ -405,6 +405,7 @@ body {
 }
 .build-toolbar__button-group {
   display: flex;
+  align-items: center;
   gap: 0.5em;
   padding: 0.5em;
 }
@@ -418,4 +419,22 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+.build-toolbar__active-block {
+  width: 2.5em;
+  border-radius: 0.25em;
+  border: 1px solid var(--color-text-dimmed);
+  padding: 0.5em;
+  display: flex;
+  justify-content: center;
+  gap: 0.25em;
+}
+.build-toolbar__active-block-img {
+  width: 1.5em;
+  height: 1.5em;
+  margin: 0 auto;
+}
+.build-toolbar__active-block-stock {
+  font-size: 1em;
+  color: var(--color-text-dimmed);
 }

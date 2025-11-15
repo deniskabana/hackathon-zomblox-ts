@@ -33,6 +33,8 @@ export default class UIManager extends AManager {
   public joystickLeftHandle: HTMLDivElement;
   public joystickRightHandle: HTMLDivElement;
 
+  private unsubscribeToolbar: VoidFunction | undefined;
+
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
 
@@ -96,6 +98,24 @@ export default class UIManager extends AManager {
 
     this.uiControls = getUiControls(this.gameInstance);
     if (!("ontouchend" in document)) this.uiControls?.shootButton.destroy();
+
+    const { BuildModeManager } = this.gameInstance.MANAGERS;
+    const toolbarNext = this.hudToolbar.querySelector('[data-direction="next"]');
+    const toolbarPrev = this.hudToolbar.querySelector('[data-direction="prev"]');
+    if (toolbarNext && toolbarPrev) {
+      const next = () => BuildModeManager.nextBlockType();
+      const prev = () => BuildModeManager.prevBlockType();
+      toolbarNext.addEventListener("click", next);
+      toolbarNext.addEventListener("touchend", next);
+      toolbarPrev.addEventListener("click", prev);
+      toolbarPrev.addEventListener("touchend", prev);
+      this.unsubscribeToolbar = () => {
+        toolbarNext.removeEventListener("click", next);
+        toolbarNext.removeEventListener("touchend", next);
+        toolbarPrev.removeEventListener("click", prev);
+        toolbarPrev.removeEventListener("touchend", prev);
+      };
+    }
 
     if (!this.gameInstance.isDev) return;
 
@@ -231,9 +251,9 @@ export default class UIManager extends AManager {
   }
 
   public setBuildModeState(image: HTMLImageElement, stock: number = 0): void {
-    const img = document.getElementsByClassName("build-toolbar__active-block-img");
-    if (img && "src" in img) img.src = image;
-    const text = document.getElementsByClassName("build-toolbar__active-block-stock");
+    const img = document.getElementsByClassName("build-toolbar__active-block-img")[0];
+    if (img && "src" in img) img.src = image.src;
+    const text = document.getElementsByClassName("build-toolbar__active-block-stock")[0];
     if (text && "innerText" in text) text.innerText = stock + "x";
   }
 
@@ -244,6 +264,7 @@ export default class UIManager extends AManager {
     }
     this.hideBuildModeToolbar();
     this.hideGameOverScreen();
+    this.unsubscribeToolbar?.();
   }
 
   public showGameOverScreen(levelState: LevelState): void {
