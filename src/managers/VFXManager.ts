@@ -49,29 +49,28 @@ export default class VFXManager extends AManager {
   }
 
   public drawBloodPool(pos: WorldPosition, duration: number = 300): void {
-    const alpha = Math.random() * 0.3 + 0.7;
-    const sizeDeviation = 0.8 + Math.random() * 0.3;
+    const alpha = Math.random() * 0.3 + 0.6;
+    const sizeDeviation = 0.8 + Math.random() * 0.5;
     const angle = 2 * Math.PI * Math.random();
 
     const bloodImage = this.gameInstance.MANAGERS.AssetManager.getImageAsset("SFXBloodSplat");
     if (!bloodImage) return;
-
     const bloodSpriteSheet = SpriteSheet.fromTileset(bloodImage, 128, 128);
-
     const frameIndex = Math.floor(Math.random() * bloodSpriteSheet.getFrameCount() + 0.1);
 
     this.effects.set(this.effectIdCount++, {
       duration,
-      render: () => {
-        this.gameInstance.MANAGERS.DrawManager.queueDraw(
+      render: (_deltaTime) => {
+        this.gameInstance.MANAGERS.DrawManager.queueDrawSprite(
           pos.x,
           pos.y,
-          bloodSpriteSheet.getFrame(frameIndex).image,
+          bloodSpriteSheet,
+          frameIndex,
           GRID_CONFIG.TILE_SIZE * sizeDeviation,
           GRID_CONFIG.TILE_SIZE * sizeDeviation,
           ZIndex.GROUND_EFFECTS,
           angle,
-          alpha,
+          alpha - alpha * _deltaTime,
         );
       },
       startTime: Date.now(),

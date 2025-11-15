@@ -13,8 +13,8 @@ export const DEFAULT_SETTINGS = {
       coinLifetime: 20,
       rewardCoef: 1,
       zombieSpawnIntervalMs: 1200,
-      zombieSpawnAmount: 12,
-      zombieSpawnCoef: 1.18,
+      zombieSpawnAmount: 15,
+      zombieSpawnCoef: 1.15,
       nightDurationSec: 40,
       enableBlocksDestruction: true,
       startZombiesAmount: 3,
@@ -39,7 +39,7 @@ export const DEFAULT_SETTINGS = {
     player: {
       startHealth: 100,
       movementSpeed: 180,
-      defaultWeapon: "Shotgun" as Weapon,
+      defaultWeapon: "Submachine" as Weapon,
     },
     blocks: {
       woodStartHealth: 30,
