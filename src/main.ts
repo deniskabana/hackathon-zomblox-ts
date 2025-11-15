@@ -20,13 +20,13 @@ import { version } from "../package.json";
 
     switch (lang) {
       case "cs":
+      case "sk":
         dictionary = csTranslation;
         break;
+      default:
       case "en":
         dictionary = enTranslation;
         break;
-      default:
-        return;
     }
 
     for (const element of translatedElements) {
@@ -44,7 +44,7 @@ import { version } from "../package.json";
 
   const preferredTranslation = localStorage.getItem("language");
   const systemTranslation = navigator.language.slice(0, 2);
-  applyTranslation(preferredTranslation || systemTranslation || "en");
+  setTimeout(() => applyTranslation(preferredTranslation || systemTranslation || "en"), 1);
 
   const languageButtons = document.querySelectorAll<HTMLElement>("[data-language]");
   if (languageButtons) {
