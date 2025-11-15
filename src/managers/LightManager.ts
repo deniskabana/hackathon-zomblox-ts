@@ -131,7 +131,7 @@ export default class LightManager extends AManager {
 
     const gradient = this.ctx.createLinearGradient(0, 0, coneLength, 0);
     gradient.addColorStop(0, `rgba(0, 0, 0, ${this.nightOverlayAlpha})`);
-    gradient.addColorStop(0.2, `rgba(0, 0, 0, ${this.nightOverlayAlpha})`);
+    gradient.addColorStop(0.35, `rgba(0, 0, 0, ${this.nightOverlayAlpha})`);
     gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
 
     this.ctx.globalCompositeOperation = "destination-out";

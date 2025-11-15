@@ -136,6 +136,7 @@ export default class Player extends APlayer {
   }
 
   public shoot(): void {
+    this.die();
     if (this.playerState !== PlayerState.NORMAL) return;
     if (this.gunCooldownTimer > 0) return;
 
@@ -289,7 +290,7 @@ export default class Player extends APlayer {
 
   private die(): void {
     this.playerState = PlayerState.DEAD;
-    this.gameInstance.MANAGERS.VFXManager.drawBloodOnScreen();
+    this.gameInstance.MANAGERS.VFXManager.drawBloodOnScreen(600);
     this.gameInstance.MANAGERS.AssetManager.playAudioAsset("APlayerDie", "sound");
     this.gameInstance.MANAGERS.LevelManager.destroyEntity(-1, EntityType.PLAYER);
 

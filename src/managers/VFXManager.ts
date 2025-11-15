@@ -79,23 +79,23 @@ export default class VFXManager extends AManager {
 
   public drawBloodOnScreen(duration: number = 10): void {
     let alpha = 0;
+    console.log("BLOOD");
 
     this.effects.set(this.effectIdCount++, {
       duration,
       render: (_deltaTime) => {
-        const bloodSprite = this.gameInstance.MANAGERS.AssetManager.getImageAsset("IFXBloodScreen");
+        const bloodSprite = this.gameInstance.MANAGERS.AssetManager.getImageAsset("IFXBloodOverlay");
         if (!bloodSprite) return;
 
         if (alpha < 1) alpha += _deltaTime;
         else alpha = 1;
 
-        this.gameInstance.MANAGERS.DrawManager.queueDraw(
+        this.gameInstance.MANAGERS.DrawManager.drawImage(
           0,
           0,
           bloodSprite,
           this.gameInstance.MANAGERS.CameraManager.viewportWidth,
           this.gameInstance.MANAGERS.CameraManager.viewportHeight,
-          ZIndex.EFFECTS,
           0,
           alpha,
         );

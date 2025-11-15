@@ -30,14 +30,7 @@ export default class CameraManager extends AManager {
   }
 
   public update(_deltaTime: number): void {
-    if (this.zoom !== this.targetZoom) {
-      if (Math.abs(this.zoom - this.targetZoom) < 0.03) {
-        this.zoom = Math.ceil(this.targetZoom * 10) / 10;
-        return;
-      }
-
-      this.zoom = Math.ceil(lerp(this.zoom * 100, this.targetZoom * 100, _deltaTime * 6)) / 100;
-    }
+    this.zoom = Math.floor(this.targetZoom * 10) / 10;
   }
 
   private onResize = (): void => {

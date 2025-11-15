@@ -145,40 +145,27 @@ export default class DrawManager extends AManager {
     this.ctx.save();
 
     const { CameraManager } = this.gameInstance.MANAGERS;
-    const zoom = Math.ceil(CameraManager.zoom * 100 * 1.02) / 100;
+    const zoom = (Math.ceil(CameraManager.zoom * 10) / 10) * 1.005; // Fixes tile gap
 
-    let extraThreshold = 0;
-    if (typeof cmd.zIndex !== "undefined") {
-      switch (cmd.zIndex) {
-        case ZIndex.MAP_GROUND:
-        case ZIndex.MAP_GROUND_DECOR:
-          extraThreshold = 0;
-          break;
-        case ZIndex.MAP_OVERLAY:
-        case ZIndex.MAP_OVERLAY_DECOR:
-          extraThreshold = 0;
-          break;
-      }
-    }
-    const width = cmd.width * zoom + extraThreshold;
-    const height = cmd.height * zoom + extraThreshold;
+    const width = Math.ceil(cmd.width * zoom * 10) / 10;
+    const height = Math.ceil(cmd.height * zoom * 10) / 10;
 
     if (cmd.alpha !== undefined) this.ctx.globalAlpha = cmd.alpha;
 
-    this.ctx.translate(cmd.x + width / 2, cmd.y + height / 2);
+    this.ctx.translate(Math.round(cmd.x * 10) / 10 + width / 2, Math.round(cmd.y * 10) / 10 + height / 2);
     if (cmd.rotation) this.ctx.rotate(cmd.rotation);
 
     if (cmd.sourceFrame) {
       this.ctx.drawImage(
         cmd.image,
-        Math.round(cmd.sourceFrame.x),
-        Math.round(cmd.sourceFrame.y),
-        Math.round(cmd.sourceFrame.width),
-        Math.round(cmd.sourceFrame.height),
-        Math.round(-(cmd.width * zoom) / 2),
-        Math.round(-(cmd.height * zoom) / 2),
-        Math.round(width),
-        Math.round(height),
+        Math.floor(cmd.sourceFrame.x),
+        Math.floor(cmd.sourceFrame.y),
+        Math.ceil(cmd.sourceFrame.width),
+        Math.ceil(cmd.sourceFrame.height),
+        Math.floor(-(cmd.width * zoom) / 2),
+        Math.floor(-(cmd.height * zoom) / 2),
+        Math.ceil(width),
+        Math.ceil(height),
       );
     } else {
       this.ctx.drawImage(cmd.image, -width / 2, -height / 2, width, height);
@@ -319,6 +306,24 @@ export default class DrawManager extends AManager {
     this.ctx.textAlign = align;
     const screenPos = this.gameInstance.MANAGERS.CameraManager.worldToScreen({ x, y });
     this.ctx.fillText(text, screenPos.x, screenPos.y);
+    this.ctx.restore();
+  }
+
+  public drawImage(
+    x: number,
+    y: number,
+    image: HTMLImageElement | HTMLCanvasElement,
+    width: number,
+    height: number,
+    rotation: number = 0,
+    alpha: number = 1,
+  ): void {
+    if (!this.ctx) return;
+    this.ctx.save();
+    if (alpha !== undefined) this.ctx.globalAlpha = alpha;
+    this.ctx.translate(x, y);
+    if (rotation) this.ctx.rotate(rotation);
+    this.ctx.drawImage(image, 0, 0, width, height);
     this.ctx.restore();
   }
 
