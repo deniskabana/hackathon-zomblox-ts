@@ -1,6 +1,5 @@
 import { GRID_CONFIG, gridToWorld, type GridPosition } from "../../config/gameGrid";
 import type GameInstance from "../../GameInstance";
-import type { AssetImage } from "../../types/Asset";
 import { EntityType } from "../../types/EntityType";
 import { ZIndex } from "../../types/ZIndex";
 import { AnimatedSpriteSheet } from "../../utils/classes/AnimatedSpriteSheet";
@@ -12,7 +11,6 @@ export default class BlockBarrelFire extends ABlock {
   private animation: AnimatedSpriteSheet | undefined;
   private fps: number;
   private spriteSize: number;
-  private barrelSprite: AssetImage | undefined;
 
   private lightSourceId: number | undefined;
 
@@ -27,9 +25,6 @@ export default class BlockBarrelFire extends ABlock {
     this.spriteSize = GRID_CONFIG.TILE_SIZE;
     if (fire) this.animation = AnimatedSpriteSheet.fromGrid(fire, 32, 48, 14, this.fps, true);
 
-    const barrel = this.gameInstance.MANAGERS.AssetManager.getImageAsset("IBlockBarrel");
-    if (barrel) this.barrelSprite = barrel;
-
     this.lightSourceId = this.gameInstance.MANAGERS.LightManager.addLightSource(this.worldPos);
   }
 
@@ -38,32 +33,35 @@ export default class BlockBarrelFire extends ABlock {
   }
 
   public draw(): void {
-    if (!this.barrelSprite) return;
+    const tileset = this.gameInstance.MANAGERS.LevelManager.getTileset();
+    if (!tileset) return;
 
-    this.gameInstance.MANAGERS.DrawManager.queueDraw(
-      this.worldPos.x + (this.spriteSize * 0.25) / 2,
-      this.worldPos.y + this.spriteSize * 0.25,
-      this.barrelSprite,
-      this.spriteSize * 0.75,
-      this.spriteSize * 0.75,
+    const barrelSprite = tileset.getTileFrame(599);
+    if (!barrelSprite) return;
+
+    this.gameInstance.MANAGERS.DrawManager.queueDrawSprite(
+      this.worldPos.x,
+      this.worldPos.y,
+      barrelSprite.spriteSheet,
+      barrelSprite.frameIndex,
+      GRID_CONFIG.TILE_SIZE,
+      GRID_CONFIG.TILE_SIZE,
       ZIndex.BLOCKS,
     );
 
     if (!this.animation) return;
 
     this.gameInstance.MANAGERS.DrawManager.queueDrawSprite(
-      this.worldPos.x + this.spriteSize * 0.2,
-      this.worldPos.y - this.spriteSize * 0.52,
+      this.worldPos.x,
+      this.worldPos.y - this.spriteSize,
       this.animation,
       this.animation.getCurrentFrame(),
-      (this.spriteSize / 48) * 32,
       this.spriteSize,
+      this.spriteSize * 1.5,
       ZIndex.EFFECTS,
       0,
     );
   }
-
-  public drawMask(): void {}
 
   public damage(amount: number): void {
     const settings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;

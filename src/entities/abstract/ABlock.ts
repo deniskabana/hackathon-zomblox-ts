@@ -3,6 +3,4 @@ import AEntity from "./AEntity";
 
 export default abstract class ABlock extends AEntity {
   public entityType = EntityType.BLOCK;
-
-  public abstract drawMask(ctx: CanvasRenderingContext2D): void;
 }

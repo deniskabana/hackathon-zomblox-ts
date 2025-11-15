@@ -17,30 +17,33 @@ export default class BlockWood extends ABlock {
   public update(_deltaTime: number): void {}
 
   public draw(): void {
-    const sprite = this.gameInstance.MANAGERS.AssetManager.getImageAsset("IBlockWood");
-    if (!sprite) return;
-    this.gameInstance.MANAGERS.DrawManager.queueDraw(
+    const tileset = this.gameInstance.MANAGERS.LevelManager.getTileset();
+    if (!tileset) return;
+
+    const spriteTop = tileset.getTileFrame(469 + 1);
+    const spriteBottom = tileset.getTileFrame(509 + 1);
+    if (!spriteTop || !spriteBottom) return;
+
+    this.gameInstance.MANAGERS.DrawManager.queueDrawSprite(
       this.worldPos.x,
       this.worldPos.y,
-      sprite,
+      spriteBottom.spriteSheet,
+      spriteBottom.frameIndex,
       GRID_CONFIG.TILE_SIZE,
       GRID_CONFIG.TILE_SIZE,
       ZIndex.BLOCKS,
       0,
     );
-  }
-
-  public drawMask(ctx: CanvasRenderingContext2D): void {
-    const { CameraManager } = this.gameInstance.MANAGERS;
-    const zoom = CameraManager.zoom;
-
-    if (!ctx || !CameraManager.isOnScreen(this.worldPos)) return;
-
-    const screenPos = CameraManager.worldToScreen(this.worldPos);
-    ctx.save();
-    ctx.fillStyle = `#000`;
-    ctx.fillRect(screenPos.x, screenPos.y, GRID_CONFIG.TILE_SIZE * zoom, GRID_CONFIG.TILE_SIZE * zoom);
-    ctx.restore();
+    this.gameInstance.MANAGERS.DrawManager.queueDrawSprite(
+      this.worldPos.x,
+      this.worldPos.y - GRID_CONFIG.TILE_SIZE,
+      spriteTop.spriteSheet,
+      spriteTop.frameIndex,
+      GRID_CONFIG.TILE_SIZE,
+      GRID_CONFIG.TILE_SIZE,
+      ZIndex.MAP_OVERLAY,
+      0,
+    );
   }
 
   damage(amount: number) {

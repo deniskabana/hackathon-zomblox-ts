@@ -448,4 +448,8 @@ export default class LevelManager extends AManager {
     this.levelState.currency += amount;
     this.levelState.currencyTotalCounter += amount;
   }
+
+  public getTileset(): MapTilesetManager | undefined {
+    return this.tileset;
+  }
 }
