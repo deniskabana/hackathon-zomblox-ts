@@ -31,12 +31,12 @@ export default class CameraManager extends AManager {
 
   public update(_deltaTime: number): void {
     if (this.zoom !== this.targetZoom) {
-      if (Math.abs(this.zoom - this.targetZoom) < 0.002) {
-        this.zoom = this.targetZoom;
+      if (Math.abs(this.zoom - this.targetZoom) < 0.1) {
+        this.zoom = Math.ceil(this.targetZoom * 100) / 100;
         return;
       }
 
-      this.zoom = Math.round(lerp(this.zoom, this.targetZoom, _deltaTime * 6) * 100) / 100;
+      this.zoom = Math.ceil(lerp(this.zoom, this.targetZoom, _deltaTime * 6) * 100) / 100;
     }
   }
 

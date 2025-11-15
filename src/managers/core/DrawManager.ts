@@ -145,13 +145,14 @@ export default class DrawManager extends AManager {
     this.ctx.save();
 
     const { CameraManager } = this.gameInstance.MANAGERS;
+    const zoom = Math.ceil(CameraManager.zoom * 100 * 1.02) / 100;
 
     let extraThreshold = 0;
     if (typeof cmd.zIndex !== "undefined") {
       switch (cmd.zIndex) {
         case ZIndex.MAP_GROUND:
         case ZIndex.MAP_GROUND_DECOR:
-          extraThreshold = 1.5;
+          extraThreshold = 0;
           break;
         case ZIndex.MAP_OVERLAY:
         case ZIndex.MAP_OVERLAY_DECOR:
@@ -159,8 +160,8 @@ export default class DrawManager extends AManager {
           break;
       }
     }
-    const width = cmd.width * CameraManager.zoom + extraThreshold;
-    const height = cmd.height * CameraManager.zoom + extraThreshold;
+    const width = cmd.width * zoom + extraThreshold;
+    const height = cmd.height * zoom + extraThreshold;
 
     if (cmd.alpha !== undefined) this.ctx.globalAlpha = cmd.alpha;
 
@@ -174,8 +175,8 @@ export default class DrawManager extends AManager {
         Math.round(cmd.sourceFrame.y),
         Math.round(cmd.sourceFrame.width),
         Math.round(cmd.sourceFrame.height),
-        Math.round(-(cmd.width * CameraManager.zoom) / 2),
-        Math.round(-(cmd.height * CameraManager.zoom) / 2),
+        Math.round(-(cmd.width * zoom) / 2),
+        Math.round(-(cmd.height * zoom) / 2),
         Math.round(width),
         Math.round(height),
       );

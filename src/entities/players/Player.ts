@@ -269,7 +269,13 @@ export default class Player extends APlayer {
     };
 
     this.setWorldPosition(
-      this.adjustMovementForCollisions(futurePos, this.gameInstance.MANAGERS.LevelManager.levelGrid, GRID_CONFIG),
+      this.adjustMovementForCollisions(
+        futurePos,
+        this.gameInstance.MANAGERS.LevelManager.levelGrid,
+        GRID_CONFIG,
+        true,
+        GRID_CONFIG.TILE_SIZE / 4,
+      ),
     );
   }
 

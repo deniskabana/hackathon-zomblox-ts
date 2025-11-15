@@ -38,8 +38,9 @@ export default abstract class AEntity {
     levelGrid: LevelGrid | undefined,
     gridConfig: GridConfig,
     includeWorldBoundaries: boolean = true,
+    customRadius?: number,
   ): WorldPosition {
-    const radius = gridConfig.TILE_SIZE / 3;
+    const radius = customRadius ?? gridConfig.TILE_SIZE / 3;
     const resultPos: WorldPosition = { ...futurePos };
     const worldWidth = gridConfig.TILE_SIZE * gridConfig.GRID_WIDTH;
     const worldHeight = gridConfig.TILE_SIZE * gridConfig.GRID_HEIGHT;
