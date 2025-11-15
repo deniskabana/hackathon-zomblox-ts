@@ -50,7 +50,7 @@ export default class VFXManager extends AManager {
 
   public drawBloodPool(pos: WorldPosition, duration: number = 300): void {
     const alpha = Math.random() * 0.3 + 0.6;
-    const sizeDeviation = 0.8 + Math.random() * 0.5;
+    const sizeDeviation = 0.9 + Math.random() * 0.6;
     const angle = 2 * Math.PI * Math.random();
 
     const bloodImage = this.gameInstance.MANAGERS.AssetManager.getImageAsset("SFXBloodSplat");
