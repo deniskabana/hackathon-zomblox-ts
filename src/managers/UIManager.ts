@@ -127,6 +127,13 @@ export default class UIManager extends AManager {
           debug: { [target.name]: target.checked },
         });
       });
+      checkbox.addEventListener("touchend", (event) => {
+        const target = event.target as HTMLInputElement;
+        target.checked = !target.checked;
+        this.gameInstance.MANAGERS.GameManager.setSettings({
+          debug: { [target.name]: target.checked },
+        });
+      });
       checkboxLabel.appendChild(checkbox);
 
       const checkboxText = document.createElement("span");
