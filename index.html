@@ -32,46 +32,71 @@
 
         <div class="pregame-menu__separator"></div>
 
-        <div class="pregame-menu__group">
-          <div class="pregame-menu__group">
-            <h2 class="pregame-menu__group-title" data-tkey="mainMenu.languageTitle"></h2>
-          </div>
-          <div class="pregame-menu__group">
-            <button class="pregame-menu__lng-btn" data-language="en">🇬🇧 English</button>
-            <button class="pregame-menu__lng-btn" data-language="cs">🇨🇿 Česky</button>
-          </div>
-        </div>
+        <div class="pregame-menu__main-group">
+          <div class="grow">
+            <div class="pregame-menu__group">
+              <div class="pregame-menu__group">
+                <h2 class="pregame-menu__group-title" data-tkey="mainMenu.languageTitle"></h2>
+              </div>
+              <div class="pregame-menu__group">
+                <button class="pregame-menu__lng-btn" data-language="en">🇬🇧 English</button>
+                <button class="pregame-menu__lng-btn" data-language="cs">🇨🇿 Česky</button>
+              </div>
+            </div>
 
-        <div class="pregame-menu__group">
-          <div class="pregame-menu__group">
-            <h2 class="pregame-menu__group-title" data-tkey="mainMenu.fullscreen"></h2>
-          </div>
-          <div class="pregame-menu__group">
-            <button class="pregame-menu__fullscreen-btn" data-tkey="mainMenu.fullscreenBtn"></button>
-          </div>
-        </div>
-
-        <div class="pregame-menu__separator"></div>
-
-        <div class="pregame-menu__group">
-          <div class="pregame-menu__group--inline">
-            <h2 class="pregame-menu__group-title grow" data-tkey="mainMenu.volumeMasterTitle"></h2>
-            <div class="pregame-menu__group grow">
-              <input type="range" min="0" max="6" value="6" class="pregame-menu__volume-slider" data-volume="master" />
+            <div class="pregame-menu__group">
+              <div class="pregame-menu__group">
+                <h2 class="pregame-menu__group-title" data-tkey="mainMenu.fullscreen"></h2>
+              </div>
+              <div class="pregame-menu__group">
+                <button class="pregame-menu__fullscreen-btn" data-tkey="mainMenu.fullscreenBtn"></button>
+              </div>
             </div>
           </div>
 
-          <div class="pregame-menu__group--inline">
-            <h2 class="pregame-menu__group-title grow" data-tkey="mainMenu.volumeMusicTitle"></h2>
-            <div class="pregame-menu__group grow">
-              <input type="range" min="0" max="6" value="6" class="pregame-menu__volume-slider" data-volume="music" />
-            </div>
-          </div>
+          <div class="grow">
+            <div>
+              <div class="pregame-menu__group--inline">
+                <h2 class="pregame-menu__group-title grow" data-tkey="mainMenu.volumeMasterTitle"></h2>
+                <div class="pregame-menu__group grow">
+                  <input
+                    type="range"
+                    min="0"
+                    max="6"
+                    value="6"
+                    class="pregame-menu__volume-slider"
+                    data-volume="master"
+                  />
+                </div>
+              </div>
 
-          <div class="pregame-menu__group--inline">
-            <h2 class="pregame-menu__group-title grow" data-tkey="mainMenu.volumeSoundTitle"></h2>
-            <div class="pregame-menu__group grow">
-              <input type="range" min="0" max="6" value="6" class="pregame-menu__volume-slider" data-volume="effects" />
+              <div class="pregame-menu__group--inline">
+                <h2 class="pregame-menu__group-title grow" data-tkey="mainMenu.volumeMusicTitle"></h2>
+                <div class="pregame-menu__group grow">
+                  <input
+                    type="range"
+                    min="0"
+                    max="6"
+                    value="6"
+                    class="pregame-menu__volume-slider"
+                    data-volume="music"
+                  />
+                </div>
+              </div>
+
+              <div class="pregame-menu__group--inline">
+                <h2 class="pregame-menu__group-title grow" data-tkey="mainMenu.volumeSoundTitle"></h2>
+                <div class="pregame-menu__group grow">
+                  <input
+                    type="range"
+                    min="0"
+                    max="6"
+                    value="6"
+                    class="pregame-menu__volume-slider"
+                    data-volume="effects"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>

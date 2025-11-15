@@ -1,7 +1,7 @@
 .uiControl {
   position: absolute;
   z-index: 19;
-  background: #2f2f4a59;
+  background: #2f2f4a89;
   border: 1px solid #999999af;
   border-radius: 1rem;
   font-size: 1.2rem;
@@ -14,7 +14,7 @@
   text-align: center;
 
   backdrop-filter: blur(4px);
-  box-shadow: 2px 2px 6px rgba(10, 10, 20, 0.15);
+  box-shadow: 2px 2px 6px rgba(10, 10, 20, 0.25);
   transition: opacity 0.2s ease;
 }
 

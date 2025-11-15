@@ -3,16 +3,18 @@
   left: 50%;
   transform: translate3d(-50%, 0, 0);
   top: 0.35rem;
-  background: #2020209a;
+  background: #202020aa;
   border-radius: 0.25rem;
-  border: 1px solid #666;
+  border: 1px solid #444;
   color: white;
   gap: 0.25rem;
+  backdrop-filter: blur(4px);
+  box-shadow: 2px 2px 6px rgba(10, 10, 20, 0.25);
 }
 
 .hudElement {
   display: flex;
   padding: 0.5rem;
-  font-size: 0.85rem;
+  font-size: 3.5vh;
   font-weight: 600;
 }
