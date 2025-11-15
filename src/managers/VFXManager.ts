@@ -79,7 +79,6 @@ export default class VFXManager extends AManager {
 
   public drawBloodOnScreen(duration: number = 10): void {
     let alpha = 0;
-    console.log("BLOOD");
 
     this.effects.set(this.effectIdCount++, {
       duration,
