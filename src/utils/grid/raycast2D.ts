@@ -1,6 +1,6 @@
 import { GRID_CONFIG, worldToGrid, type WorldPosition } from "../../config/gameGrid";
 import type AEnemy from "../../entities/abstract/AEnemy";
-import { GridTileState, type GridTileRef, type LevelGrid } from "../../types/Grid";
+import { GridTileState, type GridTile, type GridTileRef, type LevelGrid } from "../../types/Grid";
 import getVectorDistance from "../math/getVectorDistance";
 import radiansToVector from "../math/radiansToVector";
 import isInsideGrid from "./isInsideGrid";
@@ -13,7 +13,7 @@ export default function raycast2D(
   maxDistance: number,
   levelGrid: LevelGrid,
   zombies: Map<number, AEnemy>,
-): null | GridTileRef {
+): GridTile | null {
   // DDA Algorithm (put together from a few articles and reddit posts)
   const direction = radiansToVector(angleRad);
   const startGrid = worldToGrid({ x: from.x, y: from.y });
@@ -31,6 +31,7 @@ export default function raycast2D(
   let currentX = startGrid.x;
   let currentY = startGrid.y;
   let raycastHit: null | GridTileRef = null;
+  let gridCell: null | GridTile = null;
 
   for (let i = 0; i < MAX_RANGE; i++) {
     if (!isInsideGrid({ x: currentX, y: currentY })) break;
@@ -41,13 +42,18 @@ export default function raycast2D(
       break;
     }
 
-    const { ref, state } = levelGrid?.[currentX]?.[currentY] ?? { ref: null, state: GridTileState.AVAILABLE };
-    if (state === GridTileState.BLOCKED) {
-      raycastHit = ref;
-      break;
+    gridCell = levelGrid?.[currentX]?.[currentY] ?? {
+      ref: null,
+      state: GridTileState.AVAILABLE,
+      pos: { x: currentX, y: currentY },
+    };
+
+    if (gridCell.state === GridTileState.BLOCKED) {
+      raycastHit = gridCell.ref;
+      if (raycastHit && getVectorDistance(from, raycastHit.worldPos) > maxDistance) return null;
+      else return gridCell;
     }
 
-    // Next tile
     if (tMaxX < tMaxY) {
       tMaxX += deltaDistX;
       currentX += stepX;
@@ -58,5 +64,5 @@ export default function raycast2D(
   }
 
   if (raycastHit && getVectorDistance(from, raycastHit.worldPos) > maxDistance) return null;
-  return raycastHit;
+  return gridCell;
 }
