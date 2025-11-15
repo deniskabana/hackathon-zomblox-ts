@@ -80,22 +80,45 @@ export default class InputManager extends AManager {
     event.preventDefault();
   };
 
-  private onMouseDown = (): void => {
-    this.controlsPressed.add(GameControls.SHOOT);
-  };
+  private onMouseDown = (): void => {};
 
-  private onMouseUp = (): void => {
-    this.controlsPressed.delete(GameControls.SHOOT);
-  };
+  private onMouseUp = (): void => {};
 
-  private onMouseMove = (event: MouseEvent): void => {
-    this.updateMousePosition(event);
-  };
+  private onMouseMove = (): void => {};
 
   private onKeyDown = (event: KeyboardEvent): void => {
     event.preventDefault();
     const control = this.getGameControlByKeyCode(event.code);
+
+    // Force release other controls if any directional control is applied
+    if (
+      control === GameControls.MOVE_RIGHT ||
+      control === GameControls.MOVE_DOWN ||
+      control === GameControls.MOVE_LEFT ||
+      control === GameControls.MOVE_UP
+    ) {
+      this.controlsPressed.delete(GameControls.MOVE_RIGHT);
+      this.controlsPressed.delete(GameControls.MOVE_DOWN);
+      this.controlsPressed.delete(GameControls.MOVE_UP);
+      this.controlsPressed.delete(GameControls.MOVE_LEFT);
+    }
+
     if (control) this.controlsPressed.add(control);
+
+    switch (control) {
+      case GameControls.MOVE_RIGHT:
+        this.aimDirection = 0;
+        break;
+      case GameControls.MOVE_DOWN:
+        this.aimDirection = Math.PI / 2; // 90°
+        break;
+      case GameControls.MOVE_LEFT:
+        this.aimDirection = Math.PI; // 180°
+        break;
+      case GameControls.MOVE_UP:
+        this.aimDirection = (3 * Math.PI) / 2; // 270°
+        break;
+    }
   };
 
   private onKeyUp = (event: KeyboardEvent): void => {
@@ -203,7 +226,8 @@ export default class InputManager extends AManager {
   // Utils
   // --------------------------------------------------
 
-  private updateMousePosition(event: MouseEvent): void {
+  public updateMousePosition(event: MouseEvent): void {
+    // TODO: Remove potentially
     const rect = this.gameInstance.canvas.getBoundingClientRect();
     const screenX = event.clientX - rect.x;
     const screenY = event.clientY - rect.y;
@@ -253,6 +277,9 @@ export default class InputManager extends AManager {
         control = GameControls.MOVE_RIGHT;
         break;
 
+      case "Space":
+        control = GameControls.SHOOT;
+        break;
       case "Tab":
         control = GameControls.CHANGE_WEAPON;
         break;
