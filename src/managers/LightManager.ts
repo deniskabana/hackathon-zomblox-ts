@@ -8,7 +8,7 @@ export default class LightManager extends AManager {
   private ctx: CanvasRenderingContext2D | undefined;
 
   private readonly nightOverlayAlpha = 1;
-  private readonly playerLightRadius = 3.5;
+  private readonly playerLightRadius = 3.4;
   private readonly playerLightConeLen = GRID_CONFIG.TILE_SIZE * 9;
 
   private lightSourceIdCount: number = 0;
@@ -122,8 +122,8 @@ export default class LightManager extends AManager {
   private drawLightCone(lightScreenPos: ScreenPosition, facingAngle: number, zoom: number): void {
     if (!this.ctx) return;
     const coneLength = this.playerLightConeLen * zoom;
-    const startWidth = GRID_CONFIG.TILE_SIZE * 1.25 * zoom;
-    const endWidth = GRID_CONFIG.TILE_SIZE * 4.5 * zoom;
+    const startWidth = GRID_CONFIG.TILE_SIZE * 1.5 * zoom;
+    const endWidth = GRID_CONFIG.TILE_SIZE * 5.5 * zoom;
 
     this.ctx.save();
     this.ctx.translate(lightScreenPos.x, lightScreenPos.y);
@@ -131,7 +131,7 @@ export default class LightManager extends AManager {
 
     const gradient = this.ctx.createLinearGradient(0, 0, coneLength, 0);
     gradient.addColorStop(0, `rgba(0, 0, 0, ${this.nightOverlayAlpha})`);
-    gradient.addColorStop(0.6, `rgba(0, 0, 0, ${this.nightOverlayAlpha})`);
+    gradient.addColorStop(0.2, `rgba(0, 0, 0, ${this.nightOverlayAlpha})`);
     gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
 
     this.ctx.globalCompositeOperation = "destination-out";

@@ -136,7 +136,6 @@ export default class Player extends APlayer {
   }
 
   public shoot(): void {
-    if (this.isMoving) return;
     if (this.playerState !== PlayerState.NORMAL) return;
     if (this.gunCooldownTimer > 0) return;
 
