@@ -8,7 +8,7 @@ export default class LightManager extends AManager {
   private ctx: CanvasRenderingContext2D | undefined;
 
   private readonly nightOverlayAlpha = 1;
-  private readonly playerLightRadius = 3.4;
+  private playerLightRadius = 3.4;
   private readonly playerLightConeLen = GRID_CONFIG.TILE_SIZE * 9;
 
   private lightSourceIdCount: number = 0;
@@ -62,11 +62,11 @@ export default class LightManager extends AManager {
    */
   public drawNightLighting(players: WorldPosition[], facingAngle: number): void {
     const { CameraManager, DrawManager, GameManager } = this.gameInstance.MANAGERS;
+    this.playerLightRadius = GameManager.getSettings().rules.game.playerLightRadius;
     const zoom = CameraManager.zoom;
     if (!this.ctx || !this.lightMaskCanvas) return;
 
     this.ctx.clearRect(0, 0, this.lightMaskCanvas.width, this.lightMaskCanvas.height);
-
     this.ctx.save();
     this.ctx.fillStyle = "#000000";
     this.ctx.fillRect(0, 0, this.lightMaskCanvas.width, this.lightMaskCanvas.height);

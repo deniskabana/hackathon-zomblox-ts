@@ -18,6 +18,7 @@ export const DEFAULT_SETTINGS = {
       nightDurationSec: 40,
       enableBlocksDestruction: true,
       startZombiesAmount: 6,
+      playerLightRadius: 3.4,
     },
     zombie: {
       enableErraticBehavior: true,
