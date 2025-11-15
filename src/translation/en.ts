@@ -57,7 +57,7 @@ const enTranslation = {
   "gameOver.survivedDays": (n: number) => `You survived ${n} days`,
   "gameOver.killedZombies": (n: number) => `You killed ${n} zombies`,
   "gameOver.madeMoney": (n: number) => `You collectd ${n} coins`,
-  "gameOver.backToMenu": "Back to Menu",
+  "gameOver.restart": "Try again",
 
   "shop.openShop": "Open shop",
   "shop.pressNToOpen": (n: string) => `Press ${n} to open shop`,

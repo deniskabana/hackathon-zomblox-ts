@@ -15,6 +15,7 @@ export default class UIManager extends AManager {
   private hudContainer: HTMLDivElement;
   private hudDayCounter: HTMLDivElement;
   private hudCurrencyCounter: HTMLDivElement;
+  private hudToolbar: HTMLDivElement;
 
   private uiControls: ReturnType<typeof getUiControls> | undefined;
 
@@ -72,6 +73,7 @@ export default class UIManager extends AManager {
     this.debugContainer.appendChild(this.debugTextHealth);
 
     this.uiContainer.appendChild(this.debugContainer);
+    this.hudToolbar = document.getElementById("build-toolbar") as HTMLDivElement;
   }
 
   public init(): void {
@@ -87,7 +89,9 @@ export default class UIManager extends AManager {
     this.hudCurrencyCounter.className = cx(hudStyles.hudElement);
 
     const coinImage = this.gameInstance.MANAGERS.AssetManager.getImageAsset("ICoinSingle");
-    if (coinImage) this.hudCurrencyCounter.appendChild(coinImage);
+    const imgElem = this.hudCurrencyCounter.querySelector("img");
+    if (!imgElem && coinImage) this.hudCurrencyCounter.appendChild(coinImage);
+
     this.hudCurrencyCounter.appendChild(document.createElement("span"));
 
     this.uiControls = getUiControls(this.gameInstance);
@@ -216,18 +220,21 @@ export default class UIManager extends AManager {
     for (const control of Object.values(this.uiControls)) control.draw();
   }
 
-  // TODO: TBD
   public showBuildModeToolbar(): void {
-    throw new Error("NOT IMPLEMENTED");
+    if (!this.hudToolbar) return;
+    this.hudToolbar.style.display = "flex";
   }
 
-  // TODO: TBD
   public hideBuildModeToolbar(): void {
-    throw new Error("NOT IMPLEMENTED");
+    if (!this.hudToolbar) return;
+    this.hudToolbar.style.display = "none";
   }
 
-  public setBuildModeState(hasSelectedTile: boolean): void {
-    throw new Error("NOT IMPLEMENTED" + hasSelectedTile);
+  public setBuildModeState(image: HTMLImageElement, stock: number = 0): void {
+    const img = document.getElementsByClassName("build-toolbar__active-block-img");
+    if (img && "src" in img) img.src = image;
+    const text = document.getElementsByClassName("build-toolbar__active-block-stock");
+    if (text && "innerText" in text) text.innerText = stock + "x";
   }
 
   public destroy(): void {
@@ -235,6 +242,8 @@ export default class UIManager extends AManager {
       for (const control of Object.values(this.uiControls)) control.destroy();
       this.uiControls = undefined;
     }
+    this.hideBuildModeToolbar();
+    this.hideGameOverScreen();
   }
 
   public showGameOverScreen(levelState: LevelState): void {
@@ -276,5 +285,11 @@ export default class UIManager extends AManager {
       restartButton[0].addEventListener("click", this.gameInstance.restartGame.bind(this.gameInstance));
     if (restartButton[0])
       restartButton[0].addEventListener("touchend", this.gameInstance.restartGame.bind(this.gameInstance));
+  }
+
+  private hideGameOverScreen(): void {
+    const gameOverScreen = document.getElementById("game-over");
+    if (!gameOverScreen) return;
+    gameOverScreen.style.display = "none";
   }
 }

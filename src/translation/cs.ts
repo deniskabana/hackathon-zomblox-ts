@@ -59,7 +59,7 @@ const csTranslation: TranslationDictionary = {
   "gameOver.survivedDays": (n: number) => `Přežil jsi ${n} dní`,
   "gameOver.killedZombies": (n: number) => `Zabil jsi ${n} zombie`,
   "gameOver.madeMoney": (n: number) => `Vydělal jsi ${n} mincí`,
-  "gameOver.backToMenu": "Zpět do menu",
+  "gameOver.restart": "Zkusit znovu",
 
   "shop.openShop": "Otevřít obchod",
   "shop.pressNToOpen": (n: string) => `Stiskni ${n} pro otevření obchodu`,

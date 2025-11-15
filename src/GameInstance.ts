@@ -141,7 +141,8 @@ export default class GameInstance {
 
   public async restartGame(): Promise<void> {
     this.stopAndQuitGame();
-    window.location.reload();
+    await this.init();
+    this.startGame();
   }
 
   private destroy(): void {
