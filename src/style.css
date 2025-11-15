@@ -436,17 +436,17 @@ body {
   align-items: center;
 }
 .build-toolbar__active-block {
-  width: 2.5em;
   border-radius: 0.25em;
   border: 1px solid var(--color-text-dimmed);
   padding: 0.5em;
   display: flex;
+  align-items: center;
   justify-content: center;
   gap: 0.25em;
 }
 .build-toolbar__active-block-img {
-  width: 1.5em;
-  height: 1.5em;
+  width: 2em;
+  height: 2em;
   margin: 0 auto;
 }
 .build-toolbar__active-block-stock {

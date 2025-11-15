@@ -152,7 +152,7 @@ export function getShootButton(gameInstance: GameInstance): UiControls[string] {
   const buttonEl = document.createElement("div");
   gameInstance.MANAGERS.UIManager.uiContainer.appendChild(buttonEl);
   buttonEl.className = cx(styles.uiControl, styles.shootButton);
-  buttonEl.innerHTML = `💥 ${gameInstance.translation.dictionary["hud.shootBtn"]}!`;
+  buttonEl.innerText = `💥 ${gameInstance.translation.dictionary["hud.shootBtn"]}!`;
 
   const handleClick = () => {
     gameInstance.MANAGERS.InputManager.simulateControlPress(GameControls.SHOOT);
@@ -169,7 +169,9 @@ export function getShootButton(gameInstance: GameInstance): UiControls[string] {
   buttonEl.addEventListener("touchcancel", handleRelase);
 
   return {
-    draw: () => {},
+    draw: () => {
+      buttonEl.innerText = `💥 ${gameInstance.translation.dictionary["hud.shootBtn"]}!`;
+    },
     destroy: () => {
       buttonEl.removeEventListener("touchstart", handleClick);
       buttonEl.removeEventListener("touchend", handleClick);

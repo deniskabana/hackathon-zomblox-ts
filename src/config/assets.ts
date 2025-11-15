@@ -45,8 +45,8 @@ export const DEF_ASSETS_IMAGE = {
   IPlayerGunSmg: "/images/survivor_smg.png", // https://fightswithbears.itch.io/2d-topdown-survival-character
   IPlayerUnarmed: "/images/survivor_unarmed.png", // https://fightswithbears.itch.io/2d-topdown-survival-character
   // Blocks
-  IBlockWood: "/images/RTS_Crate.png", // https://opengameart.org/content/2d-wooden-box
-  IBlockBarrel: "/images/barrel-png-20852.png", // https://www.freeiconspng.com/img/20852
+  IBlockWood: "/images/RTS_Crate.png",
+  IBlockBarrel: "/images/barrel-png-20852.png",
   // Zombies
   IZombie1: "/images/zombie.png", // https://fightswithbears.itch.io/2d-topdown-survival-character
   // FX
