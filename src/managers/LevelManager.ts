@@ -19,7 +19,7 @@ import type { GameMap } from "../map/parseJsonMap";
 import parseJsonMap from "../map/parseJsonMap";
 import type { AudioControl } from "../types/AudioControl";
 import { EntityType } from "../types/EntityType";
-import { GridTileState, type GridTile, type LevelGrid } from "../types/Grid";
+import { GridTileState, type GridTileRef, type LevelGrid } from "../types/Grid";
 import type { LevelState } from "../types/LevelState";
 import type { TileBounds } from "../types/TileBounds";
 import { ZIndex } from "../types/ZIndex";
@@ -400,7 +400,7 @@ export default class LevelManager extends AManager {
   // Grid
   // ==================================================
 
-  public raycastShot(from: WorldPosition, angleRad: number, maxDistance: number): null | GridTile {
+  public raycastShot(from: WorldPosition, angleRad: number, maxDistance: number): null | GridTileRef {
     if (!this.levelGrid) return null;
     return raycast2D(from, angleRad, maxDistance, this.levelGrid, this.zombies);
   }

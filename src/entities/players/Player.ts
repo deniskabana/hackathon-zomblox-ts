@@ -153,13 +153,11 @@ export default class Player extends APlayer {
       const maxDistance = weaponDef.maxDistance * GRID_CONFIG.TILE_SIZE;
 
       const raycastHit = this.gameInstance.MANAGERS.LevelManager.raycastShot(this.worldPos, angle, maxDistance);
-      if (!raycastHit) return;
-
-      raycastHit.ref?.damage(weaponDef.damage);
+      if (raycastHit) raycastHit.damage(weaponDef.damage);
       this.gameInstance.MANAGERS.VFXManager.drawShootLine(
         this.worldPos,
         angle,
-        raycastHit ? getVectorDistance(this.worldPos, gridToWorld(raycastHit.pos)) : maxDistance,
+        raycastHit ? getVectorDistance(this.worldPos, raycastHit.worldPos) : maxDistance,
       );
     }
 
