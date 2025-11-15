@@ -335,12 +335,27 @@ body {
 .game-over__container {
   padding: 1.5rem;
   border-radius: 1rem;
-  background: #1f1a1aef;
+  background-color: #1f1a1aef;
   backdrop-filter: blur(2px);
   border: 1px solid #cacaca50;
   width: 100%;
   max-width: 330px;
   box-shadow: 0 0 4rem #000000aa;
+}
+.game-over__container::after {
+  display: block;
+  content: "";
+  width: 25%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.5;
+  background-repeat: no-repeat;
+  background-position: left bottom -15%;
+  background-image: url(/images/pi58p94iB.png);
+  background-size: 100% auto;
+  position: absolute;
+  left: 0;
+  bottom: 0;
 }
 .game-over__title {
   font-size: 0.9rem;

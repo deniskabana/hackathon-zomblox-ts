@@ -55,6 +55,7 @@ const enTranslation = {
     "I would rather die than eat carrots again.",
   ],
   "gameOver.survivedDays": (n: number) => `You survived ${n} days`,
+  "gameOver.playedTime": (n: string) => `You played for ${n}`,
   "gameOver.killedZombies": (n: number) => `You killed ${n} zombies`,
   "gameOver.madeMoney": (n: number) => `You collectd ${n} coins`,
   "gameOver.restart": "Try again",

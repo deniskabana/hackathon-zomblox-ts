@@ -4,4 +4,5 @@ export interface LevelState {
   zombiesKillCounter: number;
   currencyTotalCounter: number;
   currency: number;
+  totalTimeCounter: number;
 }

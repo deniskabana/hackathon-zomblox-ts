@@ -34,6 +34,7 @@ export const DEF_ASSETS_AUDIO = {
   // Music
   AMusicBackgroundNight: "/audio/horror-scary-dark-music-413504.mp3", // https://pixabay.com/users/lnplusmusic-47631836/
   AMusicBackgroundDay: "/audio/early-morning-muse-full-version-peaceful-flute-harp-strings-371629.mp3", // https://pixabay.com/users/kaazoom-448850/
+  AMusicBackgroundDead: "/audio/sad-autumn-150145.mp3", // https://pixabay.com/users/music_for_videos-26992513/
 } as const satisfies AssetDefinition;
 
 export const DEF_ASSETS_IMAGE = {

@@ -6,6 +6,7 @@ import uiControlsStyles from "../styles/uiControls.module.css";
 import type { LevelState } from "../types/LevelState";
 import getUiControls from "../ui/uiControls";
 import cx from "../utils/cx";
+import displayReadableTime from "../utils/displayReadableTime";
 import { AManager } from "./abstract/AManager";
 
 export default class UIManager extends AManager {
@@ -282,13 +283,21 @@ export default class UIManager extends AManager {
     if (subtitleElem[0])
       subtitleElem[0].innerHTML = '"' + subtitleArr[Math.floor(subtitleArr.length * Math.random())] + '"';
 
-    const counters: (keyof LevelState)[] = ["daysCounter", "zombiesKillCounter", "currencyTotalCounter"];
+    const counters: (keyof LevelState)[] = [
+      "daysCounter",
+      "zombiesKillCounter",
+      "currencyTotalCounter",
+      "totalTimeCounter",
+    ];
 
     for (const counter of counters) {
       const keyElem = document.querySelector(`.game-over__stat-key[data-id="${counter}"]`);
       if (!keyElem) continue;
 
       switch (counter) {
+        case "totalTimeCounter":
+          keyElem.innerHTML = dictionary["gameOver.playedTime"](displayReadableTime(levelState.totalTimeCounter));
+          break;
         case "daysCounter":
           keyElem.innerHTML = dictionary["gameOver.survivedDays"](levelState.daysCounter);
           break;

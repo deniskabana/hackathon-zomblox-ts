@@ -98,11 +98,13 @@ export default class LevelManager extends AManager {
       currencyTotalCounter: 0,
       zombiesKillCounter: 0,
       currency: gameSettings.startCurrency,
+      totalTimeCounter: 0,
     };
   }
 
   public update(_deltaTime: number) {
     this.player?.update(_deltaTime);
+    if (this.player && this.levelState) this.levelState.totalTimeCounter += _deltaTime;
 
     for (const zombie of this.zombies.values()) zombie.update(_deltaTime);
     for (const block of this.blocks.values()) block.update(_deltaTime);
@@ -205,6 +207,9 @@ export default class LevelManager extends AManager {
   // ==================================================
 
   private destroyPlayer(): void {
+    for (const track of this.musicDay) track.pause();
+    for (const track of this.musicNight) track.pause();
+    this.gameInstance.MANAGERS.AssetManager.playAudioAsset("AMusicBackgroundDead", "music");
     this.player?.destroy();
     this.player = undefined;
     for (const zombie of this.zombies.values()) zombie.startWandering();
@@ -431,8 +436,6 @@ export default class LevelManager extends AManager {
 
   public destroy(): void {
     this.stopSpawningZombies();
-    for (const track of this.musicDay) track.pause();
-    for (const track of this.musicNight) track.pause();
 
     this.player = undefined;
     this.zombies.clear();

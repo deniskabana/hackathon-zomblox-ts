@@ -57,6 +57,7 @@ const csTranslation: TranslationDictionary = {
     "Radši bych zemřel, než abych znovu jedl mrkev.",
   ],
   "gameOver.survivedDays": (n: number) => `Přežil jsi ${n} dní`,
+  "gameOver.playedTime": (n: string) => `Hra trvala ${n}`,
   "gameOver.killedZombies": (n: number) => `Zabil jsi ${n} zombie`,
   "gameOver.madeMoney": (n: number) => `Vydělal jsi ${n} mincí`,
   "gameOver.restart": "Zkusit znovu",
