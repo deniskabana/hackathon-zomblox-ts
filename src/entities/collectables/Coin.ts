@@ -11,7 +11,6 @@ export default class Coin extends ACollectable {
 
   private animation: AnimatedSpriteSheet | undefined;
   private fps: number;
-  private spriteSize: number;
 
   private coinLifetimeTimer: number;
 
@@ -23,7 +22,6 @@ export default class Coin extends ACollectable {
 
     const coinImage = this.gameInstance.MANAGERS.AssetManager.getImageAsset("SCoin");
     this.fps = 10;
-    this.spriteSize = GRID_CONFIG.TILE_SIZE / 3;
     if (coinImage) this.animation = AnimatedSpriteSheet.fromGrid(coinImage, 128, 128, 6, this.fps, true);
   }
 
@@ -45,16 +43,34 @@ export default class Coin extends ACollectable {
   public draw(): void {
     if (!this.animation) return;
 
+    const size = GRID_CONFIG.TILE_SIZE / 3;
+
+    this.drawShadow(size);
     this.gameInstance.MANAGERS.DrawManager.queueDrawSprite(
-      this.worldPos.x + GRID_CONFIG.TILE_SIZE / 2 - this.spriteSize / 2,
-      this.worldPos.y + GRID_CONFIG.TILE_SIZE / 2 - this.spriteSize / 2,
+      this.worldPos.x - size / 2,
+      this.worldPos.y - size / 2,
       this.animation,
       this.animation.getCurrentFrame(),
-      this.spriteSize,
-      this.spriteSize,
+      size,
+      size,
       ZIndex.ENTITIES,
       0,
     );
+  }
+
+  public drawShadow(size: number): void {
+    const { DrawManager, AssetManager } = this.gameInstance.MANAGERS;
+
+    const shadowSprite = AssetManager.getImageAsset("IFXEntityShadow");
+    if (shadowSprite)
+      DrawManager.queueDraw(
+        this.worldPos.x - size / 2,
+        this.worldPos.y - size / 1.75,
+        shadowSprite,
+        size,
+        size,
+        ZIndex.ENTITIES,
+      );
   }
 
   public damage(): void {}

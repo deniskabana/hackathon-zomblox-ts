@@ -60,4 +60,6 @@ export default class BlockWood extends ABlock {
   }
 
   public destroy(): void {}
+
+  public drawShadow(): void {}
 }

@@ -79,4 +79,6 @@ export default class BlockBarrelFire extends ABlock {
   public destroy(): void {
     if (this.lightSourceId) this.gameInstance.MANAGERS.LightManager.removeLightSource(this.lightSourceId);
   }
+
+  public drawShadow(): void {}
 }

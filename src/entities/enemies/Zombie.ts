@@ -116,10 +116,26 @@ export default class Zombie extends AEnemy {
     this.drawDebug();
 
     if (!this.activeAnimation) return;
-    const { DrawManager, AssetManager } = this.gameInstance.MANAGERS;
+    const { DrawManager } = this.gameInstance.MANAGERS;
 
     let size = GRID_CONFIG.TILE_SIZE * 1.55;
     if (this.activeAnimation === this.animIdle) size = GRID_CONFIG.TILE_SIZE * 1.2;
+
+    this.drawShadow(size);
+    DrawManager.queueDrawSprite(
+      this.worldPos.x - size / 2,
+      this.worldPos.y - size / 2,
+      this.activeAnimation,
+      this.activeAnimation.getCurrentFrame(),
+      size,
+      (size / 288) * 311,
+      ZIndex.ENTITIES,
+      this.angle,
+    );
+  }
+
+  public drawShadow(size: number): void {
+    const { DrawManager, AssetManager } = this.gameInstance.MANAGERS;
 
     const shadowSprite = AssetManager.getImageAsset("IFXEntityShadow");
     if (shadowSprite)
@@ -131,17 +147,6 @@ export default class Zombie extends AEnemy {
         size,
         ZIndex.ENTITIES,
       );
-
-    DrawManager.queueDrawSprite(
-      this.worldPos.x - size / 2,
-      this.worldPos.y - size / 2,
-      this.activeAnimation,
-      this.activeAnimation.getCurrentFrame(),
-      size,
-      (size / 288) * 311,
-      ZIndex.ENTITIES,
-      this.angle,
-    );
   }
 
   // State

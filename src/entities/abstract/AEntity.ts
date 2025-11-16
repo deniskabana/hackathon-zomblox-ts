@@ -33,6 +33,8 @@ export default abstract class AEntity {
   public abstract damage(amount: number): void;
   public abstract destroy(): void;
 
+  protected abstract drawShadow(size: number): void;
+
   public adjustMovementForCollisions(
     futurePos: WorldPosition,
     levelGrid: LevelGrid | undefined,

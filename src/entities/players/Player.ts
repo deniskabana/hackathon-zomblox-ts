@@ -173,20 +173,11 @@ export default class Player extends APlayer {
 
   public draw() {
     if (!this.activeAnimation) return;
-    const { DrawManager, AssetManager } = this.gameInstance.MANAGERS;
+    const { DrawManager } = this.gameInstance.MANAGERS;
 
     const size = GRID_CONFIG.TILE_SIZE * 1.25;
 
-    const shadowSprite = AssetManager.getImageAsset("IFXEntityShadow");
-    if (shadowSprite)
-      DrawManager.queueDraw(
-        this.worldPos.x - (size * 1.2) / 2,
-        this.worldPos.y - (size * 1.2) / 2,
-        shadowSprite,
-        size * 1.2,
-        size * 1.2,
-        ZIndex.ENTITIES,
-      );
+    this.drawShadow(size);
 
     if (this.isMoving) {
       if (this.feetWalkAnimation) {
@@ -229,6 +220,21 @@ export default class Player extends APlayer {
       ZIndex.ENTITIES,
       this.facingDirection,
     );
+  }
+
+  public drawShadow(size: number): void {
+    const { DrawManager, AssetManager } = this.gameInstance.MANAGERS;
+
+    const shadowSprite = AssetManager.getImageAsset("IFXEntityShadow");
+    if (shadowSprite)
+      DrawManager.queueDraw(
+        this.worldPos.x - (size * 1.2) / 2,
+        this.worldPos.y - (size * 1.2) / 2,
+        shadowSprite,
+        size * 1.2,
+        size * 1.2,
+        ZIndex.ENTITIES,
+      );
   }
 
   private getAimAngle(): number {
