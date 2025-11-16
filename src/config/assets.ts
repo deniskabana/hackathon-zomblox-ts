@@ -49,6 +49,9 @@ export const DEF_ASSETS_IMAGE = {
   IBlockBarrel: "/images/barrel-png-20852.png",
   // Zombies
   IZombie1: "/images/zombie.png", // https://fightswithbears.itch.io/2d-topdown-survival-character
+  SZombieMove: "/images/zombie-walk.png",
+  SZombieAttack: "/images/zombie-attack.png",
+  SZombieIdle: "/images/zombie-idle.png",
   // FX
   IFXBloodSplat: "/images/pi58p94iB.png", // https://www.clipartbest.com/clipart-pi58p94iB
   IFXBloodScreen: "/images/blood-png-7140.png", // https://www.freeiconspng.com/img/7140

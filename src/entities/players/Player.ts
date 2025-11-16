@@ -214,7 +214,7 @@ export default class Player extends APlayer {
     this.gunCooldownTimer += 0.4;
 
     this.gameInstance.MANAGERS.CameraManager.effectZoom(amount * 2);
-    this.gameInstance.MANAGERS.CameraManager.effectShake(amount * 2.5);
+    this.gameInstance.MANAGERS.CameraManager.effectShake(amount * 5);
 
     if (this.health <= 0) {
       this.die();

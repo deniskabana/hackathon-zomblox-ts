@@ -4,6 +4,7 @@ import { EntityType } from "../../types/EntityType";
 import type { Vector } from "../../types/Vector";
 import { ZIndex } from "../../types/ZIndex";
 import assertNever from "../../utils/assertNever";
+import { AnimatedSpriteSheet } from "../../utils/classes/AnimatedSpriteSheet";
 import isInsideGrid from "../../utils/grid/isInsideGrid";
 import getDirectionalAngle from "../../utils/math/getDirectionalAngle";
 import getVectorDistance from "../../utils/math/getVectorDistance";
@@ -23,6 +24,12 @@ export default class Zombie extends AEnemy {
   private zombieState: ZombieState = ZombieState.CHASING_PLAYER;
   public health: number;
 
+  private activeAnimation: AnimatedSpriteSheet | undefined;
+  private animWalk: AnimatedSpriteSheet | undefined;
+  private animAttack: AnimatedSpriteSheet | undefined;
+  private animIdle: AnimatedSpriteSheet | undefined;
+  private fps: number;
+
   private isWalking: boolean;
   private maxSpeed: number;
   private speed: number;
@@ -30,8 +37,6 @@ export default class Zombie extends AEnemy {
   private desiredAngle: number | undefined;
   private moveTargetPos: WorldPosition | undefined;
 
-  private randomStopInterval: number;
-  private randomStopTimer: number;
   private readonly clearTargetPosInterval: number = 1.5;
   private clearTargetPosTimer: number;
   private distanceFromPlayer: number = Infinity;
@@ -55,8 +60,6 @@ export default class Zombie extends AEnemy {
     this.speed = this.maxSpeed;
     this.angle = 0;
 
-    this.randomStopInterval = zombieSettings.randomStopIntervalSec;
-    this.randomStopTimer = 0;
     this.clearTargetPosTimer = 0;
     this.minDistanceFromPlayer = zombieSettings.minDistanceFromPlayer;
 
@@ -65,26 +68,43 @@ export default class Zombie extends AEnemy {
     this.attackCooldownTimer = 0;
     this.attackTimer = 0;
     this.hasDealtDamage = false;
+
+    this.fps = 25;
+    const spritesheetWalk = this.gameInstance.MANAGERS.AssetManager.getImageAsset("SZombieMove");
+    if (spritesheetWalk) this.animWalk = AnimatedSpriteSheet.fromGrid(spritesheetWalk, 288, 311, 17, this.fps, true);
+    const spritesheetAttack = this.gameInstance.MANAGERS.AssetManager.getImageAsset("SZombieAttack");
+    if (spritesheetAttack)
+      this.animAttack = AnimatedSpriteSheet.fromGrid(spritesheetAttack, 318, 294, 9, this.fps, true);
+    const spritesheetIdle = this.gameInstance.MANAGERS.AssetManager.getImageAsset("SZombieIdle");
+    if (spritesheetIdle) this.animIdle = AnimatedSpriteSheet.fromGrid(spritesheetIdle, 241, 222, 17, this.fps, true);
+
+    this.activeAnimation = this.animWalk;
   }
 
   public update(_deltaTime: number) {
+    this.activeAnimation?.update(Math.min(_deltaTime, 1 / this.fps));
+
     switch (this.zombieState) {
       case ZombieState.CHASING_PLAYER:
       case ZombieState.REATREATING:
+        this.activeAnimation = this.animWalk;
         this.applyChaseAndRetreat(_deltaTime);
         break;
 
       case ZombieState.WANDERING:
+        this.activeAnimation = this.animWalk;
         // TODO: Zombie wandering / wasting time
         break;
 
       case ZombieState.ATTACKING:
+        this.activeAnimation = this.animAttack;
         if (this.gameInstance.MANAGERS.LevelManager.player)
           this.applyRotation(_deltaTime, this.gameInstance.MANAGERS.LevelManager.player.worldPos);
         this.zombieAttackPlayer(_deltaTime);
         break;
 
       case ZombieState.WAITING_FOR_NIGHT:
+        this.activeAnimation = undefined;
         return;
 
       default:
@@ -94,18 +114,21 @@ export default class Zombie extends AEnemy {
 
   public draw() {
     this.drawDebug();
-    const sprite = this.gameInstance.MANAGERS.AssetManager.getImageAsset("IZombie1");
-    if (!sprite) return;
 
-    this.gameInstance.MANAGERS.DrawManager.queueDraw(
-      this.worldPos.x - GRID_CONFIG.TILE_SIZE / 2,
-      this.worldPos.y - GRID_CONFIG.TILE_SIZE / 2,
-      sprite,
-      GRID_CONFIG.TILE_SIZE,
-      GRID_CONFIG.TILE_SIZE,
+    if (!this.activeAnimation) return;
+
+    let size = GRID_CONFIG.TILE_SIZE * 1.35;
+    if (this.activeAnimation === this.animIdle) size = GRID_CONFIG.TILE_SIZE * 1.05;
+
+    this.gameInstance.MANAGERS.DrawManager.queueDrawSprite(
+      this.worldPos.x - size / 2,
+      this.worldPos.y - size / 2,
+      this.activeAnimation,
+      this.activeAnimation.getCurrentFrame(),
+      size,
+      (size / 288) * 311,
       ZIndex.ENTITIES,
-      this.angle + Math.PI / 2,
-      this.zombieState === ZombieState.ATTACKING ? 0.5 : 1,
+      this.angle,
     );
   }
 
@@ -275,7 +298,7 @@ export default class Zombie extends AEnemy {
     if (this.moveTargetPos) this.applyRotation(_deltaTime, this.moveTargetPos);
 
     const player = this.gameInstance.MANAGERS.LevelManager.player;
-    const zombieSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.zombie;
+    // const zombieSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.zombie;
 
     // Retreat
     if (this.zombieState === ZombieState.REATREATING) {
@@ -293,12 +316,11 @@ export default class Zombie extends AEnemy {
       if (this.attackCooldownTimer > 0) this.attackCooldownTimer -= _deltaTime;
 
       this.zombieChasePlayer(_deltaTime);
-      if (zombieSettings.enableErraticBehavior && this.distanceFromPlayer > this.minDistanceFromPlayer * 10)
-        this.applyErraticBehavior(_deltaTime);
 
       if (this.distanceFromPlayer < this.minDistanceFromPlayer) {
         this.moveTargetPos = { ...player.worldPos };
         this.clearTargetPosTimer = 0;
+        this.activeAnimation = this.animIdle;
         this.startAttacking();
       } else {
         this.moveZombie(_deltaTime);
@@ -327,14 +349,6 @@ export default class Zombie extends AEnemy {
       false,
     );
     this.setWorldPosition(adjustedPos);
-  }
-
-  private applyErraticBehavior(_deltaTime: number): void {
-    if (this.randomStopTimer > 0) {
-      this.randomStopTimer -= _deltaTime;
-    } else {
-      this.randomStopTimer = this.randomStopInterval * (0.3 + Math.random() * 0.7);
-    }
   }
 
   // Utils
