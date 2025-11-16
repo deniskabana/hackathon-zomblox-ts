@@ -2,11 +2,11 @@ import type { AssetAudioName } from "../../config/assets";
 import { GRID_CONFIG, gridToWorld, type GridPosition, type WorldPosition } from "../../config/gameGrid";
 import { DEF_WEAPONS, type Weapon } from "../../config/weapons";
 import type GameInstance from "../../GameInstance";
-import type { AssetImage } from "../../types/Asset";
 import { EntityType } from "../../types/EntityType";
 import { GameControls } from "../../types/GameControls";
 import { ZIndex } from "../../types/ZIndex";
 import assertNever from "../../utils/assertNever";
+import { AnimatedSpriteSheet } from "../../utils/classes/AnimatedSpriteSheet";
 import areVectorsEqual from "../../utils/math/areVectorsEqual";
 import getVectorDistance from "../../utils/math/getVectorDistance";
 import normalizeVector from "../../utils/math/normalizeVector";
@@ -27,6 +27,22 @@ export default class Player extends APlayer {
   private moveSpeed: number;
   private isMoving: boolean = false;
 
+  private fps: number;
+  private activeAnimation: AnimatedSpriteSheet | undefined;
+  private animations:
+    | undefined
+    | {
+        pistolIdle?: AnimatedSpriteSheet;
+        pistolWalk?: AnimatedSpriteSheet;
+        pistolShoot?: AnimatedSpriteSheet;
+        shotgunIdle?: AnimatedSpriteSheet;
+        shotgunWalk?: AnimatedSpriteSheet;
+        shotgunShoot?: AnimatedSpriteSheet;
+        submachineIdle?: AnimatedSpriteSheet;
+        submachineWalk?: AnimatedSpriteSheet;
+        submachineShoot?: AnimatedSpriteSheet;
+      };
+
   public health: number;
   public maxHealth: number;
   public weapon: Weapon;
@@ -43,15 +59,49 @@ export default class Player extends APlayer {
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     super(gameInstance, gridToWorld(gridPos), entityId, true);
 
-    const settings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.player;
+    const { GameManager, AssetManager } = this.gameInstance.MANAGERS;
+
+    const settings = GameManager.getSettings().rules.player;
     this.playerState = PlayerState.NORMAL;
     this.moveSpeed = settings.movementSpeed;
     this.health = settings.startHealth;
     this.maxHealth = settings.startHealth;
     this.weapon = settings.defaultWeapon;
+
+    this.fps = 25;
+    const spritesheets = {
+      pistolIdle: AssetManager.getImageAsset("SPlayerGunPistolIdle"),
+    } satisfies Record<keyof typeof this.animations, HTMLImageElement | undefined>;
+
+    if (!this.animations) this.animations = {};
+
+    let sheetKey: keyof typeof spritesheets;
+
+    for (sheetKey in spritesheets) {
+      let spriteMeta = { width: 0, height: 0, frames: 0 };
+
+      switch (sheetKey) {
+        default:
+        case "pistolIdle":
+          spriteMeta = { width: 253, height: 216, frames: 20 };
+          break;
+      }
+
+      const spritesheet = spritesheets[sheetKey];
+      if (!spritesheet) continue;
+      this.animations[sheetKey] = AnimatedSpriteSheet.fromGrid(
+        spritesheet,
+        spriteMeta.width,
+        spriteMeta.height,
+        spriteMeta.frames,
+        this.fps,
+        true,
+      );
+    }
   }
 
   public update(_deltaTime: number) {
+    this.activeAnimation?.update(Math.min(_deltaTime, 1 / this.fps));
     this.applyMovement(_deltaTime);
     if (this.gunCooldownTimer > 0) this.gunCooldownTimer -= _deltaTime;
     if (this.nextWeaponCooldownTimer > 0) this.nextWeaponCooldownTimer -= _deltaTime;
@@ -60,20 +110,24 @@ export default class Player extends APlayer {
     if (this.gameInstance.MANAGERS.InputManager.isControlDown(GameControls.CHANGE_WEAPON)) this.chooseNextWeapon();
 
     this.handleBuildingModeInput(_deltaTime);
+
+    this.activeAnimation = this.animations?.pistolIdle;
   }
 
   public draw() {
-    const playerSprite = this.getPlayerSprite();
-    if (!playerSprite) return;
+    if (!this.activeAnimation) return;
 
-    this.gameInstance.MANAGERS.DrawManager.queueDraw(
-      this.worldPos.x - GRID_CONFIG.TILE_SIZE / 2,
-      this.worldPos.y - GRID_CONFIG.TILE_SIZE / 2,
-      playerSprite,
-      GRID_CONFIG.TILE_SIZE,
-      GRID_CONFIG.TILE_SIZE,
+    const size = GRID_CONFIG.TILE_SIZE * 1.25;
+
+    this.gameInstance.MANAGERS.DrawManager.queueDrawSprite(
+      this.worldPos.x - size / 2,
+      this.worldPos.y - size / 2,
+      this.activeAnimation,
+      this.activeAnimation.getCurrentFrame(),
+      size,
+      (size / 288) * 311,
       ZIndex.ENTITIES,
-      this.facingDirection + Math.PI / 2,
+      this.facingDirection,
     );
   }
 
@@ -166,24 +220,6 @@ export default class Player extends APlayer {
     this.gameInstance.MANAGERS.CameraManager.effectShake(
       3 + weaponDef.damage / 2 + weaponDef.shots * 4 - weaponDef.cooldown * 2,
     );
-  }
-
-  private getPlayerSprite(): AssetImage {
-    let sprite: AssetImage | undefined;
-
-    switch (this.weapon) {
-      case "Revolver":
-        sprite = this.gameInstance.MANAGERS.AssetManager.getImageAsset("IPlayerGunRevolver");
-        break;
-      case "Shotgun":
-        sprite = this.gameInstance.MANAGERS.AssetManager.getImageAsset("IPlayerGunShotgun");
-        break;
-      case "Submachine":
-        sprite = this.gameInstance.MANAGERS.AssetManager.getImageAsset("IPlayerGunSmg");
-        break;
-    }
-
-    return sprite ?? this.gameInstance.MANAGERS.AssetManager.getImageAsset("IPlayerUnarmed")!;
   }
 
   private getWeaponSound(): AssetAudioName | undefined {

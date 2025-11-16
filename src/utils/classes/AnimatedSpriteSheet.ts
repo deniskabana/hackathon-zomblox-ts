@@ -7,10 +7,23 @@ export class AnimatedSpriteSheet extends SpriteSheet {
   private isPlaying: boolean = true;
   private loop: boolean = true;
 
-  constructor(image: HTMLImageElement, frames: SpriteFrame[], fps: number = 10, loop: boolean = true) {
+  public frameWidth: number;
+  public frameHeight: number;
+
+  constructor(
+    image: HTMLImageElement,
+    frames: SpriteFrame[],
+    fps: number = 10,
+    loop: boolean = true,
+    frameWidth: number,
+    frameHeight: number,
+  ) {
     super(image, frames);
     this.frameDuration = 1 / fps;
     this.loop = loop;
+
+    this.frameWidth = frameWidth;
+    this.frameHeight = frameHeight;
   }
 
   public update(deltaTime: number): void {
@@ -65,6 +78,6 @@ export class AnimatedSpriteSheet extends SpriteSheet {
     columns?: number,
   ): AnimatedSpriteSheet {
     const baseSheet = SpriteSheet.fromGrid(image, frameWidth, frameHeight, frameCount, columns);
-    return new AnimatedSpriteSheet(image, baseSheet["frames"], fps, loop);
+    return new AnimatedSpriteSheet(image, baseSheet["frames"], fps, loop, frameWidth, frameHeight);
   }
 }

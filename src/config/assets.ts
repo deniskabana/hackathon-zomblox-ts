@@ -39,6 +39,7 @@ export const DEF_ASSETS_AUDIO = {
 
 export const DEF_ASSETS_IMAGE = {
   // Player
+  SPlayerGunPistolIdle: "/images/player-pistol-idle.png",
   IPlayerGunRevolver: "/images/survivor_pistol.png", // https://fightswithbears.itch.io/2d-topdown-survival-character
   IPlayerGunShotgun: "/images/survivor_shotgun.png", // https://fightswithbears.itch.io/2d-topdown-survival-character
   IPlayerGunRifle: "/images/survivor_rifle.png", // https://fightswithbears.itch.io/2d-topdown-survival-character
