@@ -28,19 +28,24 @@ export default class Player extends APlayer {
   private isMoving: boolean = false;
 
   private fps: number;
+  private feetWalkAnimation: AnimatedSpriteSheet | undefined;
+  private feetIdleSprite: HTMLImageElement | undefined;
   private activeAnimation: AnimatedSpriteSheet | undefined;
   private animations:
     | undefined
     | {
-        pistolIdle?: AnimatedSpriteSheet;
-        pistolWalk?: AnimatedSpriteSheet;
-        pistolShoot?: AnimatedSpriteSheet;
-        shotgunIdle?: AnimatedSpriteSheet;
-        shotgunWalk?: AnimatedSpriteSheet;
-        shotgunShoot?: AnimatedSpriteSheet;
-        submachineIdle?: AnimatedSpriteSheet;
-        submachineWalk?: AnimatedSpriteSheet;
-        submachineShoot?: AnimatedSpriteSheet;
+        pistolIdle: AnimatedSpriteSheet;
+        pistolWalk: AnimatedSpriteSheet;
+        pistolShoot: AnimatedSpriteSheet;
+        pistolReload: AnimatedSpriteSheet;
+        shotgunIdle: AnimatedSpriteSheet;
+        shotgunWalk: AnimatedSpriteSheet;
+        shotgunShoot: AnimatedSpriteSheet;
+        shotgunReload: AnimatedSpriteSheet;
+        submachineIdle: AnimatedSpriteSheet;
+        submachineWalk: AnimatedSpriteSheet;
+        submachineShoot: AnimatedSpriteSheet;
+        submachineReload: AnimatedSpriteSheet;
       };
 
   public health: number;
@@ -69,26 +74,77 @@ export default class Player extends APlayer {
     this.weapon = settings.defaultWeapon;
 
     this.fps = 25;
-    const spritesheets = {
-      pistolIdle: AssetManager.getImageAsset("SPlayerGunPistolIdle"),
-    } satisfies Record<keyof typeof this.animations, HTMLImageElement | undefined>;
+    const feetWalk = AssetManager.getImageAsset("SPlayerLegsWalk");
+    if (feetWalk) this.feetWalkAnimation = AnimatedSpriteSheet.fromGrid(feetWalk, 172, 124, 20, this.fps, true);
+    const feetIdle = AssetManager.getImageAsset("IPlayerLegsIdle");
+    if (feetIdle) this.feetIdleSprite = feetIdle;
 
-    if (!this.animations) this.animations = {};
+    const spritesheets = {
+      pistolIdle: AssetManager.getImageAsset("SPlayerIdlePistol"),
+      pistolWalk: AssetManager.getImageAsset("SPlayerWalkPistol"),
+      pistolShoot: AssetManager.getImageAsset("SPlayerShootPistol"),
+      pistolReload: AssetManager.getImageAsset("SPlayerReloadPistol"),
+      shotgunIdle: AssetManager.getImageAsset("SPlayerIdleShotgun"),
+      shotgunWalk: AssetManager.getImageAsset("SPlayerWalkShotgun"),
+      shotgunShoot: AssetManager.getImageAsset("SPlayerShootShotgun"),
+      shotgunReload: AssetManager.getImageAsset("SPlayerReloadShotgun"),
+      submachineIdle: AssetManager.getImageAsset("SPlayerIdleSubmachine"),
+      submachineWalk: AssetManager.getImageAsset("SPlayerWalkSubmachine"),
+      submachineShoot: AssetManager.getImageAsset("SPlayerShootSubmachine"),
+      submachineReload: AssetManager.getImageAsset("SPlayerReloadSubmachine"),
+    } satisfies Record<keyof NonNullable<typeof this.animations>, HTMLImageElement | undefined>;
 
     let sheetKey: keyof typeof spritesheets;
 
+    if (!this.animations) this.animations = {} as never;
     for (sheetKey in spritesheets) {
       let spriteMeta = { width: 0, height: 0, frames: 0 };
 
       switch (sheetKey) {
-        default:
         case "pistolIdle":
           spriteMeta = { width: 253, height: 216, frames: 20 };
           break;
+        case "pistolWalk":
+          spriteMeta = { width: 258, height: 220, frames: 20 };
+          break;
+        case "pistolShoot":
+          spriteMeta = { width: 255, height: 215, frames: 3 };
+          break;
+        case "pistolReload":
+          spriteMeta = { width: 260, height: 215, frames: 15 };
+          break;
+        case "shotgunIdle":
+          spriteMeta = { width: 313, height: 207, frames: 20 };
+          break;
+        case "shotgunWalk":
+          spriteMeta = { width: 313, height: 206, frames: 20 };
+          break;
+        case "shotgunShoot":
+          spriteMeta = { width: 312, height: 206, frames: 3 };
+          break;
+        case "shotgunReload":
+          spriteMeta = { width: 322, height: 217, frames: 20 };
+          break;
+        case "submachineIdle":
+          spriteMeta = { width: 313, height: 207, frames: 20 };
+          break;
+        case "submachineWalk":
+          spriteMeta = { width: 313, height: 206, frames: 20 };
+          break;
+        case "submachineShoot":
+          spriteMeta = { width: 312, height: 206, frames: 3 };
+          break;
+        case "submachineReload":
+          spriteMeta = { width: 322, height: 217, frames: 20 };
+          break;
+
+        default:
+          assertNever(sheetKey);
       }
 
       const spritesheet = spritesheets[sheetKey];
       if (!spritesheet) continue;
+
       this.animations[sheetKey] = AnimatedSpriteSheet.fromGrid(
         spritesheet,
         spriteMeta.width,
@@ -102,6 +158,7 @@ export default class Player extends APlayer {
 
   public update(_deltaTime: number) {
     this.activeAnimation?.update(Math.min(_deltaTime, 1 / this.fps));
+    this.feetWalkAnimation?.update(Math.min(_deltaTime, 1 / this.fps));
     this.applyMovement(_deltaTime);
     if (this.gunCooldownTimer > 0) this.gunCooldownTimer -= _deltaTime;
     if (this.nextWeaponCooldownTimer > 0) this.nextWeaponCooldownTimer -= _deltaTime;
@@ -116,10 +173,43 @@ export default class Player extends APlayer {
 
   public draw() {
     if (!this.activeAnimation) return;
+    const { DrawManager } = this.gameInstance.MANAGERS;
 
     const size = GRID_CONFIG.TILE_SIZE * 1.25;
 
-    this.gameInstance.MANAGERS.DrawManager.queueDrawSprite(
+    // Feet
+    if (this.isMoving) {
+      if (this.feetWalkAnimation) {
+        const animFeetToBodyRatio = 0.9;
+
+        DrawManager.queueDrawSprite(
+          this.worldPos.x - (size * animFeetToBodyRatio) / 2,
+          this.worldPos.y - ((size / 172) * 124 * animFeetToBodyRatio) / 2,
+          this.feetWalkAnimation,
+          this.feetWalkAnimation.getCurrentFrame(),
+          size * animFeetToBodyRatio,
+          (size / 172) * 124 * animFeetToBodyRatio,
+          ZIndex.ENTITIES,
+          this.facingDirection,
+        );
+      }
+    } else {
+      if (this.feetIdleSprite) {
+        const idleFeetToBodyRatio = 0.6;
+
+        DrawManager.queueDraw(
+          this.worldPos.x - (size * idleFeetToBodyRatio) / 2,
+          this.worldPos.y - ((size / 132) * 155 * idleFeetToBodyRatio) / 2,
+          this.feetIdleSprite,
+          size * idleFeetToBodyRatio,
+          (size / 132) * 155 * idleFeetToBodyRatio,
+          ZIndex.ENTITIES,
+          this.facingDirection,
+        );
+      }
+    }
+
+    DrawManager.queueDrawSprite(
       this.worldPos.x - size / 2,
       this.worldPos.y - size / 2,
       this.activeAnimation,
