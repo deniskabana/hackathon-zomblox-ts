@@ -116,11 +116,23 @@ export default class Zombie extends AEnemy {
     this.drawDebug();
 
     if (!this.activeAnimation) return;
+    const { DrawManager, AssetManager } = this.gameInstance.MANAGERS;
 
-    let size = GRID_CONFIG.TILE_SIZE * 1.35;
-    if (this.activeAnimation === this.animIdle) size = GRID_CONFIG.TILE_SIZE * 1.05;
+    let size = GRID_CONFIG.TILE_SIZE * 1.55;
+    if (this.activeAnimation === this.animIdle) size = GRID_CONFIG.TILE_SIZE * 1.2;
 
-    this.gameInstance.MANAGERS.DrawManager.queueDrawSprite(
+    const shadowSprite = AssetManager.getImageAsset("IFXEntityShadow");
+    if (shadowSprite)
+      DrawManager.queueDraw(
+        this.worldPos.x - size / 2,
+        this.worldPos.y - size / 1.75,
+        shadowSprite,
+        size,
+        size,
+        ZIndex.ENTITIES,
+      );
+
+    DrawManager.queueDrawSprite(
       this.worldPos.x - size / 2,
       this.worldPos.y - size / 2,
       this.activeAnimation,

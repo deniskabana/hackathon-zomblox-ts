@@ -173,14 +173,24 @@ export default class Player extends APlayer {
 
   public draw() {
     if (!this.activeAnimation) return;
-    const { DrawManager } = this.gameInstance.MANAGERS;
+    const { DrawManager, AssetManager } = this.gameInstance.MANAGERS;
 
     const size = GRID_CONFIG.TILE_SIZE * 1.25;
 
-    // Feet
+    const shadowSprite = AssetManager.getImageAsset("IFXEntityShadow");
+    if (shadowSprite)
+      DrawManager.queueDraw(
+        this.worldPos.x - (size * 1.2) / 2,
+        this.worldPos.y - (size * 1.2) / 2,
+        shadowSprite,
+        size * 1.2,
+        size * 1.2,
+        ZIndex.ENTITIES,
+      );
+
     if (this.isMoving) {
       if (this.feetWalkAnimation) {
-        const animFeetToBodyRatio = 0.9;
+        const animFeetToBodyRatio = 0.8;
 
         DrawManager.queueDrawSprite(
           this.worldPos.x - (size * animFeetToBodyRatio) / 2,
@@ -195,7 +205,7 @@ export default class Player extends APlayer {
       }
     } else {
       if (this.feetIdleSprite) {
-        const idleFeetToBodyRatio = 0.6;
+        const idleFeetToBodyRatio = 0.55;
 
         DrawManager.queueDraw(
           this.worldPos.x - (size * idleFeetToBodyRatio) / 2,
