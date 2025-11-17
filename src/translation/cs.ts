@@ -78,7 +78,9 @@ const csTranslation: TranslationDictionary = {
   "shop.yourStock": "Tvé zásoby",
   "shop.close": "Zavřít",
   "shop.cancel": "Zrušit",
-  "shop.purchase": "Koupit",
+  "shop.buy": "Koupit",
+  "shop.sell": "Prodat",
+  "shop.noItemSelected": "Nevybral jsi žádnou věc.",
   "shop.confirmationPrompt": (name: string, cost: number) => `Koupit ${name} za ${cost}?`,
 };
 

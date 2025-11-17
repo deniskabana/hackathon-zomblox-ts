@@ -76,7 +76,9 @@ const enTranslation = {
   "shop.yourStock": "Your stock",
   "shop.close": "Close",
   "shop.cancel": "Cancel",
-  "shop.purchase": "Purchase",
+  "shop.buy": "Buy",
+  "shop.sell": "Sell",
+  "shop.noItemSelected": "No item selected.",
   "shop.confirmationPrompt": (name: string, cost: number) => `Purchase ${name} for ${cost}?`,
 };
 
