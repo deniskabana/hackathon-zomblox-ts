@@ -84,6 +84,14 @@ export default class Zombie extends AEnemy {
   public update(_deltaTime: number) {
     this.activeAnimation?.update(Math.min(_deltaTime, 1 / this.fps));
 
+    if (
+      this.zombieState === ZombieState.REATREATING &&
+      isInsideGrid(this.gridPos) &&
+      this.gameInstance.MANAGERS.LevelManager.getIsDay()
+    ) {
+      this.damage(_deltaTime * 1.5);
+    }
+
     switch (this.zombieState) {
       case ZombieState.CHASING_PLAYER:
       case ZombieState.REATREATING:
@@ -160,7 +168,7 @@ export default class Zombie extends AEnemy {
   public startRetreating(): void {
     this.zombieState = ZombieState.REATREATING;
     const zombieSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.zombie;
-    this.speed = zombieSettings.maxSpeed * 2;
+    this.speed = zombieSettings.maxSpeed * 3.25;
 
     const retreatFlowFields = this.gameInstance.MANAGERS.LevelManager.retreatFlowFields;
     if (!retreatFlowFields) return;
@@ -188,8 +196,8 @@ export default class Zombie extends AEnemy {
     });
     this.gameInstance.MANAGERS.AssetManager.playAudioAsset("AZombieDeath", "sound");
     this.gameInstance.MANAGERS.VFXManager.drawBloodPool({
-      x: this.worldPos.x - GRID_CONFIG.TILE_SIZE / 2,
-      y: this.worldPos.y - GRID_CONFIG.TILE_SIZE / 2,
+      x: this.worldPos.x - GRID_CONFIG.TILE_SIZE / 2 + (-0.5 + Math.random()) * 4,
+      y: this.worldPos.y - GRID_CONFIG.TILE_SIZE / 2 + (-0.5 + Math.random()) * 4,
     });
     this.gameInstance.MANAGERS.LevelManager.destroyEntity(this.entityId, EntityType.ENEMY);
   }

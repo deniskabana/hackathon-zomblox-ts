@@ -15,7 +15,7 @@ export const DEFAULT_SETTINGS = {
       zombieSpawnIntervalMs: 1200,
       zombieSpawnAmount: 25,
       zombieSpawnCoef: 1.18,
-      nightDurationSec: 40,
+      nightDurationSec: 10,
       enableBlocksDestruction: true,
       startZombiesAmount: 5,
       playerLightRadius: 3.65,

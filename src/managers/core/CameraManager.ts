@@ -17,7 +17,7 @@ export default class CameraManager extends AManager {
   private readonly minZoom: number = 0.5;
   private readonly maxZoom: number = 2;
 
-  private readonly targetWorldWidth: number = 1000;
+  private readonly targetWorldWidth: number = 1200;
   private readonly followSpeed: number = 2;
 
   constructor(gameInstance: GameInstance) {
