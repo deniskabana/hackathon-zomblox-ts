@@ -33,6 +33,7 @@ export default class DrawManager extends AManager {
     const ctx = this.canvas.getContext("2d");
     if (!ctx) throw new Error("Failed to get 2D context from canvas");
     this.ctx = ctx;
+    this.ctx.imageSmoothingEnabled = false;
   }
 
   public startRenderLoop(): void {
@@ -142,6 +143,8 @@ export default class DrawManager extends AManager {
   private drawCommand(cmd: DrawCommand): void {
     if (!this.ctx) return;
     this.ctx.save();
+    this.ctx.imageSmoothingQuality = "low";
+    this.ctx.imageSmoothingEnabled = false;
 
     const { CameraManager } = this.gameInstance.MANAGERS;
     const zoom = (Math.ceil(CameraManager.zoom * 10) / 10) * 1.005; // Fixes tile gap

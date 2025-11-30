@@ -50,12 +50,13 @@ export default class VFXManager extends AManager {
 
   public drawBloodPool(pos: WorldPosition, duration: number = 300): void {
     const alpha = Math.random() * 0.25 + 0.65;
-    const sizeDeviation = 0.9 + Math.random() * 0.6;
-    const angle = 2 * Math.PI * Math.random();
+    const sizeDeviation = 1.1 + Math.random() * 0.8;
+    const angles = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
+    const angle = angles[Math.floor(Math.random() * angles.length)];
 
     const bloodImage = this.gameInstance.MANAGERS.AssetManager.getImageAsset("SFXBloodSplat");
     if (!bloodImage) return;
-    const bloodSpriteSheet = SpriteSheet.fromTileset(bloodImage, 128, 128);
+    const bloodSpriteSheet = SpriteSheet.fromTileset(bloodImage, 16, 16);
     const frameIndex = Math.floor(Math.random() * bloodSpriteSheet.getFrameCount() + 0.1);
 
     this.effects.set(this.effectIdCount++, {

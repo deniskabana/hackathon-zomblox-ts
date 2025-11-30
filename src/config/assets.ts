@@ -71,7 +71,7 @@ export const DEF_ASSETS_IMAGE = {
   IFXBloodSplat: "/images/pi58p94iB.png", // https://www.clipartbest.com/clipart-pi58p94iB
   IFXBloodScreen: "/images/blood-png-7140.png", // https://www.freeiconspng.com/img/7140
   IFXBloodOverlay: "/images/blood-overlay.png",
-  SFXBloodSplat: "/images/blood-spritesheet.png",
+  SFXBloodSplat: "/images/blood-spritesheet-16x16.png",
   IFXEntityShadow: "/images/entity-shadow.png",
   // Textures
   ITextureGround: "/images/Texture_11_Diffuse.png", // https://oleekconder.itch.io/stylized-nature-textures
