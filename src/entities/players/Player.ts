@@ -31,6 +31,7 @@ export default class Player extends APlayer {
   private fps: number;
   private activeAnimation: AnimatedSpriteSheet | undefined;
   private animations: undefined | Record<PlayerState, AnimatedSpriteSheet>;
+  private size: number = GRID_CONFIG.TILE_SIZE * 1.5;
   private isFacingLeft: boolean = false;
 
   private weaponSprites: SpriteSheet | undefined;
@@ -155,18 +156,18 @@ export default class Player extends APlayer {
     if (!this.activeAnimation) return;
     const { DrawManager } = this.gameInstance.MANAGERS;
 
-    const size = GRID_CONFIG.TILE_SIZE * 1.5;
+    this.size = GRID_CONFIG.TILE_SIZE * 1.5;
     const weaponSize = GRID_CONFIG.TILE_SIZE * 1.5;
 
-    this.drawShadow(size * 0.75);
+    this.drawShadow(this.size * 0.75);
 
     DrawManager.queueDrawSprite(
-      this.worldPos.x - size / 2,
-      this.worldPos.y - size * 0.95,
+      this.worldPos.x - this.size / 2,
+      this.worldPos.y - this.size * 0.95,
       this.activeAnimation,
       this.activeAnimation.getCurrentFrame(),
-      size,
-      size,
+      this.size,
+      this.size,
       ZIndex.ENTITIES,
       0,
       1,
@@ -315,9 +316,36 @@ export default class Player extends APlayer {
       const maxDistance = weaponDef.maxDistance * GRID_CONFIG.TILE_SIZE;
 
       const raycastHit = this.gameInstance.MANAGERS.LevelManager.raycastShot(this.worldPos, angle, maxDistance);
+
+      let originOffsetX: number = 0;
+      let originOffsetY: number = 0;
+      const playerCardinalDirection = getCardinalDirection(this.facingDirection);
+      switch (playerCardinalDirection) {
+        case Direction.UP:
+          originOffsetY = this.size * 0.25;
+          if (this.isFacingLeft) originOffsetX = this.size * 0.1 * -1;
+          else originOffsetX = this.size * 0.15;
+          break;
+        case Direction.DOWN:
+          originOffsetY = this.size * 0.7 * -1;
+          if (this.isFacingLeft) originOffsetX = this.size * 0.05 * -1;
+          else originOffsetX = this.size * 0.05;
+          break;
+        case Direction.LEFT:
+          originOffsetX = this.size * 0.5 * -1;
+          originOffsetY = this.size * 0.25 * -1;
+          break;
+        case Direction.RIGHT:
+          originOffsetX = this.size * 0.5;
+          originOffsetY = this.size * 0.25 * -1;
+          break;
+        default:
+          assertNever(playerCardinalDirection);
+      }
+
       if (raycastHit) raycastHit.damage(weaponDef.damage);
       this.gameInstance.MANAGERS.VFXManager.drawShootLine(
-        this.worldPos,
+        { x: this.worldPos.x + originOffsetX, y: this.worldPos.y + originOffsetY },
         angle,
         raycastHit ? getVectorDistance(this.worldPos, raycastHit.worldPos) : maxDistance,
       );
