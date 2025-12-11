@@ -48,7 +48,7 @@ export default class Player extends APlayer {
   private buildingModeCooldownTimer: number = 0;
 
   private readonly stepSoundCooldownInterval: number = 0.35;
-  // private readonly buildingModeCooldownInterval: number = 0.2;
+  private readonly buildingModeCooldownInterval: number = 0.2;
   private stunDuration: number;
 
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
@@ -281,9 +281,9 @@ export default class Player extends APlayer {
     if (this.buildingModeCooldownTimer > 0) this.buildingModeCooldownTimer -= _deltaTime;
 
     if (this.buildingModeCooldownTimer <= 0 && isPressed) {
-      //  this.startBuildingMode();
-      // else this.endBuildingMode();
-      // this.buildingModeCooldownTimer = this.buildingModeCooldownInterval;
+      if (this.gameInstance.MANAGERS.BuildModeManager.isBuildModeActive) this.startBuildingMode();
+      else this.endBuildingMode();
+      this.buildingModeCooldownTimer = this.buildingModeCooldownInterval;
     }
   }
 
@@ -385,7 +385,7 @@ export default class Player extends APlayer {
     }
   }
 
-  private chooseNextWeapon(): void {
+  public chooseNextWeapon(): void {
     if (this.nextWeaponCooldownTimer > 0) return;
     const currentWeapon = this.weapon;
     const weapons = Object.keys(DEF_WEAPONS) as Weapon[];

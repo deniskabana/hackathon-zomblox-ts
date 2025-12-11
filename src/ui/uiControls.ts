@@ -14,6 +14,7 @@ export default function getUiControls(gameInstance: GameInstance) {
     // masterVolumeToggleButton: getMasterVolumeToggleButton(gameInstance),
     buildModeButton: getBuildModeButton(gameInstance),
     shootButton: getShootButton(gameInstance),
+    nextWeaponButton: getNextWeaponButton(gameInstance),
   } satisfies UiControls;
 }
 
@@ -177,6 +178,32 @@ export function getShootButton(gameInstance: GameInstance): UiControls[string] {
       buttonEl.removeEventListener("touchend", handleClick);
       buttonEl.removeEventListener("touchmove", handleRelase);
       buttonEl.removeEventListener("touchcancel", handleRelase);
+      buttonEl.remove();
+    },
+  };
+}
+
+function getNextWeaponButton(gameInstance: GameInstance): UiControls[string] {
+  const buttonEl = document.createElement("div");
+  gameInstance.MANAGERS.UIManager.uiContainer.appendChild(buttonEl);
+  buttonEl.className = cx(styles.uiControl, styles.nextWeaponButton);
+
+  const handleClick = () => {
+    gameInstance.MANAGERS.AssetManager.playAudioAsset("AFXUiClick", "sound");
+    gameInstance.MANAGERS.InputManager.simulateControlPress(GameControls.CHANGE_WEAPON);
+    setTimeout(() => gameInstance.MANAGERS.InputManager.simulateControlRelease(GameControls.CHANGE_WEAPON), 0);
+  };
+
+  buttonEl.addEventListener("click", handleClick);
+  buttonEl.addEventListener("touchend", handleClick);
+
+  buttonEl.innerHTML = gameInstance.translation.dictionary["hud.changeWeapon"];
+
+  return {
+    draw: () => {},
+    destroy: () => {
+      buttonEl.removeEventListener("click", handleClick);
+      buttonEl.removeEventListener("touchend", handleClick);
       buttonEl.remove();
     },
   };

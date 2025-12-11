@@ -44,6 +44,13 @@
   padding: 0 1rem;
   font-size: 1rem;
 }
+.nextWeaponButton {
+  bottom: 110px;
+  right: 8px;
+  width: auto;
+  padding: 1rem;
+  font-size: 1rem;
+}
 
 .joystick {
   position: absolute;

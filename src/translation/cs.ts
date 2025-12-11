@@ -28,6 +28,7 @@ const csTranslation: TranslationDictionary = {
   "hud.goodMorning": "Dobré ráno!",
   "hud.goodMorningDesc": (day: number) => `Začíná ${day}. den.`,
   "hud.shootBtn": "Střílet",
+  "hud.changeWeapon": "Zbraň",
 
   "pause.title": "Hra je pozastavena",
   "pause.resume": "Pokračovat",

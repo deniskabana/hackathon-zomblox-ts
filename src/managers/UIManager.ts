@@ -99,6 +99,7 @@ export default class UIManager extends AManager {
 
     this.uiControls = getUiControls(this.gameInstance);
     if (!("ontouchend" in document)) this.uiControls?.shootButton.destroy();
+    if (!("ontouchend" in document)) this.uiControls?.nextWeaponButton.destroy();
 
     const { BuildModeManager } = this.gameInstance.MANAGERS;
     const toolbarNext = this.hudToolbar.querySelector('[data-direction="next"]');

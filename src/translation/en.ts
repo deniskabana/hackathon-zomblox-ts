@@ -26,6 +26,7 @@ const enTranslation = {
   "hud.goodMorning": "Good morning!",
   "hud.goodMorningDesc": (day: number) => `Day ${day} is starting.`,
   "hud.shootBtn": "Shoot",
+  "hud.changeWeapon": "Weapon",
 
   "pause.title": "The game is paused",
   "pause.resume": "Continue",
