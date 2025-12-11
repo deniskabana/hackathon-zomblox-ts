@@ -41,17 +41,14 @@ export const DEF_ASSETS_IMAGE = {
   // Player
   SPlayerRun: "/images/player/Player_run.png",
   SPlayerIdle: "/images/player/Player_idle.png",
-  SPlayerHit: "/images/player/Player_Hit.png",
-  SPlayerDeath: "/images/player/Player_Death.png",
+  SPlayerHit: "/images/player/Player_hit.png",
+  SPlayerDeath: "/images/player/Player_death.png",
   SPlayerKnocked: "/images/player/Player_knocked.png",
 
   IPlayerAimIndicator: "/images/effects/aim-indicator.png",
 
-  IPlayerGunRevolver: "/images/survivor_pistol.png", // https://fightswithbears.itch.io/2d-topdown-survival-character
-  IPlayerGunShotgun: "/images/survivor_shotgun.png", // https://fightswithbears.itch.io/2d-topdown-survival-character
-  IPlayerGunRifle: "/images/survivor_rifle.png", // https://fightswithbears.itch.io/2d-topdown-survival-character
-  IPlayerGunSmg: "/images/survivor_smg.png", // https://fightswithbears.itch.io/2d-topdown-survival-character
-  IPlayerUnarmed: "/images/survivor_unarmed.png", // https://fightswithbears.itch.io/2d-topdown-survival-character
+  SPlayerWeapons: "/images/player/Weapons sprites (32x32).png",
+
   // Blocks
   IBlockWood: "/images/RTS_Crate.png",
   IBlockBarrel: "/images/barrel-png-20852.png",
@@ -66,8 +63,6 @@ export const DEF_ASSETS_IMAGE = {
   IFXBloodOverlay: "/images/blood-overlay.png",
   SFXBloodSplat: "/images/blood-spritesheet-16x16.png",
   IFXEntityShadow: "/images/entity-shadow.png",
-  // Textures
-  ITextureGround: "/images/Texture_11_Diffuse.png", // https://oleekconder.itch.io/stylized-nature-textures
   // Shop
   ICoinSingle: "/images/coin-single.png",
   IShopRevolver: "/images/Revolver - Colt 45 [64x32].png", // https://arcadeisland.itch.io/guns-asset-pack-v1

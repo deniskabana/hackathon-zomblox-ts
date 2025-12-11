@@ -7,10 +7,11 @@ import { GameControls } from "../../types/GameControls";
 import { ZIndex } from "../../types/ZIndex";
 import assertNever from "../../utils/assertNever";
 import { AnimatedSpriteSheet } from "../../utils/classes/AnimatedSpriteSheet";
+import SpriteSheet from "../../utils/classes/SpriteSheet";
+import { Direction, getCardinalDirection } from "../../utils/getCardinalDirection";
 import areVectorsEqual from "../../utils/math/areVectorsEqual";
 import getVectorDistance from "../../utils/math/getVectorDistance";
 import normalizeVector from "../../utils/math/normalizeVector";
-import { lerpAngle } from "../../utils/math/radialLerp";
 import radiansToVector from "../../utils/math/radiansToVector";
 import APlayer from "../abstract/APlayer";
 
@@ -32,6 +33,8 @@ export default class Player extends APlayer {
   private animations: undefined | Record<PlayerState, AnimatedSpriteSheet>;
   private isFacingLeft: boolean = false;
 
+  private weaponSprites: SpriteSheet | undefined;
+
   public health: number;
   public maxHealth: number;
   public weapon: Weapon;
@@ -49,7 +52,6 @@ export default class Player extends APlayer {
 
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     super(gameInstance, gridToWorld(gridPos), entityId, true);
-
     const { GameManager, AssetManager } = this.gameInstance.MANAGERS;
 
     const settings = GameManager.getSettings().rules.player;
@@ -60,7 +62,8 @@ export default class Player extends APlayer {
     this.weapon = settings.defaultWeapon;
     this.stunDuration = settings.stunCooldownSec;
 
-    this.fps = 9;
+    this.fps = 8;
+    this.weaponSprites = SpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerWeapons")!, 32, 32, 12);
 
     const spritesheets = {
       [PlayerState.IDLE]: AssetManager.getImageAsset("SPlayerIdle"),
@@ -150,10 +153,11 @@ export default class Player extends APlayer {
 
   public draw() {
     if (!this.activeAnimation) return;
-    const { DrawManager, AssetManager } = this.gameInstance.MANAGERS;
+    const { DrawManager } = this.gameInstance.MANAGERS;
 
-    const size = GRID_CONFIG.TILE_SIZE * 1.35;
-    const indicatorSize = size * 2;
+    const size = GRID_CONFIG.TILE_SIZE * 1.5;
+    // const indicatorSize = size * 2.5;
+    const weaponSize = GRID_CONFIG.TILE_SIZE * 1.25;
 
     this.drawShadow(size * 0.75);
 
@@ -169,14 +173,70 @@ export default class Player extends APlayer {
       1,
       this.isFacingLeft ? 1 : -1,
     );
-    DrawManager.queueDraw(
-      this.worldPos.x - indicatorSize * 0.5,
-      this.worldPos.y - indicatorSize * 0.65,
-      AssetManager.getImageAsset("IPlayerAimIndicator")!,
-      indicatorSize,
-      indicatorSize,
-      ZIndex.INDICATORS,
-      this.facingDirection,
+
+    this.drawWeapon(weaponSize);
+
+    // DrawManager.queueDraw(
+    //   this.worldPos.x - indicatorSize * 0.5,
+    //   this.worldPos.y - indicatorSize * 0.65,
+    //   AssetManager.getImageAsset("IPlayerAimIndicator")!,
+    //   indicatorSize,
+    //   indicatorSize,
+    //   ZIndex.INDICATORS,
+    //   this.facingDirection,
+    // );
+  }
+
+  private drawWeapon(weaponSize: number): void {
+    const { DrawManager } = this.gameInstance.MANAGERS;
+
+    const playerCardinalDirection = getCardinalDirection(this.facingDirection);
+
+    let angle: number = 0;
+    let scale: 1 | -1 = 1;
+    let offsetX: number = 0;
+    let offsetY: number = 0;
+
+    switch (playerCardinalDirection) {
+      case Direction.UP:
+        scale = 1;
+        angle = Math.PI / 2;
+        offsetX = this.isFacingLeft ? weaponSize * 0.7 : weaponSize * 0.25;
+        offsetY = weaponSize * 0.6;
+        break;
+      case Direction.DOWN:
+        scale = 1;
+        angle = (3 * Math.PI) / 2;
+        offsetX = this.isFacingLeft ? weaponSize * 0.7 : weaponSize * 0.25;
+        offsetY = weaponSize * 0.85;
+        break;
+      case Direction.LEFT:
+        scale = -1;
+        angle = 0;
+        offsetX = weaponSize * 0.75;
+        offsetY = weaponSize * 0.75;
+        break;
+      case Direction.RIGHT:
+        scale = 1;
+        angle = 0;
+        offsetX = weaponSize * 0.15;
+        offsetY = weaponSize * 0.75;
+        break;
+      default:
+        assertNever(playerCardinalDirection);
+    }
+
+    DrawManager.queueDrawSprite(
+      this.worldPos.x - offsetX,
+      this.worldPos.y - offsetY,
+      this.weaponSprites!,
+      this.getWeaponSprite() ?? 6,
+      weaponSize,
+      weaponSize,
+      ZIndex.ENTITIES,
+      angle,
+      1,
+      scale,
     );
   }
 
@@ -289,6 +349,19 @@ export default class Player extends APlayer {
     }
   }
 
+  private getWeaponSprite(): number | undefined {
+    switch (this.weapon) {
+      case "Revolver":
+        return 2;
+      case "Shotgun":
+        return 3;
+      case "Submachine":
+        return 7;
+      default:
+        assertNever(this.weapon);
+    }
+  }
+
   private chooseNextWeapon(): void {
     if (this.nextWeaponCooldownTimer > 0) return;
     const currentWeapon = this.weapon;
@@ -322,7 +395,8 @@ export default class Player extends APlayer {
     const joystickMoveIntensity = this.gameInstance.MANAGERS.InputManager.getMoveIntensity();
     if (joystickMoveIntensity !== undefined) speed *= joystickMoveIntensity;
 
-    this.facingDirection = lerpAngle(this.facingDirection, this.getAimAngle(), _deltaTime * 16);
+    // this.facingDirection = lerpAngle(this.facingDirection, this.getAimAngle(), _deltaTime * 16);
+    this.facingDirection = this.getAimAngle();
 
     if (movementVector.x === 0 && movementVector.y === 0) {
       isMoving = false;
