@@ -156,8 +156,7 @@ export default class Player extends APlayer {
     const { DrawManager } = this.gameInstance.MANAGERS;
 
     const size = GRID_CONFIG.TILE_SIZE * 1.5;
-    // const indicatorSize = size * 2.5;
-    const weaponSize = GRID_CONFIG.TILE_SIZE * 1.25;
+    const weaponSize = GRID_CONFIG.TILE_SIZE * 1.5;
 
     this.drawShadow(size * 0.75);
 
@@ -175,16 +174,6 @@ export default class Player extends APlayer {
     );
 
     this.drawWeapon(weaponSize);
-
-    // DrawManager.queueDraw(
-    //   this.worldPos.x - indicatorSize * 0.5,
-    //   this.worldPos.y - indicatorSize * 0.65,
-    //   AssetManager.getImageAsset("IPlayerAimIndicator")!,
-    //   indicatorSize,
-    //   indicatorSize,
-    //   ZIndex.INDICATORS,
-    //   this.facingDirection,
-    // );
   }
 
   private drawWeapon(weaponSize: number): void {
@@ -193,33 +182,38 @@ export default class Player extends APlayer {
     const playerCardinalDirection = getCardinalDirection(this.facingDirection);
 
     let angle: number = 0;
-    let scale: 1 | -1 = 1;
+    let scaleX: 1 | -1 = 1;
+    let scaleY: 1 | -1 = 1;
     let offsetX: number = 0;
     let offsetY: number = 0;
 
     switch (playerCardinalDirection) {
       case Direction.UP:
-        scale = 1;
-        angle = Math.PI / 2;
-        offsetX = this.isFacingLeft ? weaponSize * 0.7 : weaponSize * 0.25;
-        offsetY = weaponSize * 0.6;
+        scaleX = this.isFacingLeft ? -1 : 1;
+        angle = this.isFacingLeft ? (3 * Math.PI) / 2 : Math.PI / 2;
+        scaleY = 1;
+        offsetX = this.isFacingLeft ? weaponSize * 0.6 : weaponSize * 0.4;
+        offsetY = weaponSize * 0.55;
         break;
       case Direction.DOWN:
-        scale = 1;
-        angle = (3 * Math.PI) / 2;
-        offsetX = this.isFacingLeft ? weaponSize * 0.7 : weaponSize * 0.25;
-        offsetY = weaponSize * 0.85;
+        scaleX = this.isFacingLeft ? -1 : 1;
+        angle = this.isFacingLeft ? Math.PI / 2 : (3 * Math.PI) / 2;
+        scaleY = 1;
+        offsetX = this.isFacingLeft ? weaponSize * 0.6 : weaponSize * 0.4;
+        offsetY = weaponSize * 0.95;
         break;
       case Direction.LEFT:
-        scale = -1;
+        scaleX = -1;
+        scaleY = 1;
         angle = 0;
         offsetX = weaponSize * 0.75;
         offsetY = weaponSize * 0.75;
         break;
       case Direction.RIGHT:
-        scale = 1;
+        scaleX = 1;
+        scaleY = 1;
         angle = 0;
-        offsetX = weaponSize * 0.15;
+        offsetX = weaponSize * 0.25;
         offsetY = weaponSize * 0.75;
         break;
       default:
@@ -236,7 +230,8 @@ export default class Player extends APlayer {
       ZIndex.ENTITIES,
       angle,
       1,
-      scale,
+      scaleX,
+      scaleY,
     );
   }
 

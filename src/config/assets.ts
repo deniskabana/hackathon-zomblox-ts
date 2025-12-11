@@ -45,8 +45,6 @@ export const DEF_ASSETS_IMAGE = {
   SPlayerDeath: "/images/player/Player_death.png",
   SPlayerKnocked: "/images/player/Player_knocked.png",
 
-  IPlayerAimIndicator: "/images/effects/aim-indicator.png",
-
   SPlayerWeapons: "/images/player/Weapons sprites (32x32).png",
 
   // Blocks

@@ -41,7 +41,7 @@ export const DEFAULT_SETTINGS = {
     player: {
       startHealth: 100,
       movementSpeed: 150,
-      stunCooldownSec: 0.85,
+      stunCooldownSec: 0.95,
       defaultWeapon: "Submachine" as Weapon,
     },
     blocks: {
