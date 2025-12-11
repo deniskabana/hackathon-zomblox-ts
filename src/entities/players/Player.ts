@@ -214,7 +214,7 @@ export default class Player extends APlayer {
         scaleX = 1;
         scaleY = 1;
         angle = 0;
-        offsetX = weaponSize * 0.25;
+        offsetX = weaponSize * 0.2;
         offsetY = weaponSize * 0.75;
         break;
       default:
@@ -336,7 +336,7 @@ export default class Player extends APlayer {
           originOffsetY = this.size * 0.25 * -1;
           break;
         case Direction.RIGHT:
-          originOffsetX = this.size * 0.5;
+          originOffsetX = this.size * 0.6;
           originOffsetY = this.size * 0.25 * -1;
           break;
         default:
