@@ -366,6 +366,8 @@ export default class LevelManager extends AManager {
   public startDay(): void {
     if (!this.levelState || !this.levelGrid) return;
 
+    this.addCurrency(this.gameInstance.MANAGERS.GameManager.getSettings().rules.game.endNightReward);
+
     this.retreatFlowFields = [];
     const amount = Math.max(20, this.zombies.size);
     for (let i = 0; i < amount; i++) {

@@ -8,12 +8,12 @@ export default class LightManager extends AManager {
   private ctx: CanvasRenderingContext2D | undefined;
 
   private readonly nightOverlayAlpha = 1;
-  private playerLightRadius = 3.4;
-  private readonly playerLightConeLen = GRID_CONFIG.TILE_SIZE * 9;
+  private playerLightRadius = 4;
+  private readonly playerLightConeLen = GRID_CONFIG.TILE_SIZE * 16;
 
   private lightSourceIdCount: number = 0;
   private lightSources: Map<number, WorldPosition> = new Map();
-  private readonly lightSourceRadius = 4.5;
+  private readonly lightSourceRadius = 4.9;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
@@ -122,8 +122,8 @@ export default class LightManager extends AManager {
   private drawLightCone(lightScreenPos: ScreenPosition, facingAngle: number, zoom: number): void {
     if (!this.ctx) return;
     const coneLength = this.playerLightConeLen * zoom;
-    const startWidth = GRID_CONFIG.TILE_SIZE * 1.5 * zoom;
-    const endWidth = GRID_CONFIG.TILE_SIZE * 5.5 * zoom;
+    const startWidth = GRID_CONFIG.TILE_SIZE * 1.9 * zoom;
+    const endWidth = GRID_CONFIG.TILE_SIZE * 8 * zoom;
 
     this.ctx.save();
     this.ctx.translate(lightScreenPos.x, lightScreenPos.y);

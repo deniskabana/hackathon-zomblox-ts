@@ -31,26 +31,42 @@ export default class VFXManager extends AManager {
     direction: number,
     length: number = 2000,
     color: string = "#d0d000a0",
-    duration: number = 0.06,
+    duration: number = 0.08,
   ): void {
     const vectorTo = radiansToVector(direction);
     vectorTo.x *= length;
     vectorTo.y *= length;
     vectorTo.x += vectorFrom.x;
     vectorTo.y += vectorFrom.y;
+    const thickness = 2;
 
     this.effects.set(this.effectIdCount++, {
       duration,
       render: () => {
-        this.gameInstance.MANAGERS.DrawManager.drawLine(vectorFrom.x, vectorFrom.y, vectorTo.x, vectorTo.y, color);
+        this.gameInstance.MANAGERS.DrawManager.drawLine(
+          vectorFrom.x,
+          vectorFrom.y,
+          vectorTo.x,
+          vectorTo.y,
+          color,
+          thickness,
+        );
+        this.gameInstance.MANAGERS.DrawManager.drawLine(
+          vectorFrom.x - thickness / 2,
+          vectorFrom.y - thickness / 2,
+          vectorTo.x - thickness / 2,
+          vectorTo.y - thickness / 2,
+          "#d0601070",
+          thickness / 2,
+        );
       },
       startTime: Date.now(),
     });
   }
 
-  public drawBloodPool(pos: WorldPosition, duration: number = 300): void {
+  public drawBloodPool(pos: WorldPosition, duration: number = 600): void {
     const alpha = Math.random() * 0.25 + 0.65;
-    const sizeDeviation = 1.1 + Math.random() * 0.8;
+    const sizeDeviation = 1;
     const angles = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
     const angle = angles[Math.floor(Math.random() * angles.length)];
 

@@ -10,4 +10,5 @@ export interface DrawCommand {
   alpha?: number;
   zIndex?: number;
   sourceFrame?: SpriteFrame;
+  scale?: number;
 }

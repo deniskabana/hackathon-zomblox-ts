@@ -63,6 +63,7 @@ body {
   /* eslint-disable css/no-important */
   display: flex !important;
   justify-content: center;
+  background: black;
 }
 @keyframes zoom-in-out {
   0% {

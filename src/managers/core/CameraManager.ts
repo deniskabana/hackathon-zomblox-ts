@@ -1,6 +1,5 @@
 import type { WorldPosition } from "../../config/gameGrid";
 import type GameInstance from "../../GameInstance";
-import { clamp } from "../../utils/math/clamp";
 import lerp from "../../utils/math/lerp";
 import { AManager } from "../abstract/AManager";
 
@@ -14,10 +13,7 @@ export default class CameraManager extends AManager {
   public zoom: number = 1;
   private targetZoom: number = 1;
 
-  private readonly minZoom: number = 0.5;
-  private readonly maxZoom: number = 2;
-
-  private readonly targetWorldWidth: number = 1200;
+  private readonly targetWorldWidth: number = 1300;
   private readonly followSpeed: number = 2;
 
   constructor(gameInstance: GameInstance) {
@@ -39,8 +35,7 @@ export default class CameraManager extends AManager {
   };
 
   private calculateZoom(): void {
-    const idealZoom = this.viewportWidth / this.targetWorldWidth;
-    this.targetZoom = clamp(this.minZoom, idealZoom, this.maxZoom);
+    this.targetZoom = this.viewportWidth / this.targetWorldWidth;
   }
 
   public followPlayer(_deltaTime: number, playerPos: WorldPosition): void {

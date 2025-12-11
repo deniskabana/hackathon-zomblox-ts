@@ -39,20 +39,13 @@ export const DEF_ASSETS_AUDIO = {
 
 export const DEF_ASSETS_IMAGE = {
   // Player
-  SPlayerIdlePistol: "/images/player-pistol-idle.png",
-  SPlayerReloadPistol: "/images/player-pistol-reload.png",
-  SPlayerShootPistol: "/images/player-pistol-shoot.png",
-  SPlayerWalkPistol: "/images/player-pistol-walk.png",
-  SPlayerIdleShotgun: "/images/player-shotgun-idle.png",
-  SPlayerReloadShotgun: "/images/player-shotgun-reload.png",
-  SPlayerShootShotgun: "/images/player-shotgun-shoot.png",
-  SPlayerWalkShotgun: "/images/player-shotgun-walk.png",
-  SPlayerIdleSubmachine: "/images/player-rifle-idle.png",
-  SPlayerReloadSubmachine: "/images/player-rifle-reload.png",
-  SPlayerShootSubmachine: "/images/player-rifle-shoot.png",
-  SPlayerWalkSubmachine: "/images/player-rifle-walk.png",
-  SPlayerLegsWalk: "/images/player-legs-walk.png",
-  IPlayerLegsIdle: "/images/player-legs-idle.png",
+  SPlayerRun: "/images/player/Player_run.png",
+  SPlayerIdle: "/images/player/Player_idle.png",
+  SPlayerHit: "/images/player/Player_Hit.png",
+  SPlayerDeath: "/images/player/Player_Death.png",
+  SPlayerKnocked: "/images/player/Player_knocked.png",
+
+  IPlayerAimIndicator: "/images/effects/aim-indicator.png",
 
   IPlayerGunRevolver: "/images/survivor_pistol.png", // https://fightswithbears.itch.io/2d-topdown-survival-character
   IPlayerGunShotgun: "/images/survivor_shotgun.png", // https://fightswithbears.itch.io/2d-topdown-survival-character

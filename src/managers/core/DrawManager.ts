@@ -156,6 +156,7 @@ export default class DrawManager extends AManager {
 
     this.ctx.translate(Math.round(cmd.x * 10) / 10 + width / 2, Math.round(cmd.y * 10) / 10 + height / 2);
     if (cmd.rotation) this.ctx.rotate(cmd.rotation);
+    this.ctx.scale(cmd.scale ?? 1, 1);
 
     if (cmd.sourceFrame) {
       this.ctx.drawImage(
@@ -192,6 +193,7 @@ export default class DrawManager extends AManager {
     zIndex: number = ZIndex.ENTITIES,
     rotation?: number,
     alpha?: number,
+    scale: number = 1,
   ): void {
     const { CameraManager } = this.gameInstance.MANAGERS;
     const screenPos = CameraManager.worldToScreen({ x: worldX, y: worldY });
@@ -207,6 +209,7 @@ export default class DrawManager extends AManager {
       rotation,
       alpha,
       zIndex,
+      scale,
     });
     this.drawQueue[zIndex] = queue;
   }
@@ -221,6 +224,7 @@ export default class DrawManager extends AManager {
     zIndex: number = ZIndex.ENTITIES,
     rotation?: number,
     alpha?: number,
+    scale: number = 1,
   ): void {
     const { CameraManager } = this.gameInstance.MANAGERS;
     const screenPos = CameraManager.worldToScreen({ x: worldX, y: worldY });
@@ -238,6 +242,7 @@ export default class DrawManager extends AManager {
       rotation,
       alpha,
       zIndex,
+      scale,
       sourceFrame: frame, // Include frame data for slicing
     });
     this.drawQueue[zIndex] = queue;

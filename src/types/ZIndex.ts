@@ -9,4 +9,5 @@ export enum ZIndex {
   EFFECTS = 500,
   MAP_OVERLAY = 510,
   MAP_OVERLAY_DECOR = 520,
+  INDICATORS = 600,
 }

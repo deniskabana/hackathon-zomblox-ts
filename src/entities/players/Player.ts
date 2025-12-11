@@ -15,9 +15,10 @@ import radiansToVector from "../../utils/math/radiansToVector";
 import APlayer from "../abstract/APlayer";
 
 export enum PlayerState {
-  NORMAL = "NORMAL",
-  SHOPPING = "SHOPPING",
-  BUILDING = "BUILDING",
+  IDLE = "IDLE",
+  WALK = "WALK",
+  KNOCKED = "KNOCKED",
+  HIT = "HIT",
   DEAD = "DEAD",
 }
 
@@ -25,28 +26,11 @@ export default class Player extends APlayer {
   private playerState: PlayerState;
   private facingDirection: number = 0;
   private moveSpeed: number;
-  private isMoving: boolean = false;
 
   private fps: number;
-  private feetWalkAnimation: AnimatedSpriteSheet | undefined;
-  private feetIdleSprite: HTMLImageElement | undefined;
   private activeAnimation: AnimatedSpriteSheet | undefined;
-  private animations:
-    | undefined
-    | {
-        pistolIdle: AnimatedSpriteSheet;
-        pistolWalk: AnimatedSpriteSheet;
-        pistolShoot: AnimatedSpriteSheet;
-        pistolReload: AnimatedSpriteSheet;
-        shotgunIdle: AnimatedSpriteSheet;
-        shotgunWalk: AnimatedSpriteSheet;
-        shotgunShoot: AnimatedSpriteSheet;
-        shotgunReload: AnimatedSpriteSheet;
-        submachineIdle: AnimatedSpriteSheet;
-        submachineWalk: AnimatedSpriteSheet;
-        submachineShoot: AnimatedSpriteSheet;
-        submachineReload: AnimatedSpriteSheet;
-      };
+  private animations: undefined | Record<PlayerState, AnimatedSpriteSheet>;
+  private isFacingLeft: boolean = false;
 
   public health: number;
   public maxHealth: number;
@@ -54,12 +38,14 @@ export default class Player extends APlayer {
 
   // Timers
   private gunCooldownTimer: number = 0;
+  private stunTimer: number = 0;
   private nextWeaponCooldownTimer: number = 0;
   private stepSoundCooldownTimer: number = 0;
   private buildingModeCooldownTimer: number = 0;
 
   private readonly stepSoundCooldownInterval: number = 0.35;
-  private readonly buildingModeCooldownInterval: number = 0.2;
+  // private readonly buildingModeCooldownInterval: number = 0.2;
+  private stunDuration: number;
 
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     super(gameInstance, gridToWorld(gridPos), entityId, true);
@@ -67,32 +53,22 @@ export default class Player extends APlayer {
     const { GameManager, AssetManager } = this.gameInstance.MANAGERS;
 
     const settings = GameManager.getSettings().rules.player;
-    this.playerState = PlayerState.NORMAL;
+    this.playerState = PlayerState.IDLE;
     this.moveSpeed = settings.movementSpeed;
     this.health = settings.startHealth;
     this.maxHealth = settings.startHealth;
     this.weapon = settings.defaultWeapon;
+    this.stunDuration = settings.stunCooldownSec;
 
-    this.fps = 25;
-    const feetWalk = AssetManager.getImageAsset("SPlayerLegsWalk");
-    if (feetWalk) this.feetWalkAnimation = AnimatedSpriteSheet.fromGrid(feetWalk, 172, 124, 20, this.fps, true);
-    const feetIdle = AssetManager.getImageAsset("IPlayerLegsIdle");
-    if (feetIdle) this.feetIdleSprite = feetIdle;
+    this.fps = 9;
 
     const spritesheets = {
-      pistolIdle: AssetManager.getImageAsset("SPlayerIdlePistol"),
-      pistolWalk: AssetManager.getImageAsset("SPlayerWalkPistol"),
-      pistolShoot: AssetManager.getImageAsset("SPlayerShootPistol"),
-      pistolReload: AssetManager.getImageAsset("SPlayerReloadPistol"),
-      shotgunIdle: AssetManager.getImageAsset("SPlayerIdleShotgun"),
-      shotgunWalk: AssetManager.getImageAsset("SPlayerWalkShotgun"),
-      shotgunShoot: AssetManager.getImageAsset("SPlayerShootShotgun"),
-      shotgunReload: AssetManager.getImageAsset("SPlayerReloadShotgun"),
-      submachineIdle: AssetManager.getImageAsset("SPlayerIdleSubmachine"),
-      submachineWalk: AssetManager.getImageAsset("SPlayerWalkSubmachine"),
-      submachineShoot: AssetManager.getImageAsset("SPlayerShootSubmachine"),
-      submachineReload: AssetManager.getImageAsset("SPlayerReloadSubmachine"),
-    } satisfies Record<keyof NonNullable<typeof this.animations>, HTMLImageElement | undefined>;
+      [PlayerState.IDLE]: AssetManager.getImageAsset("SPlayerIdle"),
+      [PlayerState.WALK]: AssetManager.getImageAsset("SPlayerRun"),
+      [PlayerState.KNOCKED]: AssetManager.getImageAsset("SPlayerKnocked"),
+      [PlayerState.HIT]: AssetManager.getImageAsset("SPlayerHit"),
+      [PlayerState.DEAD]: AssetManager.getImageAsset("SPlayerDeath"),
+    } satisfies Record<PlayerState, HTMLImageElement | undefined>;
 
     let sheetKey: keyof typeof spritesheets;
 
@@ -101,41 +77,20 @@ export default class Player extends APlayer {
       let spriteMeta = { width: 0, height: 0, frames: 0 };
 
       switch (sheetKey) {
-        case "pistolIdle":
-          spriteMeta = { width: 253, height: 216, frames: 20 };
+        case PlayerState.IDLE:
+          spriteMeta = { width: 32, height: 32, frames: 6 };
           break;
-        case "pistolWalk":
-          spriteMeta = { width: 258, height: 220, frames: 20 };
+        case PlayerState.WALK:
+          spriteMeta = { width: 32, height: 32, frames: 8 };
           break;
-        case "pistolShoot":
-          spriteMeta = { width: 255, height: 215, frames: 3 };
+        case PlayerState.KNOCKED:
+          spriteMeta = { width: 32, height: 32, frames: 6 };
           break;
-        case "pistolReload":
-          spriteMeta = { width: 260, height: 215, frames: 15 };
+        case PlayerState.HIT:
+          spriteMeta = { width: 32, height: 32, frames: 3 };
           break;
-        case "shotgunIdle":
-          spriteMeta = { width: 313, height: 207, frames: 20 };
-          break;
-        case "shotgunWalk":
-          spriteMeta = { width: 313, height: 206, frames: 20 };
-          break;
-        case "shotgunShoot":
-          spriteMeta = { width: 312, height: 206, frames: 3 };
-          break;
-        case "shotgunReload":
-          spriteMeta = { width: 322, height: 217, frames: 20 };
-          break;
-        case "submachineIdle":
-          spriteMeta = { width: 313, height: 207, frames: 20 };
-          break;
-        case "submachineWalk":
-          spriteMeta = { width: 313, height: 206, frames: 20 };
-          break;
-        case "submachineShoot":
-          spriteMeta = { width: 312, height: 206, frames: 3 };
-          break;
-        case "submachineReload":
-          spriteMeta = { width: 322, height: 217, frames: 20 };
+        case PlayerState.DEAD:
+          spriteMeta = { width: 32, height: 32, frames: 8 };
           break;
 
         default:
@@ -151,73 +106,76 @@ export default class Player extends APlayer {
         spriteMeta.height,
         spriteMeta.frames,
         this.fps,
-        true,
+        sheetKey === PlayerState.IDLE || sheetKey === PlayerState.WALK || sheetKey === PlayerState.KNOCKED,
       );
     }
+
+    this.activeAnimation = this.animations?.IDLE;
   }
 
   public update(_deltaTime: number) {
     this.activeAnimation?.update(Math.min(_deltaTime, 1 / this.fps));
-    this.feetWalkAnimation?.update(Math.min(_deltaTime, 1 / this.fps));
-    this.applyMovement(_deltaTime);
-    if (this.gunCooldownTimer > 0) this.gunCooldownTimer -= _deltaTime;
-    if (this.nextWeaponCooldownTimer > 0) this.nextWeaponCooldownTimer -= _deltaTime;
-    if (this.stepSoundCooldownTimer > 0) this.stepSoundCooldownTimer -= _deltaTime;
-    if (this.getCheckShootInput()) this.shoot();
-    if (this.gameInstance.MANAGERS.InputManager.isControlDown(GameControls.CHANGE_WEAPON)) this.chooseNextWeapon();
+
+    if (this.stunTimer <= 0) {
+      if (this.playerState === PlayerState.KNOCKED) this.playerState = PlayerState.IDLE;
+      this.applyMovement(_deltaTime);
+
+      if (this.gunCooldownTimer > 0) this.gunCooldownTimer -= _deltaTime;
+      if (this.nextWeaponCooldownTimer > 0) this.nextWeaponCooldownTimer -= _deltaTime;
+
+      if (this.stepSoundCooldownTimer > 0) this.stepSoundCooldownTimer -= _deltaTime;
+
+      if (this.getCheckShootInput()) this.shoot();
+
+      if (this.gameInstance.MANAGERS.InputManager.isControlDown(GameControls.CHANGE_WEAPON)) this.chooseNextWeapon();
+    } else this.stunTimer -= _deltaTime;
 
     this.handleBuildingModeInput(_deltaTime);
 
-    this.activeAnimation = this.animations?.pistolIdle;
+    switch (this.playerState) {
+      case PlayerState.IDLE:
+        this.activeAnimation = this.animations?.IDLE;
+        break;
+      case PlayerState.WALK:
+        this.activeAnimation = this.animations?.WALK;
+        break;
+      case PlayerState.KNOCKED:
+        this.activeAnimation = this.animations?.KNOCKED;
+        break;
+      case PlayerState.HIT:
+      case PlayerState.DEAD:
+        break;
+    }
   }
 
   public draw() {
     if (!this.activeAnimation) return;
-    const { DrawManager } = this.gameInstance.MANAGERS;
+    const { DrawManager, AssetManager } = this.gameInstance.MANAGERS;
 
-    const size = GRID_CONFIG.TILE_SIZE * 1.25;
+    const size = GRID_CONFIG.TILE_SIZE * 1.35;
+    const indicatorSize = size * 2;
 
-    this.drawShadow(size);
-
-    if (this.isMoving) {
-      if (this.feetWalkAnimation) {
-        const animFeetToBodyRatio = 0.8;
-
-        DrawManager.queueDrawSprite(
-          this.worldPos.x - (size * animFeetToBodyRatio) / 2,
-          this.worldPos.y - ((size / 172) * 124 * animFeetToBodyRatio) / 2,
-          this.feetWalkAnimation,
-          this.feetWalkAnimation.getCurrentFrame(),
-          size * animFeetToBodyRatio,
-          (size / 172) * 124 * animFeetToBodyRatio,
-          ZIndex.ENTITIES,
-          this.facingDirection,
-        );
-      }
-    } else {
-      if (this.feetIdleSprite) {
-        const idleFeetToBodyRatio = 0.55;
-
-        DrawManager.queueDraw(
-          this.worldPos.x - (size * idleFeetToBodyRatio) / 2,
-          this.worldPos.y - ((size / 132) * 155 * idleFeetToBodyRatio) / 2,
-          this.feetIdleSprite,
-          size * idleFeetToBodyRatio,
-          (size / 132) * 155 * idleFeetToBodyRatio,
-          ZIndex.ENTITIES,
-          this.facingDirection,
-        );
-      }
-    }
+    this.drawShadow(size * 0.75);
 
     DrawManager.queueDrawSprite(
       this.worldPos.x - size / 2,
-      this.worldPos.y - size / 2,
+      this.worldPos.y - size * 0.95,
       this.activeAnimation,
       this.activeAnimation.getCurrentFrame(),
       size,
-      (size / 288) * 311,
+      size,
       ZIndex.ENTITIES,
+      0,
+      1,
+      this.isFacingLeft ? 1 : -1,
+    );
+    DrawManager.queueDraw(
+      this.worldPos.x - indicatorSize * 0.5,
+      this.worldPos.y - indicatorSize * 0.65,
+      AssetManager.getImageAsset("IPlayerAimIndicator")!,
+      indicatorSize,
+      indicatorSize,
+      ZIndex.INDICATORS,
       this.facingDirection,
     );
   }
@@ -228,11 +186,11 @@ export default class Player extends APlayer {
     const shadowSprite = AssetManager.getImageAsset("IFXEntityShadow");
     if (shadowSprite)
       DrawManager.queueDraw(
-        this.worldPos.x - (size * 1.2) / 2,
-        this.worldPos.y - (size * 1.2) / 2,
+        this.worldPos.x - size / 2,
+        this.worldPos.y - size * 0.65,
         shadowSprite,
-        size * 1.2,
-        size * 1.2,
+        size,
+        size,
         ZIndex.ENTITIES,
       );
   }
@@ -267,36 +225,26 @@ export default class Player extends APlayer {
     if (this.buildingModeCooldownTimer > 0) this.buildingModeCooldownTimer -= _deltaTime;
 
     if (this.buildingModeCooldownTimer <= 0 && isPressed) {
-      if (this.playerState !== PlayerState.BUILDING) this.startBuildingMode();
-      else this.endBuildingMode();
-      this.buildingModeCooldownTimer = this.buildingModeCooldownInterval;
+      //  this.startBuildingMode();
+      // else this.endBuildingMode();
+      // this.buildingModeCooldownTimer = this.buildingModeCooldownInterval;
     }
   }
 
   public startBuildingMode(): void {
-    if (this.playerState === PlayerState.BUILDING) return;
-    this.playerState = PlayerState.BUILDING;
     this.gameInstance.MANAGERS.BuildModeManager.setBuildMode(true);
   }
 
   public endBuildingMode(): void {
-    if (this.playerState !== PlayerState.BUILDING) return;
-    this.playerState = PlayerState.NORMAL;
     this.gameInstance.MANAGERS.BuildModeManager.setBuildMode(false);
   }
 
-  public startShopping(): void {
-    if (this.playerState === PlayerState.SHOPPING) return;
-    this.playerState = PlayerState.SHOPPING;
-  }
+  public startShopping(): void {}
 
-  public endShopping(): void {
-    if (this.playerState !== PlayerState.SHOPPING) return;
-    this.playerState = PlayerState.NORMAL;
-  }
+  public endShopping(): void {}
 
   public shoot(): void {
-    if (this.playerState !== PlayerState.NORMAL) return;
+    if (this.playerState === PlayerState.KNOCKED || this.playerState === PlayerState.DEAD) return;
     if (this.gunCooldownTimer > 0) return;
 
     const weaponSound = this.getWeaponSound();
@@ -353,7 +301,8 @@ export default class Player extends APlayer {
 
   public damage(amount: number): void {
     this.health -= amount;
-    this.gunCooldownTimer += 0.4;
+    this.stunTimer = this.stunDuration;
+    this.playerState = PlayerState.KNOCKED;
 
     this.gameInstance.MANAGERS.CameraManager.effectZoom(amount * 2);
     this.gameInstance.MANAGERS.CameraManager.effectShake(amount * 5);
@@ -365,7 +314,8 @@ export default class Player extends APlayer {
     }
   }
 
-  private applyMovement(_deltaTime: number): void {
+  private applyMovement(_deltaTime: number): boolean {
+    let isMoving = false;
     const movementVector = this.getMovementInput();
 
     let speed: typeof this.moveSpeed = this.moveSpeed;
@@ -375,8 +325,9 @@ export default class Player extends APlayer {
     this.facingDirection = lerpAngle(this.facingDirection, this.getAimAngle(), _deltaTime * 16);
 
     if (movementVector.x === 0 && movementVector.y === 0) {
-      this.isMoving = false;
-      return;
+      isMoving = false;
+      if (this.playerState === PlayerState.WALK) this.playerState = PlayerState.IDLE;
+      return isMoving;
     }
 
     const futurePos = {
@@ -384,23 +335,31 @@ export default class Player extends APlayer {
       y: this.worldPos.y + movementVector.y * _deltaTime * speed,
     };
 
+    if (futurePos.x < this.worldPos.x) this.isFacingLeft = true;
+    else if (futurePos.x > this.worldPos.x) this.isFacingLeft = false;
+
     const adjustedFuturePos = this.adjustMovementForCollisions(
       futurePos,
       this.gameInstance.MANAGERS.LevelManager.levelGrid,
       GRID_CONFIG,
     );
+
     if (areVectorsEqual(adjustedFuturePos, this.worldPos)) {
-      this.isMoving = false;
+      isMoving = false;
     } else {
       this.setWorldPosition(adjustedFuturePos);
-      this.isMoving = true;
+      isMoving = true;
     }
 
+    if (isMoving) this.playerState = PlayerState.WALK;
+
     // Play step sound
-    if (this.isMoving && this.stepSoundCooldownTimer <= 0) {
+    if (isMoving && this.stepSoundCooldownTimer <= 0) {
       this.gameInstance.MANAGERS.AssetManager.playAudioAsset("APlayerStep", "sound");
       this.stepSoundCooldownTimer = this.stepSoundCooldownInterval;
     }
+
+    return isMoving;
   }
 
   public pushbackForce(direction: number, strength: number = 1): void {
