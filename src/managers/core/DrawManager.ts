@@ -233,7 +233,7 @@ export default class DrawManager extends AManager {
     const screenPos = CameraManager.worldToScreen({ x: worldX, y: worldY });
     if (!CameraManager.isOnScreen({ x: worldX, y: worldY }, Math.max(width, height))) return;
 
-    const { image, frame } = spriteSheet.getFrame(frameIndex);
+    const { image, frame: sourceFrame } = spriteSheet.getFrame(frameIndex);
 
     const queue = this.drawQueue[zIndex] ?? [];
     queue.push({
@@ -247,7 +247,7 @@ export default class DrawManager extends AManager {
       zIndex,
       scaleX,
       scaleY,
-      sourceFrame: frame, // Include frame data for slicing
+      sourceFrame,
     });
     this.drawQueue[zIndex] = queue;
   }

@@ -1,11 +1,4 @@
-import {
-  GRID_CONFIG,
-  gridToWorld,
-  setGridConfig,
-  WORLD_SIZE,
-  type GridPosition,
-  type WorldPosition,
-} from "../config/gameGrid";
+import { GRID_CONFIG, setGridConfig, WORLD_SIZE, type GridPosition, type WorldPosition } from "../config/gameGrid";
 import type ABlock from "../entities/abstract/ABlock";
 import type ACollectable from "../entities/abstract/ACollectable";
 import BlockBarrelFire from "../entities/blocks/BlockBarrelFire";
@@ -21,7 +14,6 @@ import type { AudioControl } from "../types/AudioControl";
 import { EntityType } from "../types/EntityType";
 import { GridTileState, type GridTileRef, type LevelGrid } from "../types/Grid";
 import type { LevelState } from "../types/LevelState";
-import type { TileBounds } from "../types/TileBounds";
 import { ZIndex } from "../types/ZIndex";
 import assertNever from "../utils/assertNever";
 import generateEmptyLevelGrid from "../utils/grid/generateEmptyLevelGrid";
@@ -45,6 +37,8 @@ export default class LevelManager extends AManager {
   // Map data
   private tileLayers?: GameMap["tileLayers"];
   private tileset?: MapTilesetManager;
+  private mapLayerBelowPlayer!: HTMLCanvasElement;
+  private mapLayerAbovePlayer!: HTMLCanvasElement;
 
   // Entities
   public player?: Player;
@@ -68,6 +62,8 @@ export default class LevelManager extends AManager {
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
+    this.mapLayerBelowPlayer = document.createElement("canvas");
+    this.mapLayerAbovePlayer = document.createElement("canvas");
   }
 
   public init(): void {
@@ -100,6 +96,11 @@ export default class LevelManager extends AManager {
       currency: gameSettings.startCurrency,
       totalTimeCounter: 0,
     };
+    this.mapLayerBelowPlayer.width = GRID_CONFIG.GRID_WIDTH * GRID_CONFIG.TILE_SIZE;
+    this.mapLayerBelowPlayer.height = GRID_CONFIG.GRID_HEIGHT * GRID_CONFIG.TILE_SIZE;
+    this.mapLayerAbovePlayer.width = GRID_CONFIG.GRID_WIDTH * GRID_CONFIG.TILE_SIZE;
+    this.mapLayerAbovePlayer.height = GRID_CONFIG.GRID_HEIGHT * GRID_CONFIG.TILE_SIZE;
+    this.createMapTileImages();
   }
 
   public update(_deltaTime: number) {
@@ -122,12 +123,12 @@ export default class LevelManager extends AManager {
   }
 
   public drawEntities(): void {
-    if (this.tileLayers && this.tileset) this.drawTileLayers();
-
+    this.drawMapLayers("below");
     for (const zombie of this.zombies.values()) zombie.draw();
     for (const block of this.blocks.values()) block.draw();
     for (const coin of this.collectables.values()) coin.draw();
     this.player?.draw();
+    this.drawMapLayers("above");
 
     if (!this.getIsDay() && this.player) {
       this.gameInstance.MANAGERS.LightManager.drawNightLighting(
@@ -137,50 +138,65 @@ export default class LevelManager extends AManager {
     }
   }
 
-  private drawTileLayers(): void {
+  private createMapTileImages(): void {
     if (!this.tileLayers || !this.tileset) return;
-    const visibleBounds = this.getVisibleTileBounds();
-    this.renderLayer(this.tileLayers.ground, ZIndex.MAP_GROUND, visibleBounds);
-    this.renderLayer(this.tileLayers.groundDecor, ZIndex.MAP_GROUND_DECOR, visibleBounds);
-    this.renderLayer(this.tileLayers.overlay, ZIndex.MAP_OVERLAY, visibleBounds);
-    this.renderLayer(this.tileLayers.overlayDecor, ZIndex.MAP_OVERLAY_DECOR, visibleBounds);
+
+    this.mapLayerBelowPlayer
+      .getContext("2d")
+      ?.clearRect(0, 0, this.mapLayerBelowPlayer.width, this.mapLayerBelowPlayer.height);
+    this.mapLayerAbovePlayer
+      .getContext("2d")
+      ?.clearRect(0, 0, this.mapLayerAbovePlayer.width, this.mapLayerAbovePlayer.height);
+
+    this.renderMapLayerToCanvas(this.tileLayers.ground, this.mapLayerBelowPlayer);
+    this.renderMapLayerToCanvas(this.tileLayers.groundDecor, this.mapLayerBelowPlayer);
+    this.renderMapLayerToCanvas(this.tileLayers.overlay, this.mapLayerAbovePlayer);
+    this.renderMapLayerToCanvas(this.tileLayers.overlayDecor, this.mapLayerAbovePlayer);
   }
 
-  private renderLayer(layer: number[], zIndex: number, bounds: TileBounds): void {
-    for (let y = bounds.minY; y <= bounds.maxY; y++) {
-      for (let x = bounds.minX; x <= bounds.maxX; x++) {
+  private drawMapLayers(position: "above" | "below"): void {
+    if (!this.tileLayers || !this.tileset) return;
+    this.gameInstance.MANAGERS.DrawManager.queueDraw(
+      0,
+      0,
+      position === "above" ? this.mapLayerAbovePlayer : this.mapLayerBelowPlayer,
+      GRID_CONFIG.GRID_WIDTH * GRID_CONFIG.TILE_SIZE,
+      GRID_CONFIG.GRID_HEIGHT * GRID_CONFIG.TILE_SIZE,
+      position === "above" ? ZIndex.MAP_OVERLAY : ZIndex.MAP_GROUND,
+    );
+  }
+
+  private renderMapLayerToCanvas(layer: number[], canvas: HTMLCanvasElement): void {
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.imageSmoothingEnabled = false;
+    ctx.imageSmoothingQuality = "low";
+
+    for (let y = 0; y <= GRID_CONFIG.GRID_WIDTH; y++) {
+      for (let x = 0; x <= GRID_CONFIG.GRID_HEIGHT; x++) {
         const index = y * GRID_CONFIG.GRID_WIDTH + x;
         const tileId = layer[index];
         if (tileId === 0) continue;
-        const tileData = this.tileset!.getTileFrame(tileId);
+        const tileData = this.tileset?.getTileFrame(tileId);
         if (!tileData) continue;
-        const worldPos = gridToWorld({ x, y });
-        this.gameInstance.MANAGERS.DrawManager.queueDrawSprite(
-          worldPos.x,
-          worldPos.y,
-          tileData.spriteSheet,
-          tileData.frameIndex,
+        const frameData = tileData.spriteSheet.getFrame(tileData.frameIndex);
+        if (!frameData.frame) continue;
+
+        ctx.save();
+        ctx.drawImage(
+          frameData.image,
+          Math.floor(frameData.frame.x),
+          Math.floor(frameData.frame.y),
+          Math.ceil(frameData.frame.width),
+          Math.ceil(frameData.frame.height),
+          x * GRID_CONFIG.TILE_SIZE,
+          y * GRID_CONFIG.TILE_SIZE,
           GRID_CONFIG.TILE_SIZE,
           GRID_CONFIG.TILE_SIZE,
-          zIndex,
         );
+        ctx.restore();
       }
     }
-  }
-
-  private getVisibleTileBounds(): TileBounds {
-    const camera = this.gameInstance.MANAGERS.CameraManager;
-    const viewport = {
-      width: camera.viewportWidth / camera.zoom,
-      height: camera.viewportHeight / camera.zoom,
-    };
-
-    return {
-      minX: Math.max(0, Math.floor((camera.x - viewport.width / 2) / GRID_CONFIG.TILE_SIZE)),
-      maxX: Math.min(GRID_CONFIG.GRID_WIDTH - 1, Math.ceil((camera.x + viewport.width / 2) / GRID_CONFIG.TILE_SIZE)),
-      minY: Math.max(0, Math.floor((camera.y - viewport.height / 2) / GRID_CONFIG.TILE_SIZE)),
-      maxY: Math.min(GRID_CONFIG.GRID_HEIGHT - 1, Math.ceil((camera.y + viewport.height / 2) / GRID_CONFIG.TILE_SIZE)),
-    };
   }
 
   public destroyEntity(entityId: number, type: EntityType): void {
@@ -443,6 +459,9 @@ export default class LevelManager extends AManager {
     this.zombies.clear();
     this.blocks.clear();
     this.collectables.clear();
+
+    this.mapLayerBelowPlayer.remove();
+    this.mapLayerAbovePlayer.remove();
   }
 
   public addCurrency(amount: number = 1): void {
