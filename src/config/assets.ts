@@ -44,17 +44,34 @@ export const DEF_ASSETS_IMAGE = {
   SPlayerHit: "/images/player/Player_hit.png",
   SPlayerDeath: "/images/player/Player_death.png",
   SPlayerKnocked: "/images/player/Player_knocked.png",
-
+  // Player spritesheets
   SPlayerWeapons: "/images/player/Weapons sprites (32x32).png",
-
+  // Zombies
+  SZombie1Run: "/images/zombie/Zombie1/Zombie_run.png",
+  SZombie1Idle: "/images/zombie/Zombie1/Zombie_Idle.png",
+  SZombie1Hit: "/images/zombie/Zombie1/Zombie_Hit.png",
+  SZombie1Death: "/images/zombie/Zombie1/Zombie_Death 1.png",
+  SZombie1DeathAlt: "/images/zombie/Zombie1/Zombie_Death 2 .png",
+  SZombie1Knocked: "/images/zombie/Zombie1/Zombie_knocked .png",
+  SZombie2Run: "/images/zombie/Zombie2/Zombie 2_Run.png",
+  SZombie2Idle: "/images/zombie/Zombie2/Zombie 2_Idle.png",
+  SZombie2Hit: "/images/zombie/Zombie2/Zombie 2_Hit.png",
+  SZombie2Death: "/images/zombie/Zombie2/Zombie 2_Death 1 .png",
+  SZombie2DeathAlt: "/images/zombie/Zombie2/Zombie 2_ Death 2 .png",
+  SZombie2Knocked: "/images/zombie/Zombie2/Zombie 2_knocked.png",
+  SZombie3Run: "/images/zombie/Zombie3/Zombie 3_run .png",
+  SZombie3Idle: "/images/zombie/Zombie3/Zombie 3_idle .png",
+  SZombie3Hit: "/images/zombie/Zombie3/Zombie 3_Hit .png",
+  SZombie3Death: "/images/zombie/Zombie3/Zombie 3_death.png",
+  SZombie3Knocked: "/images/zombie/Zombie3/Zombie 3_knocked .png",
+  SZombie4Run: "/images/zombie/Zombie4/Zombie 4_run.png",
+  SZombie4Idle: "/images/zombie/Zombie4/Zombie 4_idle.png",
+  SZombie4Hit: "/images/zombie/Zombie4/Zombie 4_hit.png",
+  SZombie4Death: "/images/zombie/Zombie4/Zombie 4_death 4.png",
+  SZombie4Knocked: "/images/zombie/Zombie4/Zombie 4_knocked .png",
   // Blocks
   IBlockWood: "/images/RTS_Crate.png",
   IBlockBarrel: "/images/barrel-png-20852.png",
-  // Zombies
-  IZombie1: "/images/zombie.png", // https://fightswithbears.itch.io/2d-topdown-survival-character
-  SZombieMove: "/images/zombie-walk.png",
-  SZombieAttack: "/images/zombie-attack.png",
-  SZombieIdle: "/images/zombie-idle.png",
   // FX
   IFXBloodSplat: "/images/pi58p94iB.png", // https://www.clipartbest.com/clipart-pi58p94iB
   IFXBloodScreen: "/images/blood-png-7140.png", // https://www.freeiconspng.com/img/7140

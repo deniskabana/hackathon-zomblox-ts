@@ -12,6 +12,7 @@ import { Direction, getCardinalDirection } from "../../utils/getCardinalDirectio
 import areVectorsEqual from "../../utils/math/areVectorsEqual";
 import getVectorDistance from "../../utils/math/getVectorDistance";
 import normalizeVector from "../../utils/math/normalizeVector";
+import { lerpAngle } from "../../utils/math/radialLerp";
 import radiansToVector from "../../utils/math/radiansToVector";
 import APlayer from "../abstract/APlayer";
 
@@ -155,12 +156,8 @@ export default class Player extends APlayer {
   public draw() {
     if (!this.activeAnimation) return;
     const { DrawManager } = this.gameInstance.MANAGERS;
-
-    this.size = GRID_CONFIG.TILE_SIZE * 1.5;
     const weaponSize = GRID_CONFIG.TILE_SIZE * 1.5;
-
     this.drawShadow(this.size * 0.75);
-
     DrawManager.queueDrawSprite(
       this.worldPos.x - this.size / 2,
       this.worldPos.y - this.size * 0.95,
@@ -418,8 +415,7 @@ export default class Player extends APlayer {
     const joystickMoveIntensity = this.gameInstance.MANAGERS.InputManager.getMoveIntensity();
     if (joystickMoveIntensity !== undefined) speed *= joystickMoveIntensity;
 
-    // this.facingDirection = lerpAngle(this.facingDirection, this.getAimAngle(), _deltaTime * 16);
-    this.facingDirection = this.getAimAngle();
+    this.facingDirection = lerpAngle(this.facingDirection, this.getAimAngle(), _deltaTime * 50);
 
     if (movementVector.x === 0 && movementVector.y === 0) {
       isMoving = false;
