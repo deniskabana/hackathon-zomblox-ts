@@ -1,5 +1,5 @@
-import { GRID_CONFIG } from "./gameGrid";
-import type { Weapon } from "./weapons";
+import { GRID_CONFIG } from "../core/grid.config";
+import type { Weapon } from "./weapons.config";
 
 export const KEY_SETTINGS = "game-manager-key-settings";
 

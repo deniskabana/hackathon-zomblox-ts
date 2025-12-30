@@ -1,4 +1,4 @@
-import type { WorldPosition } from "../../config/gameGrid";
+import type { WorldPosition } from "../../config/core/grid.config";
 import type GameInstance from "../../GameInstance";
 import lerp from "../../utils/math/lerp";
 import { AManager } from "../abstract/AManager";

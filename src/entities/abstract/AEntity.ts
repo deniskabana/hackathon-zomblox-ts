@@ -1,4 +1,4 @@
-import { type WorldPosition, type GridPosition, worldToGrid, type GridConfig } from "../../config/gameGrid";
+import { type WorldPosition, type GridPosition, worldToGrid, type GridConfig } from "../../config/core/grid.config";
 import type GameInstance from "../../GameInstance";
 import type { EntityType } from "../../types/EntityType";
 import { GridTileState, type LevelGrid } from "../../types/Grid";

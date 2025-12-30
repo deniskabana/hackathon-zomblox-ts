@@ -1,5 +1,11 @@
-import type { AssetImageName } from "../../config/assets";
-import { GRID_CONFIG, gridToWorld, worldToGrid, type GridPosition, type WorldPosition } from "../../config/gameGrid";
+import {
+  GRID_CONFIG,
+  type WorldPosition,
+  type GridPosition,
+  gridToWorld,
+  worldToGrid,
+} from "../../config/core/grid.config";
+import type { AssetImageName } from "../../config/game/assets.config";
 import type GameInstance from "../../GameInstance";
 import { EntityType } from "../../types/EntityType";
 import type { Vector } from "../../types/Vector";

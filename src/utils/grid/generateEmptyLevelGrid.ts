@@ -1,4 +1,4 @@
-import { type GridConfig, type GridPosition } from "../../config/gameGrid";
+import type { GridConfig, GridPosition } from "../../config/core/grid.config";
 import { GridTileState, type LevelGrid } from "../../types/Grid";
 
 export default function generateEmptyLevelGrid(gridConfig: GridConfig, blocks: GridPosition[]): LevelGrid {

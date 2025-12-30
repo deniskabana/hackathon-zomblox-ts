@@ -1,4 +1,4 @@
-import { DEFAULT_SETTINGS, KEY_SETTINGS, type Settings } from "../../config/settings";
+import { DEFAULT_SETTINGS, KEY_SETTINGS, type Settings } from "../../config/game/settings.config";
 import type GameInstance from "../../GameInstance";
 import type { DeepPartial } from "../../types/DeepPartial";
 import { GameState } from "../../types/GameState";

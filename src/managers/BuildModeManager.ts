@@ -1,4 +1,4 @@
-import { GRID_CONFIG, gridToWorld, worldToGrid, type GridPosition } from "../config/gameGrid";
+import { GRID_CONFIG, worldToGrid, type GridPosition, gridToWorld } from "../config/core/grid.config";
 import type GameInstance from "../GameInstance";
 import { GridTileState } from "../types/Grid";
 import { ZIndex } from "../types/ZIndex";

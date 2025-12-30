@@ -1,4 +1,4 @@
-import { type GridPosition, type GridConfig, GRID_CONFIG } from "../../config/gameGrid";
+import { type GridPosition, type GridConfig, GRID_CONFIG } from "../../config/core/grid.config";
 
 export default function isInsideGrid(
   gridPos: GridPosition,

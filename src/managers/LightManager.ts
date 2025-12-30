@@ -1,4 +1,4 @@
-import { GRID_CONFIG, type WorldPosition } from "../config/gameGrid";
+import { GRID_CONFIG, type WorldPosition } from "../config/core/grid.config";
 import type GameInstance from "../GameInstance";
 import type { ScreenPosition } from "../types/ScreenPosition";
 import { AManager } from "./abstract/AManager";

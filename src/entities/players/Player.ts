@@ -1,6 +1,6 @@
-import type { AssetAudioName } from "../../config/assets";
-import { GRID_CONFIG, gridToWorld, type GridPosition, type WorldPosition } from "../../config/gameGrid";
-import { DEF_WEAPONS, type Weapon } from "../../config/weapons";
+import { GRID_CONFIG, type GridPosition, gridToWorld, type WorldPosition } from "../../config/core/grid.config";
+import type { AssetAudioName } from "../../config/game/assets.config";
+import { type Weapon, DEF_WEAPONS } from "../../config/game/weapons.config";
 import type GameInstance from "../../GameInstance";
 import { EntityType } from "../../types/EntityType";
 import { GameControls } from "../../types/GameControls";

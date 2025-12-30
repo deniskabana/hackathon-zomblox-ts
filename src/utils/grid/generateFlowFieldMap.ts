@@ -1,4 +1,4 @@
-import { GRID_CONFIG, type GridPosition } from "../../config/gameGrid";
+import { type GridPosition, GRID_CONFIG } from "../../config/core/grid.config";
 import { GridTileState, type LevelGrid } from "../../types/Grid";
 import type { Vector } from "../../types/Vector";
 import { clamp } from "../math/clamp";

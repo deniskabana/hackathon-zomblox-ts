@@ -1,4 +1,4 @@
-import { GRID_CONFIG, type WorldPosition } from "../config/gameGrid";
+import { type WorldPosition, GRID_CONFIG } from "../config/core/grid.config";
 import type GameInstance from "../GameInstance";
 import type { Effect } from "../types/Effects";
 import { ZIndex } from "../types/ZIndex";

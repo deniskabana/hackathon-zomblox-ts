@@ -1,4 +1,10 @@
-import { GRID_CONFIG, setGridConfig, WORLD_SIZE, type GridPosition, type WorldPosition } from "../config/gameGrid";
+import {
+  WORLD_SIZE,
+  setGridConfig,
+  GRID_CONFIG,
+  type GridPosition,
+  type WorldPosition,
+} from "../config/core/grid.config";
 import type ABlock from "../entities/abstract/ABlock";
 import type ACollectable from "../entities/abstract/ACollectable";
 import BlockBarrelFire from "../entities/blocks/BlockBarrelFire";

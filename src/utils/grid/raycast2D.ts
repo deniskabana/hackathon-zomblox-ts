@@ -1,4 +1,4 @@
-import { GRID_CONFIG, worldToGrid, type WorldPosition } from "../../config/gameGrid";
+import { type WorldPosition, worldToGrid, GRID_CONFIG } from "../../config/core/grid.config";
 import type AEnemy from "../../entities/abstract/AEnemy";
 import { GridTileState, type GridTileRef, type LevelGrid } from "../../types/Grid";
 import getVectorDistance from "../math/getVectorDistance";
