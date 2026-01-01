@@ -248,7 +248,7 @@ export default class Zombie extends AEnemy {
     }
 
     // Stop chasing the player once they're reached
-    if (isInsideGrid(this.gridPos) && this.moveTargetPos) {
+    if (this.moveTargetPos) {
       const targetGridPos = worldToGrid(this.moveTargetPos);
       if (targetGridPos.x === this.gridPos.x && targetGridPos.y === this.gridPos.y) this.moveTargetPos = undefined;
       const isTargetPlayer = targetGridPos.x === player.gridPos.x && targetGridPos.y === player.gridPos.y;
@@ -256,19 +256,16 @@ export default class Zombie extends AEnemy {
     }
 
     if (isInsideGrid(this.gridPos) && this.distanceFromPlayer >= this.minDistanceFromPlayer && !!flowField) {
-      const currentDistance = flowField[this.gridPos.x][this.gridPos.y].distance;
-
-      const lowestDistanceNeighbor = flowField[this.gridPos.x][this.gridPos.y].neighbors.reduce<Vector>((acc, val) => {
-        const neighborDist = flowField[val.x][val.y].distance;
-
-        if (neighborDist < currentDistance && currentDistance - neighborDist <= 2) {
-          if (neighborDist < flowField[acc.x][acc.y].distance) return val;
-        }
-
-        return acc;
-      }, this.gridPos);
-
-      this.moveTargetPos = gridToWorld(lowestDistanceNeighbor, { center: true });
+      const vector = flowField[this.gridPos.x][this.gridPos.y].normalizedVector;
+      // if (currentDistance < flowField?.[vector.x]?.[vector.y]?.weight) {
+      //   this.speed = 0;
+      // } else {
+      //   this.speed = this.maxSpeed;
+      // }
+      this.moveTargetPos = gridToWorld(
+        { x: vector.x + this.gridPos.x, y: vector.y + this.gridPos.y },
+        { center: true },
+      );
     } else {
       this.moveTargetPos = { ...player.worldPos };
     }
@@ -297,19 +294,8 @@ export default class Zombie extends AEnemy {
       return;
     }
 
-    const currentDistance = flowField[this.gridPos.x][this.gridPos.y].distance;
-
-    const lowestDistanceNeighbor = flowField[this.gridPos.x][this.gridPos.y].neighbors.reduce<Vector>((acc, val) => {
-      const neighborDist = flowField[val.x][val.y].distance;
-
-      if (neighborDist < currentDistance && currentDistance - neighborDist <= 2) {
-        if (neighborDist < flowField[acc.x][acc.y].distance) return val;
-      }
-
-      return acc;
-    }, this.gridPos);
-
-    this.moveTargetPos = gridToWorld(lowestDistanceNeighbor, { center: true });
+    // const currentDistance = flowField[this.gridPos.x][this.gridPos.y].weight;
+    // this.moveTargetPos = gridToWorld(lowestDistanceNeighbor, { center: true });
   }
 
   private zombieAttackPlayer(_deltaTime: number): void {
@@ -385,9 +371,10 @@ export default class Zombie extends AEnemy {
 
   private applyRotation(_deltaTime: number, targetPos: WorldPosition): void {
     this.desiredAngle = getDirectionalAngle(targetPos, this.worldPos);
+    this.angle = this.desiredAngle;
     if (this.angle !== this.desiredAngle) {
-      const rotationSpeed = this.zombieState === ZombieState.WALK ? _deltaTime * 4.5 : _deltaTime * 19;
-      this.angle = radialLerp(this.angle, this.desiredAngle, Math.min(1, rotationSpeed));
+      // const rotationSpeed = this.zombieState === ZombieState.WALK ? _deltaTime * 4.5 : _deltaTime * 19;
+      // this.angle = radialLerp(this.angle, this.desiredAngle, Math.min(1, rotationSpeed));
     }
   }
 

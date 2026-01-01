@@ -4,6 +4,7 @@ import {
   GRID_CONFIG,
   type GridPosition,
   type WorldPosition,
+  gridToWorld,
 } from "../config/core/grid.config";
 import type ABlock from "../entities/abstract/ABlock";
 import type ACollectable from "../entities/abstract/ACollectable";
@@ -28,6 +29,7 @@ import raycast2D from "../utils/grid/raycast2D";
 import areVectorsEqual from "../utils/math/areVectorsEqual";
 import { AManager } from "./abstract/AManager";
 import { BlockTypes } from "./BuildModeManager";
+import DrawManager from "./core/DrawManager";
 
 export default class LevelManager extends AManager {
   public worldWidth: number = WORLD_SIZE.WIDTH;
@@ -45,6 +47,7 @@ export default class LevelManager extends AManager {
   private tileset?: MapTilesetManager;
   private mapLayerBelowPlayer!: HTMLCanvasElement;
   private mapLayerAbovePlayer!: HTMLCanvasElement;
+  private mapSpawnPoints: WorldPosition[];
 
   // Entities
   public player?: Player;
@@ -70,6 +73,7 @@ export default class LevelManager extends AManager {
     super(gameInstance);
     this.mapLayerBelowPlayer = document.createElement("canvas");
     this.mapLayerAbovePlayer = document.createElement("canvas");
+    this.mapSpawnPoints = [];
   }
 
   public init(): void {
@@ -107,6 +111,23 @@ export default class LevelManager extends AManager {
     this.mapLayerAbovePlayer.width = GRID_CONFIG.GRID_WIDTH * GRID_CONFIG.TILE_SIZE;
     this.mapLayerAbovePlayer.height = GRID_CONFIG.GRID_HEIGHT * GRID_CONFIG.TILE_SIZE;
     this.createMapTileImages();
+    this.updatePathFindingGrid();
+
+    // Filter out spawn points that have BLOCKED neighboring cell
+    for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
+      const yTop = -1;
+      const yBottom = GRID_CONFIG.GRID_HEIGHT;
+      if (this.levelGrid?.[x]?.[yTop + 1]?.state === GridTileState.AVAILABLE) this.mapSpawnPoints.push({ x, y: yTop });
+      if (this.levelGrid?.[x]?.[yBottom - 1]?.state === GridTileState.AVAILABLE)
+        this.mapSpawnPoints.push({ x, y: yBottom });
+    }
+    for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
+      const xTop = -1;
+      const xBottom = GRID_CONFIG.GRID_HEIGHT;
+      if (this.levelGrid?.[xTop + 1]?.[y]?.state === GridTileState.AVAILABLE) this.mapSpawnPoints.push({ x: xTop, y });
+      if (this.levelGrid?.[xBottom - 1]?.[y]?.state === GridTileState.AVAILABLE)
+        this.mapSpawnPoints.push({ x: xBottom, y });
+    }
   }
 
   public update(_deltaTime: number) {
@@ -120,7 +141,8 @@ export default class LevelManager extends AManager {
     this.applyZombieSpawn(_deltaTime);
 
     const hasPlayerMoved = !this.player || !areVectorsEqual(this.lastPlayerGridPos, this.player.gridPos);
-    if (hasPlayerMoved || !this.flowField) this.updatePathFindingGrid();
+    // if (hasPlayerMoved || !this.flowField) this.updatePathFindingGrid();
+    this.updatePathFindingGrid();
 
     if (!this.getIsDay() && !!this.player) {
       this.nightEndCounter -= _deltaTime;
@@ -129,19 +151,59 @@ export default class LevelManager extends AManager {
   }
 
   public drawEntities(): void {
-    this.drawMapLayers("below");
+    // this.drawMapLayers("below");
     for (const zombie of this.zombies.values()) zombie.draw();
     for (const block of this.blocks.values()) block.draw();
     for (const coin of this.collectables.values()) coin.draw();
     this.player?.draw();
-    this.drawMapLayers("above");
+    // this.drawMapLayers("above");
 
-    if (!this.getIsDay() && this.player) {
-      this.gameInstance.MANAGERS.LightManager.drawNightLighting(
-        [this.player.worldPos],
-        this.player.getFacingDirection(),
-      );
+    const { DrawManager, CameraManager } = this.gameInstance.MANAGERS;
+    const size = GRID_CONFIG.TILE_SIZE;
+    for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
+      for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
+        if (!CameraManager.isOnScreen({ x: x * size, y: y * size })) continue;
+
+        if (this.levelGrid?.[x]?.[y]?.state !== GridTileState.BLOCKED)
+          DrawManager.drawRectFilled(x * size, y * size, size, size, "#bbb", 0.15);
+        DrawManager.drawRectOutline(x * size, y * size, size, size, "#fff", 0.1);
+
+        if (this.flowField?.[x]?.[y]) {
+          const currentFieldCell = this.flowField[x][y];
+          const weight = currentFieldCell.weight;
+          const vector = currentFieldCell.normalizedVector;
+          if (weight === Infinity || weight === 0) continue;
+
+          const green = `0${Math.floor(230 - Math.min(200, (200 / 20) * weight)).toString(16)}`.slice(-2);
+          const red = `0${Math.floor(55 + Math.min(200, (200 / 20) * weight)).toString(16)}`.slice(-2);
+          DrawManager.drawArrow(
+            x * size + size / 2,
+            y * size + size / 2,
+            (x + vector.x / 2) * size + size / 2,
+            (y + vector.y / 2) * size + size / 2,
+            `#${red}${green}5070`,
+            2,
+          );
+          DrawManager.drawText(
+            weight.toString(),
+            x * size + size / 2,
+            y * size + size / 2,
+            `#${red}${green}50`,
+            21,
+            "Courier",
+            "center",
+            0.5,
+          );
+        }
+      }
     }
+
+    // if (!this.getIsDay() && this.player) {
+    //   this.gameInstance.MANAGERS.LightManager.drawNightLighting(
+    //     [this.player.worldPos],
+    //     this.player.getFacingDirection(),
+    //   );
+    // }
   }
 
   private createMapTileImages(): void {
@@ -326,19 +388,8 @@ export default class LevelManager extends AManager {
     }
   }
 
-  private getRandomZombieSpawnPosition(margin: number = 2): WorldPosition {
-    // NOTE: 0 = top, 1 = right, 2 = bottom, 3 = left
-    switch (Math.floor(Math.random() * 4)) {
-      default:
-      case 0:
-        return { x: Math.random() * (GRID_CONFIG.GRID_WIDTH - 1), y: -margin };
-      case 1:
-        return { x: GRID_CONFIG.GRID_WIDTH - 1 + margin, y: Math.random() * (GRID_CONFIG.GRID_HEIGHT - 1) };
-      case 2:
-        return { x: Math.random() * (GRID_CONFIG.GRID_WIDTH - 1), y: GRID_CONFIG.GRID_HEIGHT - 1 + margin };
-      case 3:
-        return { x: -margin, y: Math.random() * (GRID_CONFIG.GRID_HEIGHT - 1) };
-    }
+  private getRandomZombieSpawnPosition(): WorldPosition {
+    return this.mapSpawnPoints[Math.floor(Math.random() * this.mapSpawnPoints.length)] || { x: 0, y: 0 };
   }
 
   // Day and night
@@ -394,7 +445,12 @@ export default class LevelManager extends AManager {
     const amount = Math.max(20, this.zombies.size);
     for (let i = 0; i < amount; i++) {
       this.retreatFlowFields.push(
-        generateFlowField(this.levelGrid, ...this.getRandomEdgePositions(), ...this.getRandomEdgePositions()),
+        generateFlowField(
+          this.levelGrid,
+          this.zombies,
+          ...this.getRandomEdgePositions(),
+          ...this.getRandomEdgePositions(),
+        ),
       );
     }
 
@@ -436,10 +492,10 @@ export default class LevelManager extends AManager {
   }
 
   private updatePathFindingGrid(): void {
-    if (this.getIsDay()) return;
+    // if (this.getIsDay()) return;
     if (!this.player || !this.levelGrid) return;
     this.lastPlayerGridPos = this.player.gridPos;
-    this.flowField = generateFlowField(this.levelGrid, this.player.gridPos);
+    this.flowField = generateFlowField(this.levelGrid, this.zombies, this.player.gridPos);
   }
 
   // Utils

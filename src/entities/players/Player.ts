@@ -171,6 +171,27 @@ export default class Player extends APlayer {
       this.isFacingLeft ? 1 : -1,
     );
 
+    const gridPos = gridToWorld(this.gridPos);
+    DrawManager.drawRectFilled(gridPos.x, gridPos.y, GRID_CONFIG.TILE_SIZE, GRID_CONFIG.TILE_SIZE, "#ca6", 0.25);
+
+    const size = GRID_CONFIG.TILE_SIZE / 2;
+    DrawManager.drawLine(
+      this.worldPos.x - size / 2,
+      this.worldPos.y - size / 2,
+      this.worldPos.x + size / 2,
+      this.worldPos.y + size / 2,
+      "#ca6",
+      3,
+    );
+    DrawManager.drawLine(
+      this.worldPos.x + size / 2,
+      this.worldPos.y - size / 2,
+      this.worldPos.x - size / 2,
+      this.worldPos.y + size / 2,
+      "#ca6",
+      3,
+    );
+
     this.drawWeapon(weaponSize);
   }
 
@@ -482,6 +503,7 @@ export default class Player extends APlayer {
   }
 
   private die(): void {
+    return;
     const { VFXManager, AssetManager, LevelManager, UIManager } = this.gameInstance.MANAGERS;
     this.playerState = PlayerState.DEAD;
     VFXManager.drawBloodOnScreen(600);

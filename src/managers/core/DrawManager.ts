@@ -271,14 +271,69 @@ export default class DrawManager extends AManager {
     this.ctx.restore();
   }
 
-  public drawRectFilled(x: number, y: number, width: number, height: number, color: string): void {
+  public drawRectFilled(x: number, y: number, width: number, height: number, color: string, alpha: number = 1): void {
     if (!this.ctx) return;
     const { CameraManager } = this.gameInstance.MANAGERS;
 
     this.ctx.save();
+    if (typeof alpha !== "undefined") this.ctx.globalAlpha = alpha;
     this.ctx.fillStyle = color;
     const screenPos = this.gameInstance.MANAGERS.CameraManager.worldToScreen({ x, y });
     this.ctx.fillRect(screenPos.x, screenPos.y, width * CameraManager.zoom, height * CameraManager.zoom);
+    this.ctx.restore();
+  }
+
+  public drawArrow(x1: number, y1: number, x2: number, y2: number, color: string, lineWidth: number = 1): void {
+    if (!this.ctx) return;
+    const { CameraManager } = this.gameInstance.MANAGERS;
+
+    // Draw the main line
+    this.drawLine(x1, y1, x2, y2, color, lineWidth);
+
+    // Calculate arrow head
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const length = Math.sqrt(dx * dx + dy * dy);
+
+    if (length === 0) return; // Prevent division by zero
+
+    // Normalize direction vector
+    const dirX = dx / length;
+    const dirY = dy / length;
+
+    // Arrow head length (25% of total line length)
+    const headLength = length * 0.4;
+
+    // Base point of arrow head (25% back from tip)
+    const baseX = x2 - dirX * headLength;
+    const baseY = y2 - dirY * headLength;
+
+    // Perpendicular vector for arrow sides
+    const perpX = -dirY;
+    const perpY = dirX;
+
+    // Arrow head width (half of head length for aesthetics)
+    const headWidth = headLength * 0.5;
+
+    // Two points for the arrow sides
+    const side1X = baseX + perpX * headWidth;
+    const side1Y = baseY + perpY * headWidth;
+    const side2X = baseX - perpX * headWidth;
+    const side2Y = baseY - perpY * headWidth;
+
+    this.ctx.save();
+    this.ctx.fillStyle = color;
+    this.ctx.beginPath();
+
+    const tip = CameraManager.worldToScreen({ x: x2, y: y2 });
+    const s1 = CameraManager.worldToScreen({ x: side1X, y: side1Y });
+    const s2 = CameraManager.worldToScreen({ x: side2X, y: side2Y });
+
+    this.ctx.moveTo(tip.x, tip.y);
+    this.ctx.lineTo(s1.x, s1.y);
+    this.ctx.lineTo(s2.x, s2.y);
+    this.ctx.closePath();
+    this.ctx.fill();
     this.ctx.restore();
   }
 
@@ -307,11 +362,13 @@ export default class DrawManager extends AManager {
     fontSize: number = 16,
     fontFamily: string = "Arial",
     align: CanvasTextAlign = "left",
+    alpha: number = 1,
   ): void {
     if (!this.ctx) return;
     const { CameraManager } = this.gameInstance.MANAGERS;
 
     this.ctx.save();
+    this.ctx.globalAlpha = alpha;
     this.ctx.fillStyle = color;
     this.ctx.font = `${fontSize * CameraManager.zoom}px ${fontFamily}`;
     this.ctx.textAlign = align;
