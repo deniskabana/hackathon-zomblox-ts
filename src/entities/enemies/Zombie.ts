@@ -182,7 +182,7 @@ export default class Zombie extends AEnemy {
         shadowSprite,
         size,
         size,
-        ZIndex.ENTITIES,
+        ZIndex.GROUND,
       );
   }
 
@@ -256,12 +256,14 @@ export default class Zombie extends AEnemy {
     }
 
     if (isInsideGrid(this.gridPos) && this.distanceFromPlayer >= this.minDistanceFromPlayer && !!flowField) {
+      const currentWeight = flowField[this.gridPos.x][this.gridPos.y].weight;
       const vector = flowField[this.gridPos.x][this.gridPos.y].normalizedVector;
-      // if (currentDistance < flowField?.[vector.x]?.[vector.y]?.weight) {
-      //   this.speed = 0;
-      // } else {
-      //   this.speed = this.maxSpeed;
-      // }
+      if (currentWeight <= flowField?.[this.gridPos.x + vector.x]?.[this.gridPos.y + vector.y]?.weight) {
+        this.moveTargetPos = undefined;
+        this.speed = 0;
+      } else {
+        this.speed = this.maxSpeed;
+      }
       this.moveTargetPos = gridToWorld(
         { x: vector.x + this.gridPos.x, y: vector.y + this.gridPos.y },
         { center: true },
@@ -360,9 +362,10 @@ export default class Zombie extends AEnemy {
       this.zombieChasePlayer(_deltaTime);
 
       if (this.distanceFromPlayer < this.minDistanceFromPlayer) {
-        this.moveTargetPos = { ...player.worldPos };
-        this.clearTargetPosTimer = 0;
-        this.startAttacking();
+        // this.moveTargetPos = undefined;
+        // this.speed = 0;
+        //   this.clearTargetPosTimer = 0;
+        //   this.startAttacking();
       } else {
         this.applyMovement(_deltaTime);
       }

@@ -155,8 +155,9 @@ export default class Player extends APlayer {
 
   public draw() {
     if (!this.activeAnimation) return;
-    const { DrawManager } = this.gameInstance.MANAGERS;
+    const { DrawManager, GameManager } = this.gameInstance.MANAGERS;
     const weaponSize = GRID_CONFIG.TILE_SIZE * 1.5;
+
     this.drawShadow(this.size * 0.75);
     DrawManager.queueDrawSprite(
       this.worldPos.x - this.size / 2,
@@ -170,9 +171,12 @@ export default class Player extends APlayer {
       1,
       this.isFacingLeft ? 1 : -1,
     );
+    this.drawWeapon(weaponSize);
+
+    if (!GameManager.getSettings().debug.enableFlowFieldRender) return;
 
     const gridPos = gridToWorld(this.gridPos);
-    DrawManager.drawRectFilled(gridPos.x, gridPos.y, GRID_CONFIG.TILE_SIZE, GRID_CONFIG.TILE_SIZE, "#ca6", 0.25);
+    DrawManager.drawRectOutline(gridPos.x, gridPos.y, GRID_CONFIG.TILE_SIZE, GRID_CONFIG.TILE_SIZE, "#ca6", 3);
 
     const size = GRID_CONFIG.TILE_SIZE / 2;
     DrawManager.drawLine(
@@ -191,8 +195,6 @@ export default class Player extends APlayer {
       "#ca6",
       3,
     );
-
-    this.drawWeapon(weaponSize);
   }
 
   private drawWeapon(weaponSize: number): void {
@@ -265,7 +267,7 @@ export default class Player extends APlayer {
         shadowSprite,
         size,
         size,
-        ZIndex.ENTITIES,
+        ZIndex.GROUND,
       );
   }
 

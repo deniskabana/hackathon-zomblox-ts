@@ -4,7 +4,6 @@ import {
   GRID_CONFIG,
   type GridPosition,
   type WorldPosition,
-  gridToWorld,
 } from "../config/core/grid.config";
 import type ABlock from "../entities/abstract/ABlock";
 import type ACollectable from "../entities/abstract/ACollectable";
@@ -26,10 +25,9 @@ import assertNever from "../utils/assertNever";
 import generateEmptyLevelGrid from "../utils/grid/generateEmptyLevelGrid";
 import generateFlowField, { type FlowField } from "../utils/grid/generateFlowFieldMap";
 import raycast2D from "../utils/grid/raycast2D";
-import areVectorsEqual from "../utils/math/areVectorsEqual";
+// import areVectorsEqual from "../utils/math/areVectorsEqual";
 import { AManager } from "./abstract/AManager";
 import { BlockTypes } from "./BuildModeManager";
-import DrawManager from "./core/DrawManager";
 
 export default class LevelManager extends AManager {
   public worldWidth: number = WORLD_SIZE.WIDTH;
@@ -56,7 +54,7 @@ export default class LevelManager extends AManager {
   public collectables: Map<number, ACollectable> = new Map();
 
   // Gameplay
-  private lastPlayerGridPos: GridPosition = { x: -99, y: -99 };
+  // private lastPlayerGridPos: GridPosition = { x: -99, y: -99 };
   private isSpawningZombies: boolean = false;
   private zombieSpawnsLeft: number = 0;
 
@@ -68,6 +66,8 @@ export default class LevelManager extends AManager {
   private nightEndCounter: number = 0;
   private spawnTimer: number = 0;
   private zombieSpawnInterval: number = 1200;
+  private pathfindingStaleTimer: number = 0;
+  private readonly pathfindingStaleAmountSec: number = 1 / 3;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
@@ -91,7 +91,7 @@ export default class LevelManager extends AManager {
     this.levelGrid = generateEmptyLevelGrid(config, map.objects);
 
     this.player = new Player(map.spawn, this.entityIdCounter++, this.gameInstance);
-    this.lastPlayerGridPos = this.player.gridPos;
+    // this.lastPlayerGridPos = this.player.gridPos;
 
     const gameSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
     this.zombieSpawnInterval = Math.min(
@@ -114,19 +114,39 @@ export default class LevelManager extends AManager {
     this.updatePathFindingGrid();
 
     // Filter out spawn points that have BLOCKED neighboring cell
+    const yTop = -1;
+    const yBottom = GRID_CONFIG.GRID_HEIGHT;
+    const xLeft = -1;
+    const xRight = GRID_CONFIG.GRID_HEIGHT;
+
     for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
-      const yTop = -1;
-      const yBottom = GRID_CONFIG.GRID_HEIGHT;
-      if (this.levelGrid?.[x]?.[yTop + 1]?.state === GridTileState.AVAILABLE) this.mapSpawnPoints.push({ x, y: yTop });
-      if (this.levelGrid?.[x]?.[yBottom - 1]?.state === GridTileState.AVAILABLE)
+      if (
+        this.levelGrid?.[x]?.[yTop + 1]?.state === GridTileState.AVAILABLE &&
+        this.flowField?.[x]?.[yTop + 1]?.weight !== Infinity
+      ) {
+        this.mapSpawnPoints.push({ x, y: yTop });
+      }
+      if (
+        this.levelGrid?.[x]?.[yBottom - 1]?.state === GridTileState.AVAILABLE &&
+        this.flowField?.[x]?.[yBottom - 2]?.weight !== Infinity
+      ) {
         this.mapSpawnPoints.push({ x, y: yBottom });
+      }
     }
+
     for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
-      const xTop = -1;
-      const xBottom = GRID_CONFIG.GRID_HEIGHT;
-      if (this.levelGrid?.[xTop + 1]?.[y]?.state === GridTileState.AVAILABLE) this.mapSpawnPoints.push({ x: xTop, y });
-      if (this.levelGrid?.[xBottom - 1]?.[y]?.state === GridTileState.AVAILABLE)
-        this.mapSpawnPoints.push({ x: xBottom, y });
+      if (
+        this.levelGrid?.[xLeft + 1]?.[y]?.state === GridTileState.AVAILABLE &&
+        this.flowField?.[xLeft + 1]?.[y]?.weight !== Infinity
+      ) {
+        this.mapSpawnPoints.push({ x: xLeft, y });
+      }
+      if (
+        this.levelGrid?.[xRight - 1]?.[y]?.state === GridTileState.AVAILABLE &&
+        this.flowField?.[xRight - 1]?.[y]?.weight !== Infinity
+      ) {
+        this.mapSpawnPoints.push({ x: xRight, y });
+      }
     }
   }
 
@@ -140,9 +160,15 @@ export default class LevelManager extends AManager {
 
     this.applyZombieSpawn(_deltaTime);
 
-    const hasPlayerMoved = !this.player || !areVectorsEqual(this.lastPlayerGridPos, this.player.gridPos);
+    // const hasPlayerMoved = !this.player || !areVectorsEqual(this.lastPlayerGridPos, this.player.gridPos);
     // if (hasPlayerMoved || !this.flowField) this.updatePathFindingGrid();
-    this.updatePathFindingGrid();
+
+    if (this.pathfindingStaleTimer > 0) this.pathfindingStaleTimer -= _deltaTime;
+    else {
+      this.updatePathFindingGrid();
+      this.pathfindingStaleTimer = this.pathfindingStaleAmountSec;
+      console.count("Pathfinding");
+    }
 
     if (!this.getIsDay() && !!this.player) {
       this.nightEndCounter -= _deltaTime;
@@ -151,59 +177,62 @@ export default class LevelManager extends AManager {
   }
 
   public drawEntities(): void {
-    // this.drawMapLayers("below");
+    this.drawMapLayers("below");
     for (const zombie of this.zombies.values()) zombie.draw();
     for (const block of this.blocks.values()) block.draw();
     for (const coin of this.collectables.values()) coin.draw();
     this.player?.draw();
-    // this.drawMapLayers("above");
+    this.drawMapLayers("above");
 
-    const { DrawManager, CameraManager } = this.gameInstance.MANAGERS;
-    const size = GRID_CONFIG.TILE_SIZE;
-    for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
-      for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
-        if (!CameraManager.isOnScreen({ x: x * size, y: y * size })) continue;
+    const { DrawManager, CameraManager, GameManager } = this.gameInstance.MANAGERS;
 
-        if (this.levelGrid?.[x]?.[y]?.state !== GridTileState.BLOCKED)
-          DrawManager.drawRectFilled(x * size, y * size, size, size, "#bbb", 0.15);
-        DrawManager.drawRectOutline(x * size, y * size, size, size, "#fff", 0.1);
+    if (GameManager.getSettings().debug.enableFlowFieldRender) {
+      const size = GRID_CONFIG.TILE_SIZE;
 
-        if (this.flowField?.[x]?.[y]) {
-          const currentFieldCell = this.flowField[x][y];
-          const weight = currentFieldCell.weight;
-          const vector = currentFieldCell.normalizedVector;
-          if (weight === Infinity || weight === 0) continue;
+      for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
+        for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
+          if (!CameraManager.isOnScreen({ x: x * size, y: y * size })) continue;
 
-          const green = `0${Math.floor(230 - Math.min(200, (200 / 20) * weight)).toString(16)}`.slice(-2);
-          const red = `0${Math.floor(55 + Math.min(200, (200 / 20) * weight)).toString(16)}`.slice(-2);
-          DrawManager.drawArrow(
-            x * size + size / 2,
-            y * size + size / 2,
-            (x + vector.x / 2) * size + size / 2,
-            (y + vector.y / 2) * size + size / 2,
-            `#${red}${green}5070`,
-            2,
-          );
-          DrawManager.drawText(
-            weight.toString(),
-            x * size + size / 2,
-            y * size + size / 2,
-            `#${red}${green}50`,
-            21,
-            "Courier",
-            "center",
-            0.5,
-          );
+          if (this.levelGrid?.[x]?.[y]?.state !== GridTileState.AVAILABLE)
+            DrawManager.drawRectFilled(x * size, y * size, size, size, "#000", 0.4);
+          // DrawManager.drawRectOutline(x * size, y * size, size, size, "#fff", 0.1);
+
+          if (this.flowField?.[x]?.[y]) {
+            const currentFieldCell = this.flowField[x][y];
+            const weight = currentFieldCell.weight;
+            const vector = currentFieldCell.normalizedVector;
+            if (weight === Infinity || weight === 0) continue;
+
+            const green = `0${Math.floor(230 - Math.min(200, (200 / 20) * weight)).toString(16)}`.slice(-2);
+            const red = `0${Math.floor(55 + Math.min(200, (200 / 20) * weight)).toString(16)}`.slice(-2);
+            DrawManager.drawArrow(
+              x * size + size / 2,
+              y * size + size / 2,
+              (x + vector.x / 2) * size + size / 2,
+              (y + vector.y / 2) * size + size / 2,
+              `#${red}${green}50c0`,
+              2,
+            );
+            DrawManager.drawText(
+              weight.toString(),
+              x * size + size / 2,
+              y * size + size / 2,
+              `#${red}${green}50`,
+              21,
+              "Courier",
+              "center",
+            );
+          }
         }
       }
     }
 
-    // if (!this.getIsDay() && this.player) {
-    //   this.gameInstance.MANAGERS.LightManager.drawNightLighting(
-    //     [this.player.worldPos],
-    //     this.player.getFacingDirection(),
-    //   );
-    // }
+    if (!this.getIsDay() && this.player) {
+      this.gameInstance.MANAGERS.LightManager.drawNightLighting(
+        [this.player.worldPos],
+        this.player.getFacingDirection(),
+      );
+    }
   }
 
   private createMapTileImages(): void {
@@ -224,6 +253,8 @@ export default class LevelManager extends AManager {
 
   private drawMapLayers(position: "above" | "below"): void {
     if (!this.tileLayers || !this.tileset) return;
+
+    const { GameManager } = this.gameInstance.MANAGERS;
     this.gameInstance.MANAGERS.DrawManager.queueDraw(
       0,
       0,
@@ -231,6 +262,8 @@ export default class LevelManager extends AManager {
       GRID_CONFIG.GRID_WIDTH * GRID_CONFIG.TILE_SIZE,
       GRID_CONFIG.GRID_HEIGHT * GRID_CONFIG.TILE_SIZE,
       position === "above" ? ZIndex.MAP_OVERLAY : ZIndex.MAP_GROUND,
+      0,
+      GameManager.getSettings().debug.enableFlowFieldRender ? 0.4 : 1,
     );
   }
 
@@ -240,8 +273,8 @@ export default class LevelManager extends AManager {
     ctx.imageSmoothingEnabled = false;
     ctx.imageSmoothingQuality = "low";
 
-    for (let y = 0; y <= GRID_CONFIG.GRID_WIDTH; y++) {
-      for (let x = 0; x <= GRID_CONFIG.GRID_HEIGHT; x++) {
+    for (let y = 0; y <= GRID_CONFIG.GRID_HEIGHT; y++) {
+      for (let x = 0; x <= GRID_CONFIG.GRID_WIDTH; x++) {
         const index = y * GRID_CONFIG.GRID_WIDTH + x;
         const tileId = layer[index];
         if (tileId === 0) continue;
@@ -494,7 +527,7 @@ export default class LevelManager extends AManager {
   private updatePathFindingGrid(): void {
     // if (this.getIsDay()) return;
     if (!this.player || !this.levelGrid) return;
-    this.lastPlayerGridPos = this.player.gridPos;
+    // this.lastPlayerGridPos = this.player.gridPos;
     this.flowField = generateFlowField(this.levelGrid, this.zombies, this.player.gridPos);
   }
 

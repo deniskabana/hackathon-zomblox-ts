@@ -42,6 +42,7 @@ export default function generateFlowField(
     for (let dx = -1; dx <= 1; dx++) {
       for (let dy = -1; dy <= 1; dy++) {
         if (dx === 0 && dy === 0) continue;
+        // if (dx !== 0 && dy !== 0) continue; // 4-way scan
 
         const nx = currentVector.x + dx;
         const ny = currentVector.y + dy;
@@ -49,8 +50,6 @@ export default function generateFlowField(
 
         if (!levelGrid?.[nx]?.[ny]) continue;
         if (levelGrid[nx][ny].state !== GridTileState.AVAILABLE) continue;
-
-        if (dx !== 0 && dy !== 0) continue; // Force only 4-way scanning
 
         if (flowField[nx][ny].weight === Infinity) {
           flowField[nx][ny].weight = currentWeight + 1;
@@ -70,22 +69,36 @@ export default function generateFlowField(
       if (!flowField?.[x]?.[y]) continue;
       if (flowField[x][y].weight === Infinity) continue;
 
-      let lowestWeight = flowField[x][y].weight;
+      // let lowestWeight = flowField[x][y].weight + 1;
+      let lowestWeight = Infinity;
       let directionVector = { x: 0, y: 0 };
 
-      for (let dx = -1; dx <= 1; dx++) {
-        for (let dy = -1; dy <= 1; dy++) {
-          if (dx === 0 && dy === 0) continue;
-          if (!flowField?.[x + dx]?.[y + dy]) continue;
+      const sortedNeighborVectors: Vector[] = [
+        // Diagonals first
+        { x: -1, y: -1 },
+        { x: -1, y: 1 },
+        { x: 1, y: 1 },
+        { x: 1, y: -1 },
+        // Cardinal second
+        { x: 0, y: -1 },
+        { x: 0, y: 1 },
+        { x: 1, y: 0 },
+        { x: -1, y: 0 },
+      ];
 
-          const neighborWeight = flowField[x + dx][y + dy].weight;
-          if (neighborWeight === Infinity) continue;
+      for (const neighborVector of sortedNeighborVectors) {
+        const { x: dx, y: dy } = neighborVector;
+        const neighbor = flowField?.[x + dx]?.[y + dy];
+        if (!neighbor) continue;
 
-          if (neighborWeight < lowestWeight) {
-            directionVector = { x: dx, y: dy };
-            lowestWeight = neighborWeight;
-          }
-        }
+        const neighborWeight = neighbor.weight;
+
+        // if (dx !== 0 && dy !== 0) neighborWeight += 1;
+        if (neighborWeight === Infinity) continue;
+        if (neighborWeight > lowestWeight) continue;
+
+        directionVector = neighborVector;
+        lowestWeight = neighbor.weight;
       }
 
       flowField[x][y].normalizedVector = directionVector;
