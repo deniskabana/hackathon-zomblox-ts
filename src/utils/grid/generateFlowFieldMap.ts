@@ -61,7 +61,16 @@ export default function generateFlowField(
 
   for (const [_, enemy] of enemies) {
     if (!flowField?.[enemy.gridPos.x]?.[enemy.gridPos.y]?.weight) continue;
-    flowField[enemy.gridPos.x][enemy.gridPos.y].weight += 1;
+
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        const currentFieldCell = flowField?.[enemy.gridPos.x + dx]?.[enemy.gridPos.y + dy];
+        if (!currentFieldCell) continue;
+
+        if (dx === 0 && dy === 0) currentFieldCell.weight += 20;
+        else currentFieldCell.weight += 1;
+      }
+    }
   }
 
   for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
@@ -69,17 +78,17 @@ export default function generateFlowField(
       if (!flowField?.[x]?.[y]) continue;
       if (flowField[x][y].weight === Infinity) continue;
 
-      // let lowestWeight = flowField[x][y].weight + 1;
-      let lowestWeight = Infinity;
+      let lowestWeight = flowField[x][y].weight;
+      // let lowestWeight = Infinity;
       let directionVector = { x: 0, y: 0 };
 
       const sortedNeighborVectors: Vector[] = [
-        // Diagonals first
+        // Diagonals
         { x: -1, y: -1 },
         { x: -1, y: 1 },
         { x: 1, y: 1 },
         { x: 1, y: -1 },
-        // Cardinal second
+        // Cardinals
         { x: 0, y: -1 },
         { x: 0, y: 1 },
         { x: 1, y: 0 },

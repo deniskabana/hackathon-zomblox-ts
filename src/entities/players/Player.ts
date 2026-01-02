@@ -267,7 +267,7 @@ export default class Player extends APlayer {
         shadowSprite,
         size,
         size,
-        ZIndex.GROUND,
+        ZIndex.GROUND_EFFECTS,
       );
   }
 
@@ -505,7 +505,6 @@ export default class Player extends APlayer {
   }
 
   private die(): void {
-    return;
     const { VFXManager, AssetManager, LevelManager, UIManager } = this.gameInstance.MANAGERS;
     this.playerState = PlayerState.DEAD;
     VFXManager.drawBloodOnScreen(600);

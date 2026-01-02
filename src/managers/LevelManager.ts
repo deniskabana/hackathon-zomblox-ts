@@ -195,7 +195,7 @@ export default class LevelManager extends AManager {
 
           if (this.levelGrid?.[x]?.[y]?.state !== GridTileState.AVAILABLE)
             DrawManager.drawRectFilled(x * size, y * size, size, size, "#000", 0.4);
-          // DrawManager.drawRectOutline(x * size, y * size, size, size, "#fff", 0.1);
+          DrawManager.drawRectOutline(x * size, y * size, size, size, "#fff", 0.1);
 
           if (this.flowField?.[x]?.[y]) {
             const currentFieldCell = this.flowField[x][y];
@@ -205,20 +205,38 @@ export default class LevelManager extends AManager {
 
             const green = `0${Math.floor(230 - Math.min(200, (200 / 20) * weight)).toString(16)}`.slice(-2);
             const red = `0${Math.floor(55 + Math.min(200, (200 / 20) * weight)).toString(16)}`.slice(-2);
-            DrawManager.drawArrow(
+            DrawManager.drawLine(
               x * size + size / 2,
               y * size + size / 2,
-              (x + vector.x / 2) * size + size / 2,
-              (y + vector.y / 2) * size + size / 2,
-              `#${red}${green}50c0`,
+              (x + vector.x) * size + size / 2,
+              (y + vector.y) * size + size / 2,
+              "#9f9fffa0",
               2,
+            );
+            DrawManager.drawText(
+              weight.toString(),
+              x * size + size / 2 - 1,
+              y * size + size / 2 - 1,
+              "#000",
+              25,
+              "Courier",
+              "center",
+            );
+            DrawManager.drawText(
+              weight.toString(),
+              x * size + size / 2 + 2,
+              y * size + size / 2 + 2,
+              "#000",
+              25,
+              "Courier",
+              "center",
             );
             DrawManager.drawText(
               weight.toString(),
               x * size + size / 2,
               y * size + size / 2,
               `#${red}${green}50`,
-              21,
+              25,
               "Courier",
               "center",
             );
@@ -263,7 +281,7 @@ export default class LevelManager extends AManager {
       GRID_CONFIG.GRID_HEIGHT * GRID_CONFIG.TILE_SIZE,
       position === "above" ? ZIndex.MAP_OVERLAY : ZIndex.MAP_GROUND,
       0,
-      GameManager.getSettings().debug.enableFlowFieldRender ? 0.4 : 1,
+      GameManager.getSettings().debug.enableFlowFieldRender ? 0.5 : 1,
     );
   }
 

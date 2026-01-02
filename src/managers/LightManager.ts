@@ -89,7 +89,7 @@ export default class LightManager extends AManager {
     const gameCanvasCtx = DrawManager.getContext();
     if (!gameCanvasCtx) return;
     gameCanvasCtx.save();
-    gameCanvasCtx.globalAlpha = GameManager.getSettings().debug.seeThroughNight ? 0.45 : this.nightOverlayAlpha;
+    gameCanvasCtx.globalAlpha = GameManager.getSettings().debug.seeThroughNight ? 0.35 : this.nightOverlayAlpha;
     gameCanvasCtx.drawImage(this.lightMaskCanvas, 0, 0, this.lightMaskCanvas.width, this.lightMaskCanvas.height);
     gameCanvasCtx.restore();
   }
