@@ -42,7 +42,6 @@ export default function generateFlowField(
     for (let dx = -1; dx <= 1; dx++) {
       for (let dy = -1; dy <= 1; dy++) {
         if (dx === 0 && dy === 0) continue;
-        // if (dx !== 0 && dy !== 0) continue; // 4-way scan
 
         const nx = currentVector.x + dx;
         const ny = currentVector.y + dy;
@@ -61,25 +60,15 @@ export default function generateFlowField(
 
   for (const [_, enemy] of enemies) {
     if (!flowField?.[enemy.gridPos.x]?.[enemy.gridPos.y]?.weight) continue;
-
-    for (let dx = -1; dx <= 1; dx++) {
-      for (let dy = -1; dy <= 1; dy++) {
-        const currentFieldCell = flowField?.[enemy.gridPos.x + dx]?.[enemy.gridPos.y + dy];
-        if (!currentFieldCell) continue;
-
-        if (dx === 0 && dy === 0) currentFieldCell.weight += 20;
-        else currentFieldCell.weight += 1;
-      }
-    }
+    // if (dx === 0 && dy === 0) currentFieldCell.weight += 1;
   }
 
   for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
     for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
       if (!flowField?.[x]?.[y]) continue;
-      if (flowField[x][y].weight === Infinity) continue;
 
-      let lowestWeight = flowField[x][y].weight;
-      // let lowestWeight = Infinity;
+      // let lowestWeight = flowField[x][y].weight + 1;
+      let lowestWeight = Infinity;
       let directionVector = { x: 0, y: 0 };
 
       const sortedNeighborVectors: Vector[] = [
@@ -101,10 +90,14 @@ export default function generateFlowField(
         if (!neighbor) continue;
 
         const neighborWeight = neighbor.weight;
-
-        // if (dx !== 0 && dy !== 0) neighborWeight += 1;
         if (neighborWeight === Infinity) continue;
         if (neighborWeight > lowestWeight) continue;
+
+        if (dx !== 0 && dy !== 0) {
+          const field1Weight = flowField?.[x]?.[y + dy]?.weight;
+          const field2Weight = flowField?.[x + dx]?.[y]?.weight;
+          if (field1Weight === Infinity || field2Weight === Infinity) continue;
+        }
 
         directionVector = neighborVector;
         lowestWeight = neighbor.weight;

@@ -1,20 +1,15 @@
-import {
-  GRID_CONFIG,
-  type WorldPosition,
-  type GridPosition,
-  gridToWorld,
-  worldToGrid,
-} from "../../config/core/grid.config";
+import { GRID_CONFIG, type GridPosition, gridToWorld } from "../../config/core/grid.config";
 import type { AssetImageName } from "../../config/game/assets.config";
 import type GameInstance from "../../GameInstance";
 import { EntityType } from "../../types/EntityType";
+import type { Vector } from "../../types/Vector";
 import { ZIndex } from "../../types/ZIndex";
 import assertNever from "../../utils/assertNever";
 import { AnimatedSpriteSheet } from "../../utils/classes/AnimatedSpriteSheet";
 import isInsideGrid from "../../utils/grid/isInsideGrid";
+import { clamp } from "../../utils/math/clamp";
 import getDirectionalAngle from "../../utils/math/getDirectionalAngle";
 import getVectorDistance from "../../utils/math/getVectorDistance";
-import radiansToVector from "../../utils/math/radiansToVector";
 import AEnemy from "../abstract/AEnemy";
 
 export enum ZombieState {
@@ -41,15 +36,13 @@ export default class Zombie extends AEnemy {
 
   private maxSpeed: number;
   private speed: number;
-  private angle: number;
-  private desiredAngle: number | undefined;
-  private moveTargetPos: WorldPosition | undefined;
+  /** Directional vector for zombie's movement */
+  private vector: Vector | undefined;
 
   private distanceFromPlayer: number = Infinity;
   private minDistanceFromPlayer: number;
   // private stunTimer: number = 0; TODO: Implement
-
-  private retreatFlowFieldIndex: number;
+  // private retreatFlowFieldIndex: number;
 
   private attackCooldownTimer: number;
   private attackTimer: number;
@@ -65,10 +58,8 @@ export default class Zombie extends AEnemy {
 
     this.maxSpeed = zombieSettings.maxSpeed + (Math.random() - 0.5) * zombieSettings.speedDeviation;
     this.speed = this.maxSpeed;
-    this.angle = 0;
 
     this.minDistanceFromPlayer = zombieSettings.minDistanceFromPlayer;
-    this.retreatFlowFieldIndex = 0; // FIXME: Remove
     this.attackCooldownTimer = 0;
     this.attackTimer = 0;
     this.hasDealtDamage = false;
@@ -117,8 +108,6 @@ export default class Zombie extends AEnemy {
 
       case ZombieState.ATTACK:
         this.activeAnimation = this.animations.WALK[this.zombieImageIndex];
-        if (this.gameInstance.MANAGERS.LevelManager.player)
-          this.applyRotation(_deltaTime, this.gameInstance.MANAGERS.LevelManager.player.worldPos);
         this.zombieAttackPlayer(_deltaTime);
         break;
 
@@ -158,7 +147,7 @@ export default class Zombie extends AEnemy {
       this.size,
       ZIndex.ENTITIES,
       0,
-      GameManager.getSettings().debug.enableFlowFieldRender ? 0.65 : 1,
+      1,
       this.isFacingLeft ? 1 : -1,
     );
 
@@ -194,13 +183,11 @@ export default class Zombie extends AEnemy {
     this.zombieState = ZombieState.RETREAT;
     const zombieSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.zombie;
     this.speed = zombieSettings.maxSpeed * 3.25;
-
-    const retreatFlowFields = this.gameInstance.MANAGERS.LevelManager.retreatFlowFields;
-    if (!retreatFlowFields) return;
-    this.retreatFlowFieldIndex = this.entityId % retreatFlowFields.length;
+    // TODO: Later
   }
 
   public startWandering(): void {
+    // TODO: Later
     // this.zombieState = ZombieState.WANDERING;
     this.zombieState = ZombieState.RETREAT;
   }
@@ -210,6 +197,7 @@ export default class Zombie extends AEnemy {
   }
 
   public damage(amount: number): void {
+    // TODO: Uncomment when KNOCKED and stunTimer is implemented in parent class
     // this.zombieState = ZombieState.HIT;
     this.speed = Math.floor(this.speed * 0.5 * 1000) / 1000;
     this.health -= amount;
@@ -237,69 +225,16 @@ export default class Zombie extends AEnemy {
     const flowField = this.gameInstance.MANAGERS.LevelManager.flowField;
     if (!player || !flowField) return;
 
-    // if (this.clearTargetPosTimer > 0) {
-    //   this.clearTargetPosTimer -= _deltaTime;
-    // } else {
-    //   this.clearTargetPosTimer = this.clearTargetPosInterval;
-    //   this.moveTargetPos = undefined;
-    // }
-
-    // Stop chasing the player once they're reached
-    if (this.moveTargetPos) {
-      const targetGridPos = worldToGrid(this.moveTargetPos);
-      if (targetGridPos.x === this.gridPos.x && targetGridPos.y === this.gridPos.y) {
-        this.moveTargetPos = undefined;
-      }
-      const isTargetPlayer = targetGridPos.x === player.gridPos.x && targetGridPos.y === player.gridPos.y;
-      if (this.moveTargetPos && !isTargetPlayer) return;
-    }
-
-    if (isInsideGrid(this.gridPos) && this.distanceFromPlayer >= this.minDistanceFromPlayer && !!flowField) {
-      const currentWeight = flowField[this.gridPos.x][this.gridPos.y].weight;
-      const vector = flowField[this.gridPos.x][this.gridPos.y].normalizedVector;
-      if (
-        currentWeight <= flowField?.[this.gridPos.x + vector.x]?.[this.gridPos.y + vector.y]?.weight ||
-        (vector.x === 0 && vector.y === 0)
-      ) {
-        this.moveTargetPos = undefined;
-        this.speed = 0;
-      } else {
-        this.speed = this.maxSpeed;
-      }
-      this.moveTargetPos = gridToWorld(
-        { x: vector.x + this.gridPos.x, y: vector.y + this.gridPos.y },
-        { center: true },
-      );
-    } else {
-      this.moveTargetPos = { ...player.worldPos };
-    }
-  }
-
-  private zombieRetreat(_deltaTime: number): void {
-    const retreatFlowFields = this.gameInstance.MANAGERS.LevelManager.retreatFlowFields;
-    const flowField = retreatFlowFields?.[this.retreatFlowFieldIndex];
+    // Do not continue without flow field
     if (!flowField) return;
 
-    this.moveTargetPos = undefined;
-
-    if (!isInsideGrid(this.gridPos, GRID_CONFIG)) {
-      this.zombieState = ZombieState.IDLE;
-      this.gridPos.x = Math.floor(Math.random() * (GRID_CONFIG.GRID_WIDTH - 1));
-      this.gridPos.y = Math.floor(Math.random() * (GRID_CONFIG.GRID_HEIGHT - 1));
-      return;
+    if (isInsideGrid(this.gridPos) && this.distanceFromPlayer > this.minDistanceFromPlayer) {
+      this.vector = flowField?.[this.gridPos.x]?.[this.gridPos.y]?.normalizedVector ?? { x: 0, y: 0 };
+    } else {
+      const safeX = clamp(1, this.gridPos.x, GRID_CONFIG.GRID_WIDTH - 2);
+      const safeY = clamp(1, this.gridPos.y, GRID_CONFIG.GRID_HEIGHT - 2);
+      this.vector = { x: safeX, y: safeY };
     }
-
-    // Reached any edge
-    const { x, y } = this.gridPos;
-    if (x <= 0 || x >= GRID_CONFIG.GRID_WIDTH - 1 || y <= 0 || y >= GRID_CONFIG.GRID_HEIGHT - 1) {
-      const offsetX = x <= 0 ? -10 : x >= GRID_CONFIG.GRID_WIDTH - 1 ? 10 : 0;
-      const offsetY = y <= 0 ? -10 : y >= GRID_CONFIG.GRID_HEIGHT - 1 ? 10 : 0;
-      this.moveTargetPos = gridToWorld({ x: x + offsetX, y: y + offsetY }, { center: true });
-      return;
-    }
-
-    // const currentDistance = flowField[this.gridPos.x][this.gridPos.y].weight;
-    // this.moveTargetPos = gridToWorld(lowestDistanceNeighbor, { center: true });
   }
 
   private zombieAttackPlayer(_deltaTime: number): void {
@@ -309,8 +244,6 @@ export default class Zombie extends AEnemy {
     if (!this.hasDealtDamage && this.attackTimer <= this.attackDuration * 0.4) {
       const player = this.gameInstance.MANAGERS.LevelManager.player;
       if (player) {
-        // FIX: This needs to be only done when the Zombie is moving / position changed to save computing power
-        this.distanceFromPlayer = getVectorDistance(this.worldPos, player.worldPos);
         if (this.distanceFromPlayer < this.minDistanceFromPlayer) {
           player.damage(zombieSettings.attackDamage);
           player.pushbackForce(getDirectionalAngle(player.worldPos, this.worldPos), zombieSettings.attackPushbackStr);
@@ -342,28 +275,18 @@ export default class Zombie extends AEnemy {
   // ==================================================
 
   private applyChaseAndRetreat(_deltaTime: number): void {
-    if (this.moveTargetPos) this.applyRotation(_deltaTime, this.moveTargetPos);
-
     const player = this.gameInstance.MANAGERS.LevelManager.player;
-    // const zombieSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.zombie;
 
-    // Retreat
-    if (this.zombieState === ZombieState.RETREAT) {
-      this.zombieRetreat(_deltaTime);
-      this.applyMovement(_deltaTime);
-    }
-
-    // Chase
     if (this.zombieState === ZombieState.WALK) {
       if (!player) return;
 
-      // FIX: Throttle calculation of distances
+      // TODO: Throttle calculation of distances
       this.distanceFromPlayer = getVectorDistance(this.worldPos, player.worldPos);
       this.zombieChasePlayer(_deltaTime);
 
       if (this.attackCooldownTimer > 0) this.attackCooldownTimer -= _deltaTime;
-      if (this.distanceFromPlayer < this.minDistanceFromPlayer) {
-        this.moveTargetPos = undefined;
+      if (this.distanceFromPlayer <= this.minDistanceFromPlayer) {
+        this.vector = undefined;
         this.speed = 0;
         this.startAttacking();
       } else {
@@ -372,21 +295,14 @@ export default class Zombie extends AEnemy {
     }
   }
 
-  private applyRotation(_deltaTime: number, targetPos: WorldPosition): void {
-    this.desiredAngle = getDirectionalAngle(targetPos, this.worldPos);
-    this.angle = this.desiredAngle;
-    if (this.angle !== this.desiredAngle) {
-      // const rotationSpeed = this.zombieState === ZombieState.WALK ? _deltaTime * 4.5 : _deltaTime * 19;
-      // this.angle = radialLerp(this.angle, this.desiredAngle, Math.min(1, rotationSpeed));
-    }
-  }
-
   private applyMovement(_deltaTime: number): void {
-    const vector = radiansToVector(this.angle); // TODO: Calculate less times if zombie amount scaling becomes perf bottleneck
-    const futurePos = {
-      x: this.worldPos.x + vector.x * this.speed * _deltaTime,
-      y: this.worldPos.y + vector.y * this.speed * _deltaTime,
+    if (!this.vector) return;
+    const futureGridPos = {
+      x: this.worldPos.x + this.vector.x * this.speed * _deltaTime,
+      y: this.worldPos.y + this.vector.y * this.speed * _deltaTime,
     };
+    this.setWorldPosition(futureGridPos);
+    // WARN: Re-enable collisions if necessary (perf impact, only works with blocks)
     // const adjustedPos = this.adjustMovementForCollisions(
     //   futurePos,
     //   this.gameInstance.MANAGERS.LevelManager.levelGrid,
@@ -394,9 +310,9 @@ export default class Zombie extends AEnemy {
     //   false,
     // );
     // this.setWorldPosition(adjustedPos);
-    this.setWorldPosition(futurePos);
-    if (futurePos.x < this.worldPos.x) this.isFacingLeft = true;
-    else if (futurePos.x > this.worldPos.x) this.isFacingLeft = false;
+
+    if (futureGridPos.x < this.worldPos.x) this.isFacingLeft = true;
+    else if (futureGridPos.x > this.worldPos.x) this.isFacingLeft = false;
   }
 
   // Utils
@@ -404,24 +320,16 @@ export default class Zombie extends AEnemy {
 
   private drawDebug(): void {
     const settings = this.gameInstance.MANAGERS.GameManager.getSettings();
+    const player = this.gameInstance.MANAGERS.LevelManager.player;
 
-    if (this.moveTargetPos && isInsideGrid(this.gridPos) && settings.debug.showZombieTarget) {
-      const safeWorldPos = gridToWorld(this.gridPos);
-
-      this.gameInstance.MANAGERS.DrawManager.drawRectOutline(
-        safeWorldPos.x,
-        safeWorldPos.y,
-        GRID_CONFIG.TILE_SIZE,
-        GRID_CONFIG.TILE_SIZE,
-        "#00aaeeaa",
-      );
-
-      this.gameInstance.MANAGERS.DrawManager.drawLine(
-        safeWorldPos.x + GRID_CONFIG.TILE_SIZE / 2,
-        safeWorldPos.y + GRID_CONFIG.TILE_SIZE / 2,
-        this.moveTargetPos.x,
-        this.moveTargetPos.y,
-        "#00aaeeaa",
+    if (isInsideGrid(this.gridPos) && settings.debug.showZombieTarget && player) {
+      this.gameInstance.MANAGERS.DrawManager.drawArrow(
+        this.worldPos.x,
+        this.worldPos.y,
+        this.worldPos.x + GRID_CONFIG.TILE_SIZE * (this.vector?.x ?? 0),
+        this.worldPos.y + GRID_CONFIG.TILE_SIZE * (this.vector?.y ?? 0),
+        "#5070ff",
+        2,
       );
     }
 

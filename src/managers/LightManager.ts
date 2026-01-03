@@ -7,7 +7,7 @@ export default class LightManager extends AManager {
   private lightMaskCanvas: HTMLCanvasElement | undefined;
   private ctx: CanvasRenderingContext2D | undefined;
 
-  private readonly nightOverlayAlpha = 1;
+  private readonly nightOverlayAlpha = 0.8;
   private playerLightRadius = 4;
   private readonly playerLightConeLen = GRID_CONFIG.TILE_SIZE * 16;
 
@@ -89,7 +89,7 @@ export default class LightManager extends AManager {
     const gameCanvasCtx = DrawManager.getContext();
     if (!gameCanvasCtx) return;
     gameCanvasCtx.save();
-    gameCanvasCtx.globalAlpha = GameManager.getSettings().debug.seeThroughNight ? 0.35 : this.nightOverlayAlpha;
+    gameCanvasCtx.globalAlpha = GameManager.getSettings().debug.seeThroughNight ? 0.25 : this.nightOverlayAlpha;
     gameCanvasCtx.drawImage(this.lightMaskCanvas, 0, 0, this.lightMaskCanvas.width, this.lightMaskCanvas.height);
     gameCanvasCtx.restore();
   }

@@ -416,9 +416,9 @@ export default class Player extends APlayer {
   }
 
   public damage(amount: number): void {
-    this.health -= amount;
+    // this.health -= amount;
     this.stunTimer = this.stunDuration;
-    this.playerState = PlayerState.KNOCKED;
+    // this.playerState = PlayerState.KNOCKED;
 
     this.gameInstance.MANAGERS.CameraManager.effectZoom(amount * 2);
     this.gameInstance.MANAGERS.CameraManager.effectShake(amount * 5);

@@ -25,6 +25,7 @@ import assertNever from "../utils/assertNever";
 import generateEmptyLevelGrid from "../utils/grid/generateEmptyLevelGrid";
 import generateFlowField, { type FlowField } from "../utils/grid/generateFlowFieldMap";
 import raycast2D from "../utils/grid/raycast2D";
+import { clamp } from "../utils/math/clamp";
 // import areVectorsEqual from "../utils/math/areVectorsEqual";
 import { AManager } from "./abstract/AManager";
 import { BlockTypes } from "./BuildModeManager";
@@ -54,7 +55,6 @@ export default class LevelManager extends AManager {
   public collectables: Map<number, ACollectable> = new Map();
 
   // Gameplay
-  // private lastPlayerGridPos: GridPosition = { x: -99, y: -99 };
   private isSpawningZombies: boolean = false;
   private zombieSpawnsLeft: number = 0;
 
@@ -67,7 +67,7 @@ export default class LevelManager extends AManager {
   private spawnTimer: number = 0;
   private zombieSpawnInterval: number = 1200;
   private pathfindingStaleTimer: number = 0;
-  private readonly pathfindingStaleAmountSec: number = 1 / 3;
+  private readonly pathfindingStaleAmountSec: number = 1 / 6;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
@@ -117,7 +117,7 @@ export default class LevelManager extends AManager {
     const yTop = -1;
     const yBottom = GRID_CONFIG.GRID_HEIGHT;
     const xLeft = -1;
-    const xRight = GRID_CONFIG.GRID_HEIGHT;
+    const xRight = GRID_CONFIG.GRID_WIDTH;
 
     for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
       if (
@@ -203,15 +203,16 @@ export default class LevelManager extends AManager {
             const vector = currentFieldCell.normalizedVector;
             if (weight === Infinity || weight === 0) continue;
 
-            const green = `0${Math.floor(230 - Math.min(200, (200 / 20) * weight)).toString(16)}`.slice(-2);
+            const green = `0${Math.floor(255 - Math.min(200, (200 / 20) * weight)).toString(16)}`.slice(-2);
             const red = `0${Math.floor(55 + Math.min(200, (200 / 20) * weight)).toString(16)}`.slice(-2);
             DrawManager.drawLine(
               x * size + size / 2,
               y * size + size / 2,
               (x + vector.x) * size + size / 2,
               (y + vector.y) * size + size / 2,
-              "#9f9fffa0",
-              2,
+              // "#9f9fffa0",
+              `#${red}${green}00`,
+              1,
             );
             DrawManager.drawText(
               weight.toString(),
@@ -281,7 +282,7 @@ export default class LevelManager extends AManager {
       GRID_CONFIG.GRID_HEIGHT * GRID_CONFIG.TILE_SIZE,
       position === "above" ? ZIndex.MAP_OVERLAY : ZIndex.MAP_GROUND,
       0,
-      GameManager.getSettings().debug.enableFlowFieldRender ? 0.5 : 1,
+      GameManager.getSettings().debug.enableFlowFieldRender ? 0.55 : 1,
     );
   }
 
@@ -440,7 +441,9 @@ export default class LevelManager extends AManager {
   }
 
   private getRandomZombieSpawnPosition(): WorldPosition {
-    return this.mapSpawnPoints[Math.floor(Math.random() * this.mapSpawnPoints.length)] || { x: 0, y: 0 };
+    // return this.mapSpawnPoints[Math.floor(Math.random() * this.mapSpawnPoints.length)] || { x: 0, y: 0 };
+    const result = this.mapSpawnPoints[Math.floor(Math.random() * this.mapSpawnPoints.length)] || { x: 0, y: 0 };
+    return { x: clamp(0, result.x, GRID_CONFIG.GRID_WIDTH - 1), y: clamp(0, result.y, GRID_CONFIG.GRID_HEIGHT - 1) };
   }
 
   // Day and night
