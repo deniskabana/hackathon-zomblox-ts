@@ -31,6 +31,7 @@ export const DEFAULT_SETTINGS = {
       healthDeviation: 10,
       enableDamagedSlowdown: true,
       damagedSlowdownCoef: 0.5,
+      attackDuration: 0.4,
       attackDamage: 5,
       attackDamageDeviation: 1,
       attackCooldownSec: 2,

@@ -1,132 +1,156 @@
-import { type WorldPosition, type GridPosition, worldToGrid, type GridConfig } from "../../config/core/grid.config";
-import type GameInstance from "../../GameInstance";
-import type { EntityType } from "../../types/EntityType";
-import { GridTileState, type LevelGrid } from "../../types/Grid";
-import isInsideGrid from "../../utils/grid/isInsideGrid";
+import { type WorldPosition, type GridPosition, worldToGrid, gridToWorld } from "../../config/core/grid.config";
+import type { AnimatedSpriteSheet } from "../../utils/classes/AnimatedSpriteSheet";
 
-export default abstract class AEntity {
-  protected readonly gameInstance: GameInstance;
-  protected readonly entityId: number;
+/**
+ * Built-in methods defined and used by AEntity
+ */
+export interface EntityBuiltInMethods {
+  draw: () => void;
+  drawShadow?: () => void;
+  drawDebug: () => void;
+  destructor: () => void;
+  update: (_deltaTime: number) => void;
+  onDamage?: (amount: number) => void;
+  onDeath?: () => void;
+}
 
-  public worldPos: WorldPosition;
-  public gridPos: GridPosition;
-  public isStaticObject: boolean;
+/**
+ * Extend from this interface for `this._animations`
+ */
+export interface EntityAnimations {
+  fps: number;
+  activeAnimations: number[] | null;
+  animationList: AnimatedSpriteSheet[];
+}
 
-  protected abstract health: number;
-  protected abstract entityType: EntityType;
+/**
+ * Abstract class `AEntity` describes shared structure of all in-game entities
+ * that can be instantiated.
+ */
+export default abstract class AEntity<
+  TState extends string,
+  TInstance extends object,
+  TTimers extends { [key: string]: number } | undefined,
+  TAnimations extends EntityAnimations | undefined,
+> {
+  protected readonly _entityId: number;
 
-  constructor(gameInstance: GameInstance, worldPos: WorldPosition, entityId: number, isStaticObject?: boolean) {
-    this.gameInstance = gameInstance;
-    this.worldPos = worldPos;
-    this.gridPos = worldToGrid(worldPos);
-    this.isStaticObject = isStaticObject ?? true;
-    this.entityId = entityId;
+  private _worldPos: WorldPosition;
+  private _gridPos: GridPosition;
+  private _size: number;
+  private _health: number;
+  private _state: TState;
+  protected _timers: TTimers;
+
+  /** Animations object updated by `AEntity` using fps. */
+  protected _animations: TAnimations;
+  /** Runtime instance memory. */
+  protected _instance: TInstance;
+  /** Readonly attributes assigned in constructor. */
+  protected _attributes?: Readonly<Record<string, unknown>>;
+
+  /** Built-in methods used by the game engine. Shared API. */
+  abstract _builtIn: EntityBuiltInMethods;
+
+  constructor(props: {
+    health?: number;
+    worldPos: WorldPosition;
+    entityId: number;
+    size: number;
+    initialState: TState;
+    timers: TTimers;
+    animations: TAnimations;
+    instance: TInstance;
+  }) {
+    this._entityId = props.entityId;
+
+    this._health = props.health ?? Infinity;
+    this._worldPos = props.worldPos;
+    this._gridPos = gridToWorld(props.worldPos);
+    this._size = props.size;
+
+    this._state = props.initialState;
+    this._instance = props.instance;
+
+    this._timers = props.timers;
+    this._animations = props.animations;
   }
 
-  public setWorldPosition(worldPos: WorldPosition): void {
-    this.worldPos = worldPos;
-    this.gridPos = worldToGrid(worldPos);
-  }
+  /*
+   * Built-in
+   */
 
-  public abstract update(_deltaTime: number): void;
-  public abstract draw(): void;
-  public abstract damage(amount: number): void;
-  public abstract destroy(): void;
+  public _update(_deltaTime: number): void {
+    this._builtIn.update(_deltaTime);
 
-  protected abstract drawShadow(size: number): void;
-
-  public adjustMovementForCollisions(
-    futurePos: WorldPosition,
-    levelGrid: LevelGrid | undefined,
-    gridConfig: GridConfig,
-    includeWorldBoundaries: boolean = true,
-    customRadius?: number,
-  ): WorldPosition {
-    const radius = customRadius ?? gridConfig.TILE_SIZE / 3;
-    const resultPos: WorldPosition = { ...futurePos };
-    const worldWidth = gridConfig.TILE_SIZE * gridConfig.GRID_WIDTH;
-    const worldHeight = gridConfig.TILE_SIZE * gridConfig.GRID_HEIGHT;
-
-    if (includeWorldBoundaries) {
-      if (futurePos.x - radius < 0) resultPos.x = 0 + radius;
-      if (futurePos.x + radius >= worldWidth) resultPos.x = worldWidth - radius;
-      if (futurePos.y - radius < 0) resultPos.y = 0 + radius;
-      if (futurePos.y + radius >= worldHeight) resultPos.y = worldHeight - radius;
-    }
-
-    if (!levelGrid) return resultPos;
-
-    const edgeChecks = [
-      { pos: worldToGrid({ x: futurePos.x - radius, y: futurePos.y }), axis: "x" as const, dir: -1 },
-      { pos: worldToGrid({ x: futurePos.x + radius, y: futurePos.y }), axis: "x" as const, dir: 1 },
-      { pos: worldToGrid({ x: futurePos.x, y: futurePos.y - radius }), axis: "y" as const, dir: -1 },
-      { pos: worldToGrid({ x: futurePos.x, y: futurePos.y + radius }), axis: "y" as const, dir: 1 },
-    ];
-
-    let hasEdgeCollision = false;
-
-    for (const check of edgeChecks) {
-      if (!isInsideGrid(check.pos)) continue;
-      if (levelGrid[check.pos.x][check.pos.y].state !== GridTileState.BLOCKED) continue;
-
-      hasEdgeCollision = true;
-      const blockRect = {
-        left: check.pos.x * gridConfig.TILE_SIZE,
-        top: check.pos.y * gridConfig.TILE_SIZE,
-        right: (check.pos.x + 1) * gridConfig.TILE_SIZE,
-        bottom: (check.pos.y + 1) * gridConfig.TILE_SIZE,
-      };
-
-      if (check.axis === "x") {
-        if (check.dir < 0) {
-          resultPos.x = Math.max(resultPos.x, blockRect.right + radius);
-        } else {
-          resultPos.x = Math.min(resultPos.x, blockRect.left - radius);
-        }
-      } else {
-        if (check.dir < 0) {
-          resultPos.y = Math.max(resultPos.y, blockRect.bottom + radius);
-        } else {
-          resultPos.y = Math.min(resultPos.y, blockRect.top - radius);
-        }
+    if (this._timers) {
+      for (const timerName in this._timers) {
+        this._timers[timerName] += _deltaTime;
       }
     }
 
-    if (!hasEdgeCollision) {
-      const cornerChecks = [
-        { pos: worldToGrid({ x: futurePos.x - radius, y: futurePos.y - radius }), offsetX: -1, offsetY: -1 },
-        { pos: worldToGrid({ x: futurePos.x + radius, y: futurePos.y - radius }), offsetX: 1, offsetY: -1 },
-        { pos: worldToGrid({ x: futurePos.x - radius, y: futurePos.y + radius }), offsetX: -1, offsetY: 1 },
-        { pos: worldToGrid({ x: futurePos.x + radius, y: futurePos.y + radius }), offsetX: 1, offsetY: 1 },
-      ];
-
-      for (const check of cornerChecks) {
-        if (!isInsideGrid(check.pos)) continue;
-        if (levelGrid[check.pos.x][check.pos.y].state !== GridTileState.BLOCKED) continue;
-
-        const blockRect = {
-          left: check.pos.x * gridConfig.TILE_SIZE,
-          top: check.pos.y * gridConfig.TILE_SIZE,
-          right: (check.pos.x + 1) * gridConfig.TILE_SIZE,
-          bottom: (check.pos.y + 1) * gridConfig.TILE_SIZE,
-        };
-
-        const pushX = check.offsetX < 0 ? blockRect.right + radius : blockRect.left - radius;
-        const pushY = check.offsetY < 0 ? blockRect.bottom + radius : blockRect.top - radius;
-
-        const distX = Math.abs(resultPos.x - pushX);
-        const distY = Math.abs(resultPos.y - pushY);
-
-        if (distX < distY) {
-          resultPos.x = pushX;
-        } else {
-          resultPos.y = pushY;
-        }
-
-        break;
+    if (this._animations?.activeAnimations?.length) {
+      const { activeAnimations, fps, animationList } = this._animations;
+      for (const animationIndex of activeAnimations) {
+        animationList[animationIndex]?.update?.(Math.min(_deltaTime, 1 / fps));
       }
     }
+  }
 
-    return resultPos;
+  public _draw(): void {
+    this._builtIn.drawDebug();
+    this._builtIn.drawShadow?.();
+    this._builtIn.draw();
+  }
+
+  public _destructor(): void {
+    this._builtIn.destructor();
+  }
+
+  /*
+   * Handlers
+   */
+
+  public _handleDeath(): void {
+    this._builtIn.onDeath?.();
+  }
+
+  public _handleDamage(amount: number): void {
+    if (this._health - amount <= 0) this._handleDeath();
+    this._health -= amount;
+    this._builtIn.onDamage?.(amount);
+  }
+
+  /*
+   * Setters
+   */
+
+  public _setState(state: TState): void {
+    this._state = state;
+  }
+
+  public _setWorldPosition(worldPos: WorldPosition): void {
+    this._worldPos = worldPos;
+    this._gridPos = worldToGrid(worldPos);
+  }
+
+  /*
+   * Getters
+   */
+
+  public _getSize(): number {
+    return this._size;
+  }
+  public _getHealth(): number {
+    return this._health;
+  }
+  public _getState(): TState {
+    return this._state;
+  }
+  public _getGridPosition(): GridPosition {
+    return { ...this._gridPos };
+  }
+  public _getWorldPosition(): WorldPosition {
+    return { ...this._worldPos };
   }
 }
