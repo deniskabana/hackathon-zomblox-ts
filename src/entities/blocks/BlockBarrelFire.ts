@@ -17,15 +17,15 @@ export default class BlockBarrelFire extends ABlock {
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     super(gameInstance, gridToWorld(gridPos), entityId, true);
 
-    const settings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.blocks;
+    const settings = this._gameInstance.MANAGERS.GameManager.getSettings().rules.blocks;
     this.health = settings.woodStartHealth;
 
-    const fire = this.gameInstance.MANAGERS.AssetManager.getImageAsset("SFire");
+    const fire = this._gameInstance.MANAGERS.AssetManager.getImageAsset("SFire");
     this.fps = 15;
     this.spriteSize = GRID_CONFIG.TILE_SIZE;
     if (fire) this.animation = AnimatedSpriteSheet.fromGrid(fire, 32, 48, 14, this.fps, true);
 
-    this.lightSourceId = this.gameInstance.MANAGERS.LightManager.addLightSource(this.worldPos);
+    this.lightSourceId = this._gameInstance.MANAGERS.LightManager.addLightSource(this._worldPos);
   }
 
   public update(_deltaTime: number): void {
@@ -33,15 +33,15 @@ export default class BlockBarrelFire extends ABlock {
   }
 
   public draw(): void {
-    const tileset = this.gameInstance.MANAGERS.LevelManager.getTileset();
+    const tileset = this._gameInstance.MANAGERS.LevelManager.getTileset();
     if (!tileset) return;
 
     const barrelSprite = tileset.getTileFrame(599);
     if (!barrelSprite) return;
 
-    this.gameInstance.MANAGERS.DrawManager.queueDrawSprite(
-      this.worldPos.x,
-      this.worldPos.y,
+    this._gameInstance.MANAGERS.DrawManager.queueDrawSprite(
+      this._worldPos.x,
+      this._worldPos.y,
       barrelSprite.spriteSheet,
       barrelSprite.frameIndex,
       GRID_CONFIG.TILE_SIZE,
@@ -51,9 +51,9 @@ export default class BlockBarrelFire extends ABlock {
 
     if (!this.animation) return;
 
-    this.gameInstance.MANAGERS.DrawManager.queueDrawSprite(
-      this.worldPos.x,
-      this.worldPos.y - this.spriteSize,
+    this._gameInstance.MANAGERS.DrawManager.queueDrawSprite(
+      this._worldPos.x,
+      this._worldPos.y - this.spriteSize,
       this.animation,
       this.animation.getCurrentFrame(),
       this.spriteSize,
@@ -64,20 +64,20 @@ export default class BlockBarrelFire extends ABlock {
   }
 
   public damage(amount: number): void {
-    const settings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
+    const settings = this._gameInstance.MANAGERS.GameManager.getSettings().rules.game;
     if (!settings.enableBlocksDestruction) return;
 
     this.health -= amount;
     if (this.health <= 0) {
-      this.gameInstance.MANAGERS.AssetManager.playAudioAsset("ABlockWoodDestroyed", "sound");
-      this.gameInstance.MANAGERS.LevelManager.destroyEntity(this.entityId, EntityType.BLOCK);
+      this._gameInstance.MANAGERS.AssetManager.playAudioAsset("ABlockWoodDestroyed", "sound");
+      this._gameInstance.MANAGERS.LevelManager.destroyEntity(this._entityId, EntityType.BLOCK);
     } else {
-      this.gameInstance.MANAGERS.AssetManager.playAudioAsset("ABlockWoodDamaged", "sound", 0.5);
+      this._gameInstance.MANAGERS.AssetManager.playAudioAsset("ABlockWoodDamaged", "sound", 0.5);
     }
   }
 
   public destroy(): void {
-    if (this.lightSourceId) this.gameInstance.MANAGERS.LightManager.removeLightSource(this.lightSourceId);
+    if (this.lightSourceId) this._gameInstance.MANAGERS.LightManager.removeLightSource(this.lightSourceId);
   }
 
   public drawShadow(): void {}

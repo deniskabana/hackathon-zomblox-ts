@@ -1,4 +1,5 @@
 import { type GridPosition, GRID_CONFIG } from "../../config/core/grid.config";
+import type AEnemy from "../../entities/abstract/AEnemy";
 import type Zombie from "../../entities/enemies/Zombie";
 import { GridTileState, type LevelGrid } from "../../types/Grid";
 import type { Vector } from "../../types/Vector";
@@ -7,6 +8,7 @@ import { clamp } from "../math/clamp";
 export interface FlowFieldCell {
   weight: number;
   normalizedVector: Vector;
+  enemiesOnCell: AEnemy[];
 }
 
 export type FlowField = FlowFieldCell[][];
@@ -24,7 +26,7 @@ export default function generateFlowField(
   for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
     flowField[x] = [];
     for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
-      flowField[x][y] = { weight: Infinity, normalizedVector: { x: 0, y: 0 } };
+      flowField[x][y] = { weight: Infinity, normalizedVector: { x: 0, y: 0 }, enemiesOnCell: [] };
     }
   }
 
@@ -41,7 +43,8 @@ export default function generateFlowField(
 
     for (let dx = -1; dx <= 1; dx++) {
       for (let dy = -1; dy <= 1; dy++) {
-        if (dx === 0 && dy === 0) continue;
+        if (dx === 0 && dy === 0) continue; // Ignore self
+        if (dx !== 0 && dy !== 0) continue; // Ignore diagonal neighbors
 
         const nx = currentVector.x + dx;
         const ny = currentVector.y + dy;
@@ -59,16 +62,19 @@ export default function generateFlowField(
   }
 
   for (const [_, enemy] of enemies) {
-    if (!flowField?.[enemy.gridPos.x]?.[enemy.gridPos.y]?.weight) continue;
-    // if (dx === 0 && dy === 0) currentFieldCell.weight += 1;
+    const currentFieldCell = flowField?.[enemy._gridPos.x]?.[enemy._gridPos.y];
+    if (!currentFieldCell?.weight) continue;
+    currentFieldCell.enemiesOnCell.push(enemy);
+    // if (currentFieldCell.weight === Infinity) continue;
+    // currentFieldCell.weight = Infinity;
   }
 
   for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
     for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
       if (!flowField?.[x]?.[y]) continue;
 
-      // let lowestWeight = flowField[x][y].weight + 1;
-      let lowestWeight = Infinity;
+      let lowestWeight = flowField[x][y].weight;
+      // let lowestWeight = Infinity;
       let directionVector = { x: 0, y: 0 };
 
       const sortedNeighborVectors: Vector[] = [
@@ -93,6 +99,7 @@ export default function generateFlowField(
         if (neighborWeight === Infinity) continue;
         if (neighborWeight > lowestWeight) continue;
 
+        // Disallow corner cutting around obstacles
         if (dx !== 0 && dy !== 0) {
           const field1Weight = flowField?.[x]?.[y + dy]?.weight;
           const field2Weight = flowField?.[x + dx]?.[y]?.weight;

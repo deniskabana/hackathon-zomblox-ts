@@ -154,7 +154,7 @@ export default class LevelManager extends AManager {
     this.player?.update(_deltaTime);
     if (this.player && this.levelState) this.levelState.totalTimeCounter += _deltaTime;
 
-    for (const zombie of this.zombies.values()) zombie.update(_deltaTime);
+    for (const zombie of this.zombies.values()) zombie._update(_deltaTime);
     for (const block of this.blocks.values()) block.update(_deltaTime);
     for (const coin of this.collectables.values()) coin.update(_deltaTime);
 
@@ -167,7 +167,6 @@ export default class LevelManager extends AManager {
     else {
       this.updatePathFindingGrid();
       this.pathfindingStaleTimer = this.pathfindingStaleAmountSec;
-      console.count("Pathfinding");
     }
 
     if (!this.getIsDay() && !!this.player) {
@@ -248,7 +247,7 @@ export default class LevelManager extends AManager {
 
     if (!this.getIsDay() && this.player) {
       this.gameInstance.MANAGERS.LightManager.drawNightLighting(
-        [this.player.worldPos],
+        [this.player._worldPos],
         this.player.getFacingDirection(),
       );
     }
@@ -379,7 +378,7 @@ export default class LevelManager extends AManager {
     entity.destroy();
     this.blocks.delete(entityId);
     if (!this.levelGrid) return;
-    const { x, y } = entity.gridPos;
+    const { x, y } = entity._gridPos;
     this.levelGrid[x][y] = { ...this.levelGrid[x][y], state: GridTileState.AVAILABLE, ref: null };
     this.updatePathFindingGrid();
   }
@@ -549,7 +548,7 @@ export default class LevelManager extends AManager {
     // if (this.getIsDay()) return;
     if (!this.player || !this.levelGrid) return;
     // this.lastPlayerGridPos = this.player.gridPos;
-    this.flowField = generateFlowField(this.levelGrid, this.zombies, this.player.gridPos);
+    this.flowField = generateFlowField(this.levelGrid, this.zombies, this.player._gridPos);
   }
 
   // Utils

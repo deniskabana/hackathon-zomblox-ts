@@ -32,10 +32,7 @@ interface Timers {
 }
 
 interface Animations extends EntityAnimations {
-  activeAnimations: number[] | null;
-  animationList: AnimatedSpriteSheet[];
   spriteVariant: number;
-  fps: number;
 }
 
 interface Attributes {
@@ -83,7 +80,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
       AnimatedSpriteSheet.fromGrid(getImageAsset(`SZombie${spriteVariant}Hit` as never)!, 32, 32, 3, fps, false),
       AnimatedSpriteSheet.fromGrid(getImageAsset(`SZombie${spriteVariant}Death` as never)!, 32, 32, 8, fps, false),
     ];
-    const animations: Animations = { fps: 8, animationList, activeAnimations: null, spriteVariant: 0 };
+    const animations: Animations = { fps, animationList, activeAnimations: null, spriteVariant: 0 };
 
     const instance: Instance = {
       hasDealtDamage: false,
@@ -269,7 +266,10 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
     if (!hasDealtDamage && !!player) {
       if (distanceFromPlayer < minDistanceFromPlayer) {
         player._handleDamage(zombieSettings.attackDamage);
-        player.pushbackForce(getDirectionalAngle(player._worldPos, worldPos), zombieSettings.attackPushbackStr);
+        player.handlePhysicsPushback(
+          getDirectionalAngle(player._getWorldPosition(), worldPos),
+          zombieSettings.attackPushbackStr,
+        );
         this._instance.hasDealtDamage = true;
       }
     }
@@ -288,7 +288,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
     const gridPos = this._getGridPosition();
     if (!player || !flowField) return;
 
-    this._instance.distanceFromPlayer = getVectorDistance(this._getWorldPosition, player._worldPos);
+    this._instance.distanceFromPlayer = getVectorDistance(this._getWorldPosition(), player._getWorldPosition());
 
     if (isInsideGrid(gridPos) && this._instance.distanceFromPlayer > this._attributes.minDistanceFromPlayer) {
       this._instance.normalizedNextPos = flowField?.[gridPos.x]?.[gridPos.y]?.normalizedVector ?? { x: 0, y: 0 };
@@ -341,10 +341,6 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
     };
 
     this._setWorldPosition(futurePos);
-
-    // WARN: Re-enable collisions after implementing
-    // const adjustedPos = this.adjustMovementForCollisions(futurePos, GRID_CONFIG, false);
-    // this.setWorldPosition(adjustedPos);
 
     // Sprite orientation
     if (futurePos.x < x) this._instance.isFacingLeft = true;

@@ -23,7 +23,7 @@ export default function raycast2D(
   const deltaDistY = Math.abs(1 / direction.y);
 
   const zombieGrid: Map<string, AEnemy> = new Map();
-  for (const [_, zombie] of zombies) zombieGrid.set(`${zombie.gridPos.x},${zombie.gridPos.y}`, zombie);
+  for (const [_, zombie] of zombies) zombieGrid.set(`${zombie._gridPos.x},${zombie._gridPos.y}`, zombie);
 
   let tMaxX = Math.abs((startGrid.x + (stepX > 0 ? 1 : 0) - from.x / GRID_CONFIG.TILE_SIZE) / direction.x);
   let tMaxY = Math.abs((startGrid.y + (stepY > 0 ? 1 : 0) - from.y / GRID_CONFIG.TILE_SIZE) / direction.y);
@@ -57,6 +57,6 @@ export default function raycast2D(
     }
   }
 
-  if (raycastHit && getVectorDistance(from, raycastHit.worldPos) > maxDistance) return null;
+  if (raycastHit && getVectorDistance(from, raycastHit._worldPos) > maxDistance) return null;
   return raycastHit;
 }

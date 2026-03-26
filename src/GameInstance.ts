@@ -84,7 +84,7 @@ export default class GameInstance {
     if (!GameManager.isPlaying() && !AssetManager.getIsReady()) return;
 
     const player = this.MANAGERS.LevelManager.player;
-    if (player) CameraManager.followPlayer(_deltaTime, player.worldPos);
+    if (player) CameraManager.followPlayer(_deltaTime, player._worldPos);
 
     LevelManager.update(_deltaTime);
     CameraManager.update(_deltaTime);

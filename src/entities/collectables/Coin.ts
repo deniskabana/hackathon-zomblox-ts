@@ -16,28 +16,28 @@ export default class Coin extends ACollectable {
 
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     super(gameInstance, gridToWorld(gridPos), entityId, true);
-    const gameSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
+    const gameSettings = this._gameInstance.MANAGERS.GameManager.getSettings().rules.game;
     if (gameSettings.enableRewardAutoCollect) setTimeout(this.handleCollected.bind(this));
     this.coinLifetimeTimer = gameSettings.coinLifetime;
 
-    const coinImage = this.gameInstance.MANAGERS.AssetManager.getImageAsset("SCoin");
+    const coinImage = this._gameInstance.MANAGERS.AssetManager.getImageAsset("SCoin");
     this.fps = 10;
     if (coinImage) this.animation = AnimatedSpriteSheet.fromGrid(coinImage, 128, 128, 6, this.fps, true);
   }
 
   public update(_deltaTime: number): void {
     this.animation?.update(Math.min(_deltaTime, 1 / this.fps));
-    const player = this.gameInstance.MANAGERS.LevelManager.player;
+    const player = this._gameInstance.MANAGERS.LevelManager.player;
     const playerDistance = player
       ? getVectorDistance(
-          { x: player.worldPos.x - GRID_CONFIG.TILE_SIZE / 2, y: player.worldPos.y - GRID_CONFIG.TILE_SIZE / 2 },
-          this.worldPos,
+          { x: player._worldPos.x - GRID_CONFIG.TILE_SIZE / 2, y: player._worldPos.y - GRID_CONFIG.TILE_SIZE / 2 },
+          this._worldPos,
         )
       : Infinity;
     if (playerDistance < GRID_CONFIG.TILE_SIZE * 0.75) this.handleCollected();
 
     if (this.coinLifetimeTimer >= 0) this.coinLifetimeTimer -= _deltaTime;
-    else this.gameInstance.MANAGERS.LevelManager.destroyEntity(this.entityId, EntityType.COLLECTABLE);
+    else this._gameInstance.MANAGERS.LevelManager.destroyEntity(this._entityId, EntityType.COLLECTABLE);
   }
 
   public draw(): void {
@@ -46,9 +46,9 @@ export default class Coin extends ACollectable {
     const size = GRID_CONFIG.TILE_SIZE / 3;
 
     this.drawShadow(size);
-    this.gameInstance.MANAGERS.DrawManager.queueDrawSprite(
-      this.worldPos.x - size / 2,
-      this.worldPos.y - size / 2,
+    this._gameInstance.MANAGERS.DrawManager.queueDrawSprite(
+      this._worldPos.x - size / 2,
+      this._worldPos.y - size / 2,
       this.animation,
       this.animation.getCurrentFrame(),
       size,
@@ -59,13 +59,13 @@ export default class Coin extends ACollectable {
   }
 
   public drawShadow(size: number): void {
-    const { DrawManager, AssetManager } = this.gameInstance.MANAGERS;
+    const { DrawManager, AssetManager } = this._gameInstance.MANAGERS;
 
     const shadowSprite = AssetManager.getImageAsset("IFXEntityShadow");
     if (shadowSprite)
       DrawManager.queueDraw(
-        this.worldPos.x - size / 2,
-        this.worldPos.y - size / 1.75,
+        this._worldPos.x - size / 2,
+        this._worldPos.y - size / 1.75,
         shadowSprite,
         size,
         size,
@@ -77,9 +77,9 @@ export default class Coin extends ACollectable {
   public destroy(): void {}
 
   private handleCollected(): void {
-    const { AssetManager, LevelManager } = this.gameInstance.MANAGERS;
+    const { AssetManager, LevelManager } = this._gameInstance.MANAGERS;
     AssetManager.playAudioAsset("AFXCoinCollected", "sound", 0.3);
     LevelManager.addCurrency(1);
-    LevelManager.destroyEntity(this.entityId, EntityType.COLLECTABLE);
+    LevelManager.destroyEntity(this._entityId, EntityType.COLLECTABLE);
   }
 }
