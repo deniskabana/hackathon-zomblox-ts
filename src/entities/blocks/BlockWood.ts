@@ -2,64 +2,75 @@ import { type GridPosition, gridToWorld, GRID_CONFIG } from "../../config/core/g
 import type GameInstance from "../../GameInstance";
 import { EntityType } from "../../types/EntityType";
 import { ZIndex } from "../../types/ZIndex";
-import ABlock from "../abstract/ABlock";
+import AEntity, { type EntityBuiltInMethods } from "../abstract/AEntity";
 
-export default class BlockWood extends ABlock {
-  public health: number;
+/** `this.gameInstance` */ let _game: GameInstance;
 
+export default class BlockWood extends AEntity<undefined, undefined, undefined, undefined> {
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
-    super(gameInstance, gridToWorld(gridPos), entityId, false);
+    _game = gameInstance;
+    const { GameManager } = _game.MANAGERS;
+    const settings = GameManager.getSettings().rules.blocks;
 
-    const settings = this._gameInstance.MANAGERS.GameManager.getSettings().rules.blocks;
-    this.health = settings.woodStartHealth;
+    super({
+      worldPos: gridToWorld(gridPos),
+      health: settings.woodStartHealth,
+      entityId,
+      animations: undefined,
+      size: GRID_CONFIG.TILE_SIZE,
+      initialState: undefined,
+      timers: undefined,
+      instance: undefined,
+    });
   }
 
-  public update(_deltaTime: number): void {}
+  public _builtIn: EntityBuiltInMethods = {
+    draw: () => {
+      const { LevelManager, DrawManager } = _game.MANAGERS;
+      const { x, y } = this._getWorldPosition();
+      const size = this._getSize();
 
-  public draw(): void {
-    const tileset = this._gameInstance.MANAGERS.LevelManager.getTileset();
-    if (!tileset) return;
+      const tileset = LevelManager.getTileset();
+      if (!tileset) return;
 
-    const spriteTop = tileset.getTileFrame(469 + 1);
-    const spriteBottom = tileset.getTileFrame(509 + 1);
-    if (!spriteTop || !spriteBottom) return;
+      const spriteTop = tileset.getTileFrame(469 + 1);
+      const spriteBottom = tileset.getTileFrame(509 + 1);
+      if (!spriteTop || !spriteBottom) return;
 
-    this._gameInstance.MANAGERS.DrawManager.queueDrawSprite(
-      this._worldPos.x,
-      this._worldPos.y,
-      spriteBottom.spriteSheet,
-      spriteBottom.frameIndex,
-      GRID_CONFIG.TILE_SIZE,
-      GRID_CONFIG.TILE_SIZE,
-      ZIndex.BLOCKS,
-      0,
-    );
-    this._gameInstance.MANAGERS.DrawManager.queueDrawSprite(
-      this._worldPos.x,
-      this._worldPos.y - GRID_CONFIG.TILE_SIZE,
-      spriteTop.spriteSheet,
-      spriteTop.frameIndex,
-      GRID_CONFIG.TILE_SIZE,
-      GRID_CONFIG.TILE_SIZE,
-      ZIndex.MAP_OVERLAY,
-      0,
-    );
-  }
+      DrawManager.queueDrawSprite(
+        x,
+        y,
+        spriteBottom.spriteSheet,
+        spriteBottom.frameIndex,
+        size,
+        size,
+        ZIndex.BLOCKS,
+        0,
+      );
+      DrawManager.queueDrawSprite(
+        x,
+        y - size,
+        spriteTop.spriteSheet,
+        spriteTop.frameIndex,
+        size,
+        size,
+        ZIndex.MAP_OVERLAY,
+        0,
+      );
+    },
 
-  damage(amount: number) {
-    const settings = this._gameInstance.MANAGERS.GameManager.getSettings().rules.game;
-    if (!settings.enableBlocksDestruction) return;
+    drawDebug: () => {},
 
-    this.health -= amount;
-    if (this.health <= 0) {
-      this._gameInstance.MANAGERS.AssetManager.playAudioAsset("ABlockWoodDestroyed", "sound");
-      this._gameInstance.MANAGERS.LevelManager.destroyEntity(this._entityId, EntityType.BLOCK);
-    } else {
-      this._gameInstance.MANAGERS.AssetManager.playAudioAsset("ABlockWoodDamaged", "sound", 0.5);
-    }
-  }
+    destructor: () => {
+      const { LevelManager } = _game.MANAGERS;
+      LevelManager.destroyEntity(this._entityId, EntityType.BLOCK);
+    },
 
-  public destroy(): void {}
+    update: (_deltaTime) => {},
 
-  public drawShadow(): void {}
+    onDeath: () => {
+      const { AssetManager } = _game.MANAGERS;
+      AssetManager.playAudioAsset("ABlockWoodDestroyed", "sound");
+    },
+  };
 }

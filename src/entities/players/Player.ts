@@ -74,7 +74,6 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
     _game = gameInstance;
     const { GameManager, AssetManager } = _game.MANAGERS;
     const { startHealth, movementSpeed, defaultWeapon, stunCooldownSec } = GameManager.getSettings().rules.player;
-
     const size = GRID_CONFIG.TILE_SIZE * 1.5;
     const fps = 8;
     const timers: Timers = {
@@ -84,7 +83,6 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
       btnBuildMode: Infinity,
       stun: Infinity,
     };
-
     const animationList = [
       AnimatedSpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerIdle")!, 32, 32, 6, fps),
       AnimatedSpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerRun")!, 32, 32, 8, fps),
@@ -93,7 +91,6 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
       AnimatedSpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerDeath")!, 32, 32, 8, fps),
     ];
     const animations: Animations = { fps, animationList, activeAnimations: [0] };
-
     const instance: Instance = {
       currentWeapon: defaultWeapon,
       prevGridPos: undefined,
@@ -122,7 +119,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
   }
 
   public _builtIn: EntityBuiltInMethods = {
-    draw: (): void => {
+    draw: () => {
       const { DrawManager } = _game.MANAGERS;
       const animation = this._animations.animationList?.[this._animations.activeAnimations?.[0] ?? 0];
 
@@ -148,7 +145,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
       }
     },
 
-    drawDebug: (): void => {
+    drawDebug: () => {
       const { GameManager, DrawManager } = _game.MANAGERS;
 
       if (GameManager.getSettings().debug.enableFlowFieldRender) {
@@ -163,7 +160,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
       }
     },
 
-    drawShadow: (): void => {
+    drawShadow: () => {
       const { DrawManager, AssetManager } = _game.MANAGERS;
 
       const shadowSprite = AssetManager.getImageAsset("IFXEntityShadow");
@@ -180,14 +177,14 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
         );
     },
 
-    destructor: (): void => {
+    destructor: () => {
       const { LevelManager, UIManager } = _game.MANAGERS;
 
       LevelManager.destroyEntity(-1, EntityType.PLAYER); // TODO: why -1 ffs
       if (LevelManager.levelState) UIManager.showGameOverScreen(LevelManager.levelState); // TODO: Move to LevelManager
     },
 
-    update: (_deltaTime): void => {
+    update: (_deltaTime) => {
       const state = this._getState();
 
       switch (state) {
@@ -222,7 +219,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
       }
     },
 
-    onDamage: (amount): void => {
+    onDamage: (amount) => {
       const { AssetManager, CameraManager } = _game.MANAGERS;
 
       this._timers.stun = this._attributes.stunDuration;
@@ -236,7 +233,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
       }
     },
 
-    onDeath: (): void => {
+    onDeath: () => {
       const { VFXManager, AssetManager } = _game.MANAGERS;
 
       this._setState(PlayerState.DEAD);

@@ -107,7 +107,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
   }
 
   public _builtIn: EntityBuiltInMethods = {
-    draw: (): void => {
+    draw: () => {
       const { DrawManager } = _game.MANAGERS;
       const size = this._getSize();
       const { x, y } = this._getWorldPosition();
@@ -123,7 +123,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
       );
     },
 
-    drawShadow: (): void => {
+    drawShadow: () => {
       const { DrawManager, AssetManager } = _game.MANAGERS;
       const { x, y } = this._getWorldPosition();
       const size = this._getSize();
@@ -132,7 +132,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
       DrawManager.queueDraw(x - size / 2, y - size / 1.75, shadowSprite, size, size, ZIndex.GROUND_EFFECTS);
     },
 
-    drawDebug: (): void => {
+    drawDebug: () => {
       const {
         GameManager,
         LevelManager: { player },
@@ -161,12 +161,12 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
       }
     },
 
-    destructor: (): void => {
+    destructor: () => {
       const { LevelManager } = _game.MANAGERS;
       LevelManager.destroyEntity(this._entityId, EntityType.ENEMY);
     },
 
-    update: (_deltaTime: number): void => {
+    update: (_deltaTime) => {
       const { LevelManager } = _game.MANAGERS;
       const state = this._getState();
 

@@ -28,8 +28,8 @@ export interface EntityAnimations {
  * that can be instantiated.
  */
 export default abstract class AEntity<
-  TState extends string,
-  TInstance extends object,
+  TState extends string | undefined,
+  TInstance extends object | undefined,
   TTimers extends { [key: string]: number } | undefined,
   TAnimations extends EntityAnimations | undefined,
 > {

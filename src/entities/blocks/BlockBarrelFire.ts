@@ -3,82 +3,100 @@ import type GameInstance from "../../GameInstance";
 import { EntityType } from "../../types/EntityType";
 import { ZIndex } from "../../types/ZIndex";
 import { AnimatedSpriteSheet } from "../../utils/classes/AnimatedSpriteSheet";
-import ABlock from "../abstract/ABlock";
+import AEntity, { type EntityAnimations, type EntityBuiltInMethods } from "../abstract/AEntity";
 
-export default class BlockBarrelFire extends ABlock {
-  public health: number;
+/** `this.gameInstance` */ let _game: GameInstance;
 
-  private animation: AnimatedSpriteSheet | undefined;
-  private fps: number;
-  private spriteSize: number;
+interface Instance {
+  lightSourceId: number | undefined;
+}
 
-  private lightSourceId: number | undefined;
-
+export default class BlockBarrelFire extends AEntity<undefined, Instance, undefined, EntityAnimations> {
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
-    super(gameInstance, gridToWorld(gridPos), entityId, true);
+    _game = gameInstance;
+    const { GameManager, LightManager, AssetManager } = _game.MANAGERS;
+    const settings = GameManager.getSettings().rules.blocks;
+    const size = GRID_CONFIG.TILE_SIZE;
+    const fps = 15;
+    const instance: Instance = { lightSourceId: undefined };
+    const animationList = [AnimatedSpriteSheet.fromGrid(AssetManager.getImageAsset("SFire")!, 32, 48, 14, fps, true)];
+    const animations: EntityAnimations = {
+      fps,
+      animationList,
+      activeAnimations: [0],
+    };
 
-    const settings = this._gameInstance.MANAGERS.GameManager.getSettings().rules.blocks;
-    this.health = settings.woodStartHealth;
+    super({
+      worldPos: gridToWorld(gridPos),
+      health: settings.woodStartHealth,
+      entityId,
+      animations,
+      size,
+      initialState: undefined,
+      timers: undefined,
+      instance,
+    });
 
-    const fire = this._gameInstance.MANAGERS.AssetManager.getImageAsset("SFire");
-    this.fps = 15;
-    this.spriteSize = GRID_CONFIG.TILE_SIZE;
-    if (fire) this.animation = AnimatedSpriteSheet.fromGrid(fire, 32, 48, 14, this.fps, true);
-
-    this.lightSourceId = this._gameInstance.MANAGERS.LightManager.addLightSource(this._worldPos);
+    this._instance.lightSourceId = LightManager.addLightSource(this._getWorldPosition());
   }
 
-  public update(_deltaTime: number): void {
-    this.animation?.update(Math.min(_deltaTime, 1 / this.fps));
-  }
+  public _builtIn: EntityBuiltInMethods = {
+    draw: () => {
+      const { LevelManager, DrawManager } = _game.MANAGERS;
+      const { x, y } = this._getWorldPosition();
+      const size = this._getSize();
+      const currentAnimation = this._animations.animationList[this._animations.activeAnimations?.[0] ?? 0];
 
-  public draw(): void {
-    const tileset = this._gameInstance.MANAGERS.LevelManager.getTileset();
-    if (!tileset) return;
+      const tileset = LevelManager.getTileset();
+      if (!tileset) return;
 
-    const barrelSprite = tileset.getTileFrame(599);
-    if (!barrelSprite) return;
+      const barrelSprite = tileset.getTileFrame(599);
+      if (!barrelSprite) return;
 
-    this._gameInstance.MANAGERS.DrawManager.queueDrawSprite(
-      this._worldPos.x,
-      this._worldPos.y,
-      barrelSprite.spriteSheet,
-      barrelSprite.frameIndex,
-      GRID_CONFIG.TILE_SIZE,
-      GRID_CONFIG.TILE_SIZE,
-      ZIndex.BLOCKS,
-    );
+      DrawManager.queueDrawSprite(
+        x,
+        y,
+        barrelSprite.spriteSheet,
+        barrelSprite.frameIndex,
+        GRID_CONFIG.TILE_SIZE,
+        GRID_CONFIG.TILE_SIZE,
+        ZIndex.BLOCKS,
+      );
 
-    if (!this.animation) return;
+      if (!currentAnimation) return;
 
-    this._gameInstance.MANAGERS.DrawManager.queueDrawSprite(
-      this._worldPos.x,
-      this._worldPos.y - this.spriteSize,
-      this.animation,
-      this.animation.getCurrentFrame(),
-      this.spriteSize,
-      this.spriteSize * 1.5,
-      ZIndex.EFFECTS,
-      0,
-    );
-  }
+      DrawManager.queueDrawSprite(
+        x,
+        y - size,
+        currentAnimation,
+        currentAnimation.getCurrentFrame(),
+        size,
+        size * 1.5,
+        ZIndex.EFFECTS,
+        0,
+      );
+    },
 
-  public damage(amount: number): void {
-    const settings = this._gameInstance.MANAGERS.GameManager.getSettings().rules.game;
-    if (!settings.enableBlocksDestruction) return;
+    drawDebug: () => {},
 
-    this.health -= amount;
-    if (this.health <= 0) {
-      this._gameInstance.MANAGERS.AssetManager.playAudioAsset("ABlockWoodDestroyed", "sound");
-      this._gameInstance.MANAGERS.LevelManager.destroyEntity(this._entityId, EntityType.BLOCK);
-    } else {
-      this._gameInstance.MANAGERS.AssetManager.playAudioAsset("ABlockWoodDamaged", "sound", 0.5);
-    }
-  }
+    update: (_deltaTime) => {},
 
-  public destroy(): void {
-    if (this.lightSourceId) this._gameInstance.MANAGERS.LightManager.removeLightSource(this.lightSourceId);
-  }
+    destructor: () => {
+      const { LevelManager, LightManager } = _game.MANAGERS;
+      const { lightSourceId } = this._instance;
 
-  public drawShadow(): void {}
+      if (lightSourceId) LightManager.removeLightSource(lightSourceId);
+      LevelManager.destroyEntity(this._entityId, EntityType.BLOCK);
+    },
+
+    onDamage: () => {
+      const { AssetManager } = _game.MANAGERS;
+      AssetManager.playAudioAsset("ABlockWoodDamaged", "sound", 0.5);
+    },
+
+    onDeath: () => {
+      const { AssetManager } = _game.MANAGERS;
+      AssetManager.playAudioAsset("ABlockWoodDestroyed", "sound");
+    },
+  };
 }
