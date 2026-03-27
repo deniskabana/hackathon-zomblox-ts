@@ -4,82 +4,101 @@ import { EntityType } from "../../types/EntityType";
 import { ZIndex } from "../../types/ZIndex";
 import { AnimatedSpriteSheet } from "../../utils/classes/AnimatedSpriteSheet";
 import getVectorDistance from "../../utils/math/getVectorDistance";
-import ACollectable from "../abstract/ACollectable";
+import AEntity, { type EntityAnimations, type EntityBuiltInMethods } from "../abstract/AEntity";
 
-export default class Coin extends ACollectable {
-  public health: number = -1;
+/** `this.gameInstance` */ let _game: GameInstance;
 
-  private animation: AnimatedSpriteSheet | undefined;
-  private fps: number;
+interface Timers {
+  [key: string]: number;
+  coinLifetime: number;
+}
 
-  private coinLifetimeTimer: number;
-
+export default class Coin extends AEntity<undefined, undefined, Timers, EntityAnimations> {
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
-    super(gameInstance, gridToWorld(gridPos), entityId, true);
-    const gameSettings = this._gameInstance.MANAGERS.GameManager.getSettings().rules.game;
-    if (gameSettings.enableRewardAutoCollect) setTimeout(this.handleCollected.bind(this));
-    this.coinLifetimeTimer = gameSettings.coinLifetime;
-
-    const coinImage = this._gameInstance.MANAGERS.AssetManager.getImageAsset("SCoin");
-    this.fps = 10;
-    if (coinImage) this.animation = AnimatedSpriteSheet.fromGrid(coinImage, 128, 128, 6, this.fps, true);
-  }
-
-  public update(_deltaTime: number): void {
-    this.animation?.update(Math.min(_deltaTime, 1 / this.fps));
-    const player = this._gameInstance.MANAGERS.LevelManager.player;
-    const playerDistance = player
-      ? getVectorDistance(
-          { x: player._worldPos.x - GRID_CONFIG.TILE_SIZE / 2, y: player._worldPos.y - GRID_CONFIG.TILE_SIZE / 2 },
-          this._worldPos,
-        )
-      : Infinity;
-    if (playerDistance < GRID_CONFIG.TILE_SIZE * 0.75) this.handleCollected();
-
-    if (this.coinLifetimeTimer >= 0) this.coinLifetimeTimer -= _deltaTime;
-    else this._gameInstance.MANAGERS.LevelManager.destroyEntity(this._entityId, EntityType.COLLECTABLE);
-  }
-
-  public draw(): void {
-    if (!this.animation) return;
-
+    _game = gameInstance;
+    const { GameManager, AssetManager } = _game.MANAGERS;
+    const gameSettings = GameManager.getSettings().rules.game;
     const size = GRID_CONFIG.TILE_SIZE / 3;
+    const fps = 10;
+    const timers: Timers = { coinLifetime: Infinity };
+    const animationList = [AnimatedSpriteSheet.fromGrid(AssetManager.getImageAsset("SCoin")!, 128, 128, 6, fps, true)];
+    const animations: EntityAnimations = { fps, animationList, activeAnimations: [0] };
 
-    this.drawShadow(size);
-    this._gameInstance.MANAGERS.DrawManager.queueDrawSprite(
-      this._worldPos.x - size / 2,
-      this._worldPos.y - size / 2,
-      this.animation,
-      this.animation.getCurrentFrame(),
+    if (gameSettings.enableRewardAutoCollect) {
+      // TODO: enableRewardAutoCollect
+    }
+
+    super({
+      worldPos: gridToWorld(gridPos),
+      health: Infinity,
+      entityId,
       size,
-      size,
-      ZIndex.ENTITIES,
-      0,
-    );
+      animations,
+      timers,
+      initialState: undefined,
+      instance: undefined,
+    });
   }
 
-  public drawShadow(size: number): void {
-    const { DrawManager, AssetManager } = this._gameInstance.MANAGERS;
+  public _builtIn: EntityBuiltInMethods = {
+    draw: () => {
+      const { DrawManager } = _game.MANAGERS;
+      const currentAnimation = this._animations.animationList[this._animations.activeAnimations?.[0] ?? 0];
+      const size = GRID_CONFIG.TILE_SIZE / 3;
+      const { x, y } = this._getWorldPosition();
 
-    const shadowSprite = AssetManager.getImageAsset("IFXEntityShadow");
-    if (shadowSprite)
-      DrawManager.queueDraw(
-        this._worldPos.x - size / 2,
-        this._worldPos.y - size / 1.75,
-        shadowSprite,
+      if (!currentAnimation) return;
+
+      DrawManager.queueDrawSprite(
+        x - size / 2,
+        y - size / 2,
+        currentAnimation,
+        currentAnimation.getCurrentFrame(),
         size,
         size,
         ZIndex.ENTITIES,
+        0,
       );
-  }
+    },
 
-  public damage(): void {}
-  public destroy(): void {}
+    drawShadow: () => {
+      const { DrawManager, AssetManager } = _game.MANAGERS;
+      const size = this._getSize();
+      const { x, y } = this._getWorldPosition();
+      const shadowSprite = AssetManager.getImageAsset("IFXEntityShadow");
+
+      if (shadowSprite) DrawManager.queueDraw(x - size / 2, y - size / 1.75, shadowSprite, size, size, ZIndex.ENTITIES);
+    },
+
+    update: (_deltaTime) => {
+      const { LevelManager } = _game.MANAGERS;
+      const player = LevelManager.player;
+      if (!player) return;
+
+      const { x: playerX, y: playerY } = player._getWorldPosition();
+      const playerDistance = player
+        ? getVectorDistance(
+            { x: playerX - GRID_CONFIG.TILE_SIZE / 2, y: playerY - GRID_CONFIG.TILE_SIZE / 2 },
+            this._getWorldPosition(),
+          )
+        : Infinity;
+      if (playerDistance < GRID_CONFIG.TILE_SIZE * 0.75) this.handleCollected();
+
+      if (this._timers.coinLifetimeTimer >= 0) this._destructor();
+    },
+
+    drawDebug: () => {},
+
+    destructor: () => {
+      const { LevelManager } = _game.MANAGERS;
+      LevelManager.destroyEntity(this._entityId, EntityType.COLLECTABLE);
+    },
+  };
 
   private handleCollected(): void {
-    const { AssetManager, LevelManager } = this._gameInstance.MANAGERS;
+    const { AssetManager, LevelManager } = _game.MANAGERS;
     AssetManager.playAudioAsset("AFXCoinCollected", "sound", 0.3);
     LevelManager.addCurrency(1);
-    LevelManager.destroyEntity(this._entityId, EntityType.COLLECTABLE);
+    this._destructor();
   }
 }

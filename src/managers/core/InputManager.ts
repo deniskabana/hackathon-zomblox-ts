@@ -239,7 +239,7 @@ export default class InputManager extends AManager {
     if (!player) return;
 
     const mouseWorldPos = this.gameInstance.MANAGERS.CameraManager.screenToWorld(this.mouseScreenPos);
-    this.aimDirection = getDirectionalAngle(mouseWorldPos, player._worldPos);
+    this.aimDirection = getDirectionalAngle(mouseWorldPos, player._getWorldPosition());
   }
 
   private updateTouchJoystickHandles(

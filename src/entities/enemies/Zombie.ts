@@ -161,10 +161,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
       }
     },
 
-    destructor: () => {
-      const { LevelManager } = _game.MANAGERS;
-      LevelManager.destroyEntity(this._entityId, EntityType.ENEMY);
-    },
+    destructor: () => {},
 
     update: (_deltaTime) => {
       const { LevelManager } = _game.MANAGERS;
@@ -227,6 +224,8 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
       this._setState(ZombieState.DEAD);
       this._timers.deathAnimation =
         this._animations.animationList[this._animations.activeAnimations?.[0] ?? 0].getFrameCount() * fps * -1;
+
+      LevelManager.destroyEntity(this._entityId, EntityType.ENEMY);
     },
   };
 

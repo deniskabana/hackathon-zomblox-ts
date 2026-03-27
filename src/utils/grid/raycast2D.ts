@@ -1,5 +1,5 @@
 import { type WorldPosition, worldToGrid, GRID_CONFIG } from "../../config/core/grid.config";
-import type AEnemy from "../../entities/abstract/AEnemy";
+import type { AnyEntity } from "../../entities/abstract/AEntity";
 import { GridTileState, type GridTileRef, type LevelGrid } from "../../types/Grid";
 import getVectorDistance from "../math/getVectorDistance";
 import radiansToVector from "../math/radiansToVector";
@@ -12,7 +12,7 @@ export default function raycast2D(
   angleRad: number,
   maxDistance: number,
   levelGrid: LevelGrid,
-  zombies: Map<number, AEnemy>,
+  enemies: Map<number, AnyEntity>,
 ): null | GridTileRef {
   // DDA Algorithm (put together from a few articles and reddit posts)
   const direction = radiansToVector(angleRad);
@@ -22,12 +22,11 @@ export default function raycast2D(
   const deltaDistX = Math.abs(1 / direction.x);
   const deltaDistY = Math.abs(1 / direction.y);
 
-  const zombieGrid: Map<string, AEnemy> = new Map();
-  for (const [_, zombie] of zombies) zombieGrid.set(`${zombie._gridPos.x},${zombie._gridPos.y}`, zombie);
+  const enemyGrid: Map<string, AnyEntity> = new Map();
+  for (const [_, enemy] of enemies) enemyGrid.set(`${enemy._getGridPosition().x},${enemy._getGridPosition().y}`, enemy);
 
   let tMaxX = Math.abs((startGrid.x + (stepX > 0 ? 1 : 0) - from.x / GRID_CONFIG.TILE_SIZE) / direction.x);
   let tMaxY = Math.abs((startGrid.y + (stepY > 0 ? 1 : 0) - from.y / GRID_CONFIG.TILE_SIZE) / direction.y);
-
   let currentX = startGrid.x;
   let currentY = startGrid.y;
   let raycastHit: null | GridTileRef = null;
@@ -35,7 +34,7 @@ export default function raycast2D(
   for (let i = 0; i < MAX_RANGE; i++) {
     if (!isInsideGrid({ x: currentX, y: currentY })) break;
 
-    const zombieHit = zombieGrid.get(`${currentX},${currentY}`);
+    const zombieHit = enemyGrid.get(`${currentX},${currentY}`);
     if (zombieHit) {
       raycastHit = zombieHit;
       break;
@@ -57,6 +56,6 @@ export default function raycast2D(
     }
   }
 
-  if (raycastHit && getVectorDistance(from, raycastHit._worldPos) > maxDistance) return null;
+  if (raycastHit && getVectorDistance(from, raycastHit._getWorldPosition()) > maxDistance) return null;
   return raycastHit;
 }

@@ -205,7 +205,7 @@ export default class UIManager extends AManager {
 </div>
 `;
 
-    const health = this.gameInstance.MANAGERS.LevelManager.player?.health ?? 1;
+    const health = this.gameInstance.MANAGERS.LevelManager.player?._getHealth() ?? 1;
     this.debugTextHealth.innerHTML = `
 <div class="${styles.contentContainer}">
   <div class="${styles.uiTitle}">Health:</div>

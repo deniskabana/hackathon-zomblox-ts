@@ -1,6 +1,5 @@
 import { type GridPosition, GRID_CONFIG } from "../../config/core/grid.config";
-import type AEnemy from "../../entities/abstract/AEnemy";
-import type Zombie from "../../entities/enemies/Zombie";
+import type { AnyEntity } from "../../entities/abstract/AEntity";
 import { GridTileState, type LevelGrid } from "../../types/Grid";
 import type { Vector } from "../../types/Vector";
 import { clamp } from "../math/clamp";
@@ -8,7 +7,7 @@ import { clamp } from "../math/clamp";
 export interface FlowFieldCell {
   weight: number;
   normalizedVector: Vector;
-  enemiesOnCell: AEnemy[];
+  enemiesOnCell: AnyEntity[];
 }
 
 export type FlowField = FlowFieldCell[][];
@@ -19,7 +18,7 @@ export type FlowField = FlowFieldCell[][];
  */
 export default function generateFlowField(
   levelGrid: LevelGrid,
-  enemies: Map<number, Zombie>,
+  enemies: Map<number, AnyEntity>,
   ...startPoints: GridPosition[]
 ): FlowField {
   const flowField: FlowField = [];
@@ -30,7 +29,7 @@ export default function generateFlowField(
     }
   }
 
-  // Breadth-first search from "startPoints" (representing zombie active interest location)
+  // Breadth-first search from "startPoints"
   const queue: Vector[] = [];
   for (const from of startPoints) {
     queue.push(from);
@@ -62,7 +61,7 @@ export default function generateFlowField(
   }
 
   for (const [_, enemy] of enemies) {
-    const currentFieldCell = flowField?.[enemy._gridPos.x]?.[enemy._gridPos.y];
+    const currentFieldCell = flowField?.[enemy._getGridPosition().x]?.[enemy._getGridPosition().y];
     if (!currentFieldCell?.weight) continue;
     currentFieldCell.enemiesOnCell.push(enemy);
     // if (currentFieldCell.weight === Infinity) continue;

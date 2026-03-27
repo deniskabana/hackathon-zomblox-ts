@@ -129,12 +129,12 @@ export default class BuildModeManager extends AManager {
     for (let x = -threshold; x <= threshold; x++) {
       for (let y = -threshold; y <= threshold; y++) {
         const currentPos: GridPosition = {
-          x: player._gridPos.x + x,
-          y: player._gridPos.y + y,
+          x: player._getGridPosition().x + x,
+          y: player._getGridPosition().y + y,
         };
 
         const isOnCorner = Math.abs(x) === Math.abs(threshold) && Math.abs(y) === Math.abs(threshold);
-        const isPlayerPos = areVectorsEqual(player._gridPos, currentPos);
+        const isPlayerPos = areVectorsEqual(player._getGridPosition(), currentPos);
         if (isOnCorner || isPlayerPos) continue;
 
         const levelGrid = this.gameInstance.MANAGERS.LevelManager.levelGrid;

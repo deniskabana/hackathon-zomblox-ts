@@ -1,4 +1,4 @@
-import type AEntity from "../entities/abstract/AEntity";
+import type { AnyEntity } from "../entities/abstract/AEntity";
 import type { Vector } from "./Vector";
 
 export enum GridTileState {
@@ -6,7 +6,7 @@ export enum GridTileState {
   BLOCKED,
   PLAYER,
 }
-export type GridTileRef = AEntity; // TODO: Also add static map parts later!
+export type GridTileRef = AnyEntity;
 
 export interface GridTile {
   state: GridTileState;

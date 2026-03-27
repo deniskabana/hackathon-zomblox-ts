@@ -61,16 +61,14 @@ export default class BlockWood extends AEntity<undefined, undefined, undefined, 
 
     drawDebug: () => {},
 
-    destructor: () => {
-      const { LevelManager } = _game.MANAGERS;
-      LevelManager.destroyEntity(this._entityId, EntityType.BLOCK);
-    },
+    destructor: () => {},
 
     update: (_deltaTime) => {},
 
     onDeath: () => {
-      const { AssetManager } = _game.MANAGERS;
+      const { AssetManager, LevelManager } = _game.MANAGERS;
       AssetManager.playAudioAsset("ABlockWoodDestroyed", "sound");
+      LevelManager.destroyEntity(this._entityId, EntityType.BLOCK);
     },
   };
 }

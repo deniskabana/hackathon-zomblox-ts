@@ -24,25 +24,29 @@ export default function fillLevelGrid<K extends keyof FillObjects>(
   const refs: Partial<Refs> = { ...refsProp };
 
   if (fill.player && refs.player) {
-    const playerGridPos = refs.player._gridPos;
-    levelGrid[playerGridPos.x][playerGridPos.y] = {
+    const playerGridPos = refs.player._getGridPosition();
+    const { x, y } = playerGridPos;
+
+    levelGrid[x][y] = {
       state: GridTileState.PLAYER,
       ref: refs.player,
-      pos: refs.player._gridPos,
+      pos: playerGridPos,
     };
   }
 
   if (fill.blocks && refs.blocks) {
     for (const block of refs.blocks.values()) {
-      levelGrid[block._gridPos.x][block._gridPos.y] = { state: GridTileState.BLOCKED, ref: block, pos: block._gridPos };
+      const { x, y } = block._getGridPosition();
+      levelGrid[x][y] = { state: GridTileState.BLOCKED, ref: block, pos: block._getGridPosition() };
     }
   }
 
   if (fill.zombies && refs.zombies) {
     for (const [_id, zombie] of refs.zombies) {
-      if (!isInsideGrid(zombie._gridPos)) continue;
-      levelGrid[zombie._gridPos.x][zombie._gridPos.y].state = GridTileState.BLOCKED;
-      levelGrid[zombie._gridPos.x][zombie._gridPos.y].ref = zombie;
+      const { x, y } = zombie._getGridPosition();
+      if (!isInsideGrid(zombie._getGridPosition())) continue;
+      levelGrid[x][y].state = GridTileState.BLOCKED;
+      levelGrid[x][y].ref = zombie;
     }
   }
 

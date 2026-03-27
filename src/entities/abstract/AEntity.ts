@@ -1,6 +1,9 @@
 import { type WorldPosition, type GridPosition, worldToGrid, gridToWorld } from "../../config/core/grid.config";
 import type { AnimatedSpriteSheet } from "../../utils/classes/AnimatedSpriteSheet";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type AnyEntity = AEntity<any, any, any, any>;
+
 /**
  * Built-in methods defined and used by AEntity
  */

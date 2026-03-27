@@ -179,8 +179,6 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
 
     destructor: () => {
       const { LevelManager, UIManager } = _game.MANAGERS;
-
-      LevelManager.destroyEntity(-1, EntityType.PLAYER); // TODO: why -1 ffs
       if (LevelManager.levelState) UIManager.showGameOverScreen(LevelManager.levelState); // TODO: Move to LevelManager
     },
 
@@ -234,11 +232,12 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
     },
 
     onDeath: () => {
-      const { VFXManager, AssetManager } = _game.MANAGERS;
+      const { VFXManager, AssetManager, LevelManager } = _game.MANAGERS;
 
       this._setState(PlayerState.DEAD);
       VFXManager.drawBloodOnScreen(600);
       AssetManager.playAudioAsset("APlayerDie", "sound");
+      LevelManager.destroyEntity(-1, EntityType.PLAYER);
     },
   };
 
@@ -363,7 +362,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
       const angle = this.facingDirection + spread;
       const raycastHit = LevelManager.raycastShot(this._getWorldPosition(), angle, maxDistance);
 
-      if (raycastHit) raycastHit.damage(weaponDef.damage);
+      if (raycastHit) raycastHit._handleDamage(weaponDef.damage);
 
       let originOffsetX: number = 0;
       let originOffsetY: number = 0;

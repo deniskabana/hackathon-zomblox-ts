@@ -82,11 +82,9 @@ export default class BlockBarrelFire extends AEntity<undefined, Instance, undefi
     update: (_deltaTime) => {},
 
     destructor: () => {
-      const { LevelManager, LightManager } = _game.MANAGERS;
+      const { LightManager } = _game.MANAGERS;
       const { lightSourceId } = this._instance;
-
       if (lightSourceId) LightManager.removeLightSource(lightSourceId);
-      LevelManager.destroyEntity(this._entityId, EntityType.BLOCK);
     },
 
     onDamage: () => {
@@ -95,8 +93,9 @@ export default class BlockBarrelFire extends AEntity<undefined, Instance, undefi
     },
 
     onDeath: () => {
-      const { AssetManager } = _game.MANAGERS;
+      const { AssetManager, LevelManager } = _game.MANAGERS;
       AssetManager.playAudioAsset("ABlockWoodDestroyed", "sound");
+      LevelManager.destroyEntity(this._entityId, EntityType.BLOCK);
     },
   };
 }

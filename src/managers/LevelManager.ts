@@ -5,8 +5,7 @@ import {
   type GridPosition,
   type WorldPosition,
 } from "../config/core/grid.config";
-import type ABlock from "../entities/abstract/ABlock";
-import type ACollectable from "../entities/abstract/ACollectable";
+import type { AnyEntity } from "../entities/abstract/AEntity";
 import BlockBarrelFire from "../entities/blocks/BlockBarrelFire";
 import BlockWood from "../entities/blocks/BlockWood";
 import Coin from "../entities/collectables/Coin";
@@ -51,8 +50,8 @@ export default class LevelManager extends AManager {
   // Entities
   public player?: Player;
   public zombies: Map<number, Zombie> = new Map();
-  public blocks: Map<number, ABlock> = new Map();
-  public collectables: Map<number, ACollectable> = new Map();
+  public blocks: Map<number, AnyEntity> = new Map();
+  public collectables: Map<number, AnyEntity> = new Map();
 
   // Gameplay
   private isSpawningZombies: boolean = false;
@@ -151,12 +150,12 @@ export default class LevelManager extends AManager {
   }
 
   public update(_deltaTime: number) {
-    this.player?.update(_deltaTime);
+    this.player?._update(_deltaTime);
     if (this.player && this.levelState) this.levelState.totalTimeCounter += _deltaTime;
 
     for (const zombie of this.zombies.values()) zombie._update(_deltaTime);
-    for (const block of this.blocks.values()) block.update(_deltaTime);
-    for (const coin of this.collectables.values()) coin.update(_deltaTime);
+    for (const block of this.blocks.values()) block._update(_deltaTime);
+    for (const coin of this.collectables.values()) coin._update(_deltaTime);
 
     this.applyZombieSpawn(_deltaTime);
 
@@ -176,14 +175,14 @@ export default class LevelManager extends AManager {
   }
 
   public drawEntities(): void {
-    this.drawMapLayers("below");
-    for (const zombie of this.zombies.values()) zombie.draw();
-    for (const block of this.blocks.values()) block.draw();
-    for (const coin of this.collectables.values()) coin.draw();
-    this.player?.draw();
-    this.drawMapLayers("above");
-
     const { DrawManager, CameraManager, GameManager } = this.gameInstance.MANAGERS;
+
+    this.drawMapLayers("below");
+    for (const zombie of this.zombies.values()) zombie._draw();
+    for (const block of this.blocks.values()) block._draw();
+    for (const coin of this.collectables.values()) coin._draw();
+    this.player?._draw();
+    this.drawMapLayers("above");
 
     if (GameManager.getSettings().debug.enableFlowFieldRender) {
       const size = GRID_CONFIG.TILE_SIZE;
@@ -247,7 +246,7 @@ export default class LevelManager extends AManager {
 
     if (!this.getIsDay() && this.player) {
       this.gameInstance.MANAGERS.LightManager.drawNightLighting(
-        [this.player._worldPos],
+        [this.player._getWorldPosition()],
         this.player.getFacingDirection(),
       );
     }
@@ -345,14 +344,13 @@ export default class LevelManager extends AManager {
     for (const track of this.musicDay) track.pause();
     for (const track of this.musicNight) track.pause();
     this.gameInstance.MANAGERS.AssetManager.playAudioAsset("AMusicBackgroundDead", "music");
-    this.player?.destroy();
     this.player = undefined;
-    for (const zombie of this.zombies.values()) zombie.startWandering();
+    for (const zombie of this.zombies.values()) zombie.startWaiting();
   }
 
   public spawnBlock(pos: GridPosition, type: BlockTypes = BlockTypes.Wood): void {
     const entityId = this.entityIdCounter++;
-    let entity: ABlock;
+    let entity: AnyEntity;
 
     switch (type) {
       case BlockTypes.Wood:
@@ -375,10 +373,10 @@ export default class LevelManager extends AManager {
   private destroyBlock(entityId: number): void {
     const entity = this.blocks.get(entityId);
     if (!entity) return;
-    entity.destroy();
+    entity._destructor();
     this.blocks.delete(entityId);
     if (!this.levelGrid) return;
-    const { x, y } = entity._gridPos;
+    const { x, y } = entity._getGridPosition();
     this.levelGrid[x][y] = { ...this.levelGrid[x][y], state: GridTileState.AVAILABLE, ref: null };
     this.updatePathFindingGrid();
   }
@@ -391,14 +389,14 @@ export default class LevelManager extends AManager {
   private destroyCoin(entityId: number): void {
     const entity = this.collectables.get(entityId);
     if (!entity) return;
-    entity.destroy();
+    entity._destructor();
     this.collectables.delete(entityId);
   }
 
   private destroyZombie(entityId: number): void {
     const entity = this.zombies.get(entityId);
     if (!entity) return;
-    entity.destroy();
+    entity._destructor();
     this.zombies.delete(entityId);
   }
 
@@ -548,7 +546,7 @@ export default class LevelManager extends AManager {
     // if (this.getIsDay()) return;
     if (!this.player || !this.levelGrid) return;
     // this.lastPlayerGridPos = this.player.gridPos;
-    this.flowField = generateFlowField(this.levelGrid, this.zombies, this.player._gridPos);
+    this.flowField = generateFlowField(this.levelGrid, this.zombies, this.player._getGridPosition());
   }
 
   // Utils
