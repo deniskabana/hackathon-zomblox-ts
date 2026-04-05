@@ -15,12 +15,11 @@ import { ZIndex } from "../../types/ZIndex";
 import assertNever from "../../utils/assertNever";
 import { AnimatedSpriteSheet } from "../../utils/classes/AnimatedSpriteSheet";
 import SpriteSheet from "../../utils/classes/SpriteSheet";
-import { Direction, getCardinalDirection } from "../../utils/getCardinalDirection";
+import { Direction } from "../../utils/getCardinalDirection";
 import isInsideGrid from "../../utils/grid/isInsideGrid";
 import areVectorsEqual from "../../utils/math/areVectorsEqual";
 import getVectorDistance from "../../utils/math/getVectorDistance";
 import normalizeVector from "../../utils/math/normalizeVector";
-import { lerpAngle } from "../../utils/math/radialLerp";
 import radiansToVector from "../../utils/math/radiansToVector";
 import AEntity, { type EntityAnimations, type EntityBuiltInMethods } from "../abstract/AEntity";
 
@@ -58,6 +57,8 @@ interface Instance {
   isFacingLeft: boolean;
   prevGridPos: GridPosition | undefined;
   currentWeapon: Weapon;
+  facingDirection: Direction;
+  weaponSprites: SpriteSheet | undefined;
 }
 
 /**
@@ -67,15 +68,12 @@ interface Instance {
 export default class Player extends AEntity<PlayerState, Instance, Timers, Animations> {
   public _attributes: Readonly<Attributes>;
 
-  private facingDirection: number = 0;
-  private weaponSprites: SpriteSheet | undefined;
-
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     _game = gameInstance;
     const { GameManager, AssetManager } = _game.MANAGERS;
     const { startHealth, movementSpeed, defaultWeapon, stunCooldownSec } = GameManager.getSettings().rules.player;
     const size = GRID_CONFIG.TILE_SIZE * 1.5;
-    const fps = 8;
+    const fps = 11;
     const timers: Timers = {
       attackCooldown: Infinity,
       stepSound: Infinity,
@@ -96,6 +94,8 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
       prevGridPos: undefined,
       isFacingLeft: false,
       speed: 0,
+      facingDirection: Direction.RIGHT,
+      weaponSprites: SpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerWeapons")!, 32, 32, 12),
     };
 
     super({
@@ -109,7 +109,6 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
       instance,
     });
 
-    this.weaponSprites = SpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerWeapons")!, 32, 32, 12);
     this._attributes = {
       stepSoundInterval: 0.35,
       buildingModeInterval: 2,
@@ -211,9 +210,9 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
         }
 
         this.applyMovement(_deltaTime);
-        this.applyShooting();
-        this.applyNextWeapon();
-        this.applyBuildingMode(_deltaTime);
+        this.getShootingInput();
+        this.getWeaponCycleInput();
+        this.getBuildingModeInput(_deltaTime);
       }
     },
 
@@ -243,7 +242,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
 
   private drawWeapon(weaponSize: number): void {
     const { DrawManager } = _game.MANAGERS;
-    const playerCardinalDirection = getCardinalDirection(this.facingDirection);
+    const playerCardinalDirection = this._instance.facingDirection;
     const isFacingLeft = this._instance.isFacingLeft;
     const { x, y } = this._getWorldPosition();
 
@@ -254,20 +253,22 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
     let offsetY: number = 0;
 
     switch (playerCardinalDirection) {
-      case Direction.UP:
+      case Direction.DOWN:
         scaleX = isFacingLeft ? -1 : 1;
         angle = isFacingLeft ? (3 * Math.PI) / 2 : Math.PI / 2;
         scaleY = 1;
         offsetX = isFacingLeft ? weaponSize * 0.6 : weaponSize * 0.4;
         offsetY = weaponSize * 0.55;
         break;
-      case Direction.DOWN:
+
+      case Direction.UP:
         scaleX = isFacingLeft ? -1 : 1;
         angle = isFacingLeft ? Math.PI / 2 : (3 * Math.PI) / 2;
         scaleY = 1;
         offsetX = isFacingLeft ? weaponSize * 0.6 : weaponSize * 0.4;
         offsetY = weaponSize * 0.95;
         break;
+
       case Direction.LEFT:
         scaleX = -1;
         scaleY = 1;
@@ -275,6 +276,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
         offsetX = weaponSize * 0.75;
         offsetY = weaponSize * 0.75;
         break;
+
       case Direction.RIGHT:
         scaleX = 1;
         scaleY = 1;
@@ -282,6 +284,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
         offsetX = weaponSize * 0.2;
         offsetY = weaponSize * 0.75;
         break;
+
       default:
         assertNever(playerCardinalDirection);
     }
@@ -289,7 +292,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
     DrawManager.queueDrawSprite(
       x - offsetX,
       y - offsetY,
-      this.weaponSprites!,
+      this._instance.weaponSprites!,
       this.getCurrentWeaponSprite() ?? 6,
       weaponSize,
       weaponSize,
@@ -301,44 +304,44 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
     );
   }
 
-  // TODO: Refactor, delete
-  private getAimAngle(): number {
-    return _game.MANAGERS.InputManager.getAimDirection();
-  }
-
-  private getMovementInput(): WorldPosition {
+  private getMovementInputVector(): WorldPosition {
     const { InputManager } = _game.MANAGERS;
     let x = 0;
     let y = 0;
 
-    if (InputManager.isControlDown(GameControls.MOVE_UP)) y -= 1;
-    if (InputManager.isControlDown(GameControls.MOVE_LEFT)) x -= 1;
-    if (InputManager.isControlDown(GameControls.MOVE_DOWN)) y += 1;
-    if (InputManager.isControlDown(GameControls.MOVE_RIGHT)) x += 1;
+    // TODO: Convert to `getLatestMovementInput`
+
+    if (InputManager.isControlDown(GameControls.MOVE_UP)) {
+      y -= 1;
+      this._instance.facingDirection = Direction.UP;
+    }
+    if (InputManager.isControlDown(GameControls.MOVE_LEFT)) {
+      x -= 1;
+      this._instance.facingDirection = Direction.LEFT;
+    }
+    if (InputManager.isControlDown(GameControls.MOVE_DOWN)) {
+      y += 1;
+      this._instance.facingDirection = Direction.DOWN;
+    }
+    if (InputManager.isControlDown(GameControls.MOVE_RIGHT)) {
+      x += 1;
+      this._instance.facingDirection = Direction.RIGHT;
+    }
 
     return normalizeVector({ x, y });
   }
 
-  private applyBuildingMode(_deltaTime: number): void {
+  private getBuildingModeInput(_deltaTime: number): void {
     const { InputManager, BuildModeManager } = _game.MANAGERS;
     const isPressed = InputManager.isControlDown(GameControls.BUILD_MENU);
 
     if (this._timers.btnBuildMode >= 0 && isPressed) {
-      if (BuildModeManager.isBuildModeActive) {
-        BuildModeManager.setBuildMode(true);
-      } else {
-        this.endBuildingMode();
-      }
-
+      BuildModeManager.setBuildMode(!BuildModeManager.isBuildModeActive);
       this._timers.btnBuildMode = this._attributes.buildingModeInterval * -1;
     }
   }
 
-  public endBuildingMode(): void {
-    _game.MANAGERS.BuildModeManager.setBuildMode(false);
-  }
-
-  public applyShooting(): void {
+  private getShootingInput(): void {
     const { InputManager, AssetManager, CameraManager, LevelManager, VFXManager } = _game.MANAGERS;
     const state = this._getState();
     const weaponSound = this.getCurrentWeaponSound();
@@ -347,10 +350,10 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
     const gunSpread = weaponDef.spread;
     const maxDistance = weaponDef.maxDistance * GRID_CONFIG.TILE_SIZE;
     const size = this._getSize();
-    const playerCardinalDirection = getCardinalDirection(this.facingDirection);
+    const playerCardinalDirection = this._instance.facingDirection;
     const { x, y } = this._getWorldPosition();
 
-    if (InputManager.isControlDown(GameControls.SHOOT)) return;
+    if (!InputManager.isControlDown(GameControls.SHOOT)) return;
     if (state === PlayerState.KNOCKED || state === PlayerState.DEAD) return;
     if (this._timers.attackCooldown < 0) return;
 
@@ -359,7 +362,22 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
 
     for (let i = 0; i < weaponDef.shots; i++) {
       const spread = (Math.random() - 0.5) * 2 * ((gunSpread * Math.PI) / 180);
-      const angle = this.facingDirection + spread;
+      let angle: number = 0;
+      switch (this._instance.facingDirection) {
+        case Direction.UP:
+          angle = -Math.PI / 2;
+          break;
+        case Direction.DOWN:
+          angle = Math.PI / 2;
+          break;
+        case Direction.LEFT:
+          angle = Math.PI;
+          break;
+        case Direction.RIGHT:
+          angle = 0;
+          break;
+      }
+      angle += spread;
       const raycastHit = LevelManager.raycastShot(this._getWorldPosition(), angle, maxDistance);
 
       if (raycastHit) raycastHit._handleDamage(weaponDef.damage);
@@ -432,7 +450,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
     }
   }
 
-  public applyNextWeapon(): void {
+  private getWeaponCycleInput(): void {
     const { InputManager } = _game.MANAGERS;
     const { currentWeapon } = this._instance;
     const allWeaponsDef = Object.keys(DEF_WEAPONS) as Weapon[];
@@ -447,16 +465,11 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
   }
 
   private applyMovement(_deltaTime: number): void {
-    const { AssetManager, InputManager } = _game.MANAGERS;
-    const joystickIntensity = InputManager.getMoveIntensity();
-    const vector = this.getMovementInput();
+    const { AssetManager } = _game.MANAGERS;
+    const vector = this.getMovementInputVector();
     const state = this._getState();
     const { x, y } = this._getWorldPosition();
-    let speed = this._instance.speed;
-
-    if (typeof joystickIntensity === "number") speed *= joystickIntensity;
-
-    this.facingDirection = lerpAngle(this.facingDirection, this.getAimAngle(), _deltaTime * 50);
+    const speed = this._attributes.maxSpeed;
 
     if (vector.x === 0 && vector.y === 0) {
       if (state === PlayerState.WALK) this._setState(PlayerState.IDLE);
@@ -467,7 +480,8 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
       x: x + vector.x * _deltaTime * speed,
       y: y + vector.y * _deltaTime * speed,
     };
-    const adjustedFuturePos = this.adjustMovementForCollisions(futurePos, GRID_CONFIG);
+    // const adjustedFuturePos = this.adjustMovementForCollisions(futurePos, GRID_CONFIG);
+    const adjustedFuturePos = futurePos;
 
     if (areVectorsEqual(adjustedFuturePos, this._getWorldPosition())) return;
 
@@ -600,6 +614,25 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
   }
 
   public getFacingDirection(): number {
-    return this.facingDirection;
+    let angle: number = 0;
+
+    switch (this._instance.facingDirection) {
+      case Direction.RIGHT:
+        angle = 0;
+        break;
+      case Direction.DOWN:
+        angle = 90 * (Math.PI / 180);
+        break;
+      case Direction.LEFT:
+        angle = 180 * (Math.PI / 180);
+        break;
+      case Direction.UP:
+        angle = 270 * (Math.PI / 180);
+        break;
+      default:
+        assertNever(this._instance.facingDirection);
+    }
+
+    return angle;
   }
 }

@@ -452,7 +452,7 @@ export default class LevelManager extends AManager {
 
   public startNight(): void {
     if (!this.levelState) return;
-    this.player?.endBuildingMode();
+    this.gameInstance.MANAGERS.BuildModeManager.setBuildMode(false);
     this.retreatFlowFields = undefined;
     this.levelState.phase = "night";
 

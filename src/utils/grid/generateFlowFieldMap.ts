@@ -38,7 +38,7 @@ export default function generateFlowField(
 
   while (queue.length > 0) {
     const currentVector = queue.shift()!;
-    const currentWeight = flowField[currentVector.x][currentVector.y].weight;
+    const currentWeight = flowField?.[currentVector.x]?.[currentVector.y]?.weight;
 
     for (let dx = -1; dx <= 1; dx++) {
       for (let dy = -1; dy <= 1; dy++) {
