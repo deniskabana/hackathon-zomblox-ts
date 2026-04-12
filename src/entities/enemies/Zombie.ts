@@ -1,6 +1,7 @@
 import { GRID_CONFIG, type GridPosition, gridToWorld, type WorldPosition } from "../../config/core/grid.config";
 import type { DEFAULT_SETTINGS } from "../../config/game/settings.config";
 import type GameInstance from "../../GameInstance";
+import type { AssetImage } from "../../types/Asset";
 import { EntityType } from "../../types/EntityType";
 import type { Vector } from "../../types/Vector";
 import { ZIndex } from "../../types/ZIndex";
@@ -61,24 +62,56 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
 
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     _game = gameInstance;
-    const {
-      AssetManager: { getImageAsset },
-      GameManager,
-    } = _game.MANAGERS;
+    const { AssetManager, GameManager } = _game.MANAGERS;
     const { maxSpeed, maxHealth, attackDuration, minDistanceFromPlayer } = GameManager.getSettings().rules.zombie;
 
     const size: number = GRID_CONFIG.TILE_SIZE * 1.5;
-    const fps: number = 8;
+    const fps: number = 11;
     const timers: Timers = { attack: Infinity, attackCooldown: Infinity, deathAnimation: Infinity };
 
-    /** 1 - 4 */
-    const spriteVariant = 1 + Math.floor(Math.random() * 4);
+    // Animations - could be much easier done as a json import
+    type AnimationName = "idle" | "run" | "knocked" | "hit" | "death";
+    const fw = 32;
+    const fh = 32;
+    const frames: Record<AnimationName, number> = { idle: 6, run: 8, knocked: 6, hit: 3, death: 8 };
+    const animationAssets: Record<AnimationName, AssetImage | undefined>[] = [
+      {
+        idle: AssetManager.getImageAsset("SZombie1Idle"),
+        run: AssetManager.getImageAsset("SZombie1Run"),
+        knocked: AssetManager.getImageAsset("SZombie1Knocked"),
+        hit: AssetManager.getImageAsset("SZombie1Hit"),
+        death: AssetManager.getImageAsset("SZombie1Death"),
+      },
+      {
+        idle: AssetManager.getImageAsset("SZombie2Idle"),
+        run: AssetManager.getImageAsset("SZombie2Run"),
+        knocked: AssetManager.getImageAsset("SZombie2Knocked"),
+        hit: AssetManager.getImageAsset("SZombie2Hit"),
+        death: AssetManager.getImageAsset("SZombie2Death"),
+      },
+      {
+        idle: AssetManager.getImageAsset("SZombie3Idle"),
+        run: AssetManager.getImageAsset("SZombie3Run"),
+        knocked: AssetManager.getImageAsset("SZombie3Knocked"),
+        hit: AssetManager.getImageAsset("SZombie3Hit"),
+        death: AssetManager.getImageAsset("SZombie3Death"),
+      },
+      {
+        idle: AssetManager.getImageAsset("SZombie4Idle"),
+        run: AssetManager.getImageAsset("SZombie4Run"),
+        knocked: AssetManager.getImageAsset("SZombie4Knocked"),
+        hit: AssetManager.getImageAsset("SZombie4Hit"),
+        death: AssetManager.getImageAsset("SZombie4Death"),
+      },
+    ];
+
+    const animIndex = Math.floor(Math.random() * animationAssets.length);
     const animationList = [
-      AnimatedSpriteSheet.fromGrid(getImageAsset(`SZombie${spriteVariant}Idle` as never)!, 32, 32, 6, fps),
-      AnimatedSpriteSheet.fromGrid(getImageAsset(`SZombie${spriteVariant}Run` as never)!, 32, 32, 8, fps),
-      AnimatedSpriteSheet.fromGrid(getImageAsset(`SZombie${spriteVariant}Knocked` as never)!, 32, 32, 6, fps),
-      AnimatedSpriteSheet.fromGrid(getImageAsset(`SZombie${spriteVariant}Hit` as never)!, 32, 32, 3, fps, false),
-      AnimatedSpriteSheet.fromGrid(getImageAsset(`SZombie${spriteVariant}Death` as never)!, 32, 32, 8, fps, false),
+      AnimatedSpriteSheet.fromGrid(animationAssets[animIndex].idle!, fw, fh, frames.idle, fps),
+      AnimatedSpriteSheet.fromGrid(animationAssets[animIndex].run!, fw, fh, frames.run, fps),
+      AnimatedSpriteSheet.fromGrid(animationAssets[animIndex].knocked!, fw, fh, frames.knocked, fps),
+      AnimatedSpriteSheet.fromGrid(animationAssets[animIndex].hit!, fw, fh, frames.hit, fps, false),
+      AnimatedSpriteSheet.fromGrid(animationAssets[animIndex].death!, fw, fh, frames.death, fps, false),
     ];
     const animations: Animations = { fps, animationList, activeAnimations: null, spriteVariant: 0 };
 
