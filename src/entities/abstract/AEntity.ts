@@ -1,4 +1,4 @@
-import { type WorldPosition, type GridPosition, worldToGrid, gridToWorld } from "../../config/core/grid.config";
+import { type WorldPosition, type GridPosition, worldToGrid } from "../../config/core/grid.config";
 import type { AnimatedSpriteSheet } from "../../utils/classes/AnimatedSpriteSheet";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -69,7 +69,7 @@ export default abstract class AEntity<
 
     this._health = props.health ?? Infinity;
     this._worldPos = props.worldPos;
-    this._gridPos = gridToWorld(props.worldPos);
+    this._gridPos = worldToGrid(props.worldPos);
     this._size = props.size;
 
     this._state = props.initialState;

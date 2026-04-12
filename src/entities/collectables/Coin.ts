@@ -20,7 +20,7 @@ export default class Coin extends AEntity<undefined, undefined, Timers, EntityAn
     const gameSettings = GameManager.getSettings().rules.game;
     const size = GRID_CONFIG.TILE_SIZE / 3;
     const fps = 10;
-    const timers: Timers = { coinLifetime: Infinity };
+    const timers: Timers = { coinLifetime: gameSettings.coinLifetime };
     const animationList = [AnimatedSpriteSheet.fromGrid(AssetManager.getImageAsset("SCoin")!, 128, 128, 6, fps, true)];
     const animations: EntityAnimations = { fps, animationList, activeAnimations: [0] };
 
@@ -89,16 +89,13 @@ export default class Coin extends AEntity<undefined, undefined, Timers, EntityAn
 
     drawDebug: () => {},
 
-    destructor: () => {
-      const { LevelManager } = _game.MANAGERS;
-      LevelManager.destroyEntity(this._entityId, EntityType.COLLECTABLE);
-    },
+    destructor: () => {},
   };
 
   private handleCollected(): void {
     const { AssetManager, LevelManager } = _game.MANAGERS;
     AssetManager.playAudioAsset("AFXCoinCollected", "sound", 0.3);
     LevelManager.addCurrency(1);
-    this._destructor();
+    LevelManager.destroyEntity(this._entityId, EntityType.COLLECTABLE);
   }
 }

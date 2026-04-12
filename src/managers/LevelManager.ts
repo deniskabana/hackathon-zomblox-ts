@@ -24,8 +24,6 @@ import assertNever from "../utils/assertNever";
 import generateEmptyLevelGrid from "../utils/grid/generateEmptyLevelGrid";
 import generateFlowField, { type FlowField } from "../utils/grid/generateFlowFieldMap";
 import raycast2D from "../utils/grid/raycast2D";
-import { clamp } from "../utils/math/clamp";
-// import areVectorsEqual from "../utils/math/areVectorsEqual";
 import { AManager } from "./abstract/AManager";
 import { BlockTypes } from "./BuildModeManager";
 
@@ -38,6 +36,7 @@ export default class LevelManager extends AManager {
   // Grids
   public levelGrid?: LevelGrid;
   public flowField?: FlowField;
+  public weightedFlowField?: FlowField;
   public retreatFlowFields?: FlowField[];
 
   // Map data
@@ -56,6 +55,7 @@ export default class LevelManager extends AManager {
   // Gameplay
   private isSpawningZombies: boolean = false;
   private zombieSpawnsLeft: number = 0;
+  // private lastPlayerGridPos: GridPosition | undefined;
 
   // Music
   private musicDay: AudioControl[] = [];
@@ -65,8 +65,6 @@ export default class LevelManager extends AManager {
   private nightEndCounter: number = 0;
   private spawnTimer: number = 0;
   private zombieSpawnInterval: number = 1200;
-  private pathfindingStaleTimer: number = 0;
-  private readonly pathfindingStaleAmountSec: number = 1 / 6;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
@@ -76,6 +74,11 @@ export default class LevelManager extends AManager {
   }
 
   public init(): void {
+    // TODO: Only dev
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "p") this.spawnZombie();
+    });
+
     const { map, config } = parseJsonMap();
     setGridConfig(config);
 
@@ -87,10 +90,8 @@ export default class LevelManager extends AManager {
     this.tileset = new MapTilesetManager(tilesetImage, config.TILE_SIZE);
     this.tileLayers = map.tileLayers;
 
-    this.levelGrid = generateEmptyLevelGrid(config, map.objects);
-
     this.player = new Player(map.spawn, this.entityIdCounter++, this.gameInstance);
-    // this.lastPlayerGridPos = this.player.gridPos;
+    // this.lastPlayerGridPos = this.player._getGridPosition();
 
     const gameSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
     this.zombieSpawnInterval = Math.min(
@@ -110,13 +111,15 @@ export default class LevelManager extends AManager {
     this.mapLayerAbovePlayer.width = GRID_CONFIG.GRID_WIDTH * GRID_CONFIG.TILE_SIZE;
     this.mapLayerAbovePlayer.height = GRID_CONFIG.GRID_HEIGHT * GRID_CONFIG.TILE_SIZE;
     this.createMapTileImages();
+
+    this.levelGrid = generateEmptyLevelGrid(config, map.objects);
     this.updatePathFindingGrid();
 
     // Filter out spawn points that have BLOCKED neighboring cell
-    const yTop = -1;
-    const yBottom = GRID_CONFIG.GRID_HEIGHT;
-    const xLeft = -1;
-    const xRight = GRID_CONFIG.GRID_WIDTH;
+    const yTop = 0;
+    const yBottom = GRID_CONFIG.GRID_HEIGHT - 1;
+    const xLeft = 0;
+    const xRight = GRID_CONFIG.GRID_WIDTH - 1;
 
     for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
       if (
@@ -150,6 +153,7 @@ export default class LevelManager extends AManager {
   }
 
   public update(_deltaTime: number) {
+    if (!this.player) return;
     this.player?._update(_deltaTime);
     if (this.player && this.levelState) this.levelState.totalTimeCounter += _deltaTime;
 
@@ -159,14 +163,18 @@ export default class LevelManager extends AManager {
 
     this.applyZombieSpawn(_deltaTime);
 
-    // const hasPlayerMoved = !this.player || !areVectorsEqual(this.lastPlayerGridPos, this.player.gridPos);
+    // const hasPlayerMoved = !areVectorsEqual(
+    //   this.lastPlayerGridPos ?? this.player._getGridPosition(),
+    //   this.player._getGridPosition(),
+    // );
+
     // if (hasPlayerMoved || !this.flowField) this.updatePathFindingGrid();
 
-    if (this.pathfindingStaleTimer > 0) this.pathfindingStaleTimer -= _deltaTime;
-    else {
-      this.updatePathFindingGrid();
-      this.pathfindingStaleTimer = this.pathfindingStaleAmountSec;
-    }
+    // if (this.pathfindingStaleTimer > 0) this.pathfindingStaleTimer -= _deltaTime;
+    // else {
+    this.updatePathFindingGrid();
+    //   this.pathfindingStaleTimer = this.pathfindingStaleAmountSec;
+    // }
 
     if (!this.getIsDay() && !!this.player) {
       this.nightEndCounter -= _deltaTime;
@@ -193,25 +201,25 @@ export default class LevelManager extends AManager {
 
           if (this.levelGrid?.[x]?.[y]?.state !== GridTileState.AVAILABLE)
             DrawManager.drawRectFilled(x * size, y * size, size, size, "#000", 0.4);
-          DrawManager.drawRectOutline(x * size, y * size, size, size, "#fff", 0.1);
+          // DrawManager.drawRectOutline(x * size, y * size, size, size, "#fff", 0.1);
 
           if (this.flowField?.[x]?.[y]) {
             const currentFieldCell = this.flowField[x][y];
             const weight = currentFieldCell.weight;
-            const vector = currentFieldCell.normalizedVector;
+            // const vector = currentFieldCell.normalizedVector;
             if (weight === Infinity || weight === 0) continue;
 
             const green = `0${Math.floor(255 - Math.min(200, (200 / 20) * weight)).toString(16)}`.slice(-2);
             const red = `0${Math.floor(55 + Math.min(200, (200 / 20) * weight)).toString(16)}`.slice(-2);
-            DrawManager.drawLine(
-              x * size + size / 2,
-              y * size + size / 2,
-              (x + vector.x) * size + size / 2,
-              (y + vector.y) * size + size / 2,
-              // "#9f9fffa0",
-              `#${red}${green}00`,
-              1,
-            );
+            // DrawManager.drawLine(
+            //   x * size + size / 2,
+            //   y * size + size / 2,
+            //   (x + vector.x) * size + size / 2,
+            //   (y + vector.y) * size + size / 2,
+            //   // "#9f9fffa0",
+            //   `#${red}${green}0090`,
+            //   1,
+            // );
             DrawManager.drawText(
               weight.toString(),
               x * size + size / 2 - 1,
@@ -271,7 +279,6 @@ export default class LevelManager extends AManager {
   private drawMapLayers(position: "above" | "below"): void {
     if (!this.tileLayers || !this.tileset) return;
 
-    const { GameManager } = this.gameInstance.MANAGERS;
     this.gameInstance.MANAGERS.DrawManager.queueDraw(
       0,
       0,
@@ -280,7 +287,7 @@ export default class LevelManager extends AManager {
       GRID_CONFIG.GRID_HEIGHT * GRID_CONFIG.TILE_SIZE,
       position === "above" ? ZIndex.MAP_OVERLAY : ZIndex.MAP_GROUND,
       0,
-      GameManager.getSettings().debug.enableFlowFieldRender ? 0.55 : 1,
+      1,
     );
   }
 
@@ -414,9 +421,7 @@ export default class LevelManager extends AManager {
 
     for (let i = 0; i < settings.startZombiesAmount; i++) {
       if (this.zombieSpawnsLeft <= 0) return;
-      const entityId = this.entityIdCounter++;
-      this.zombies.set(entityId, new Zombie(this.getRandomZombieSpawnPosition(), entityId, this.gameInstance));
-      this.zombieSpawnsLeft--;
+      this.spawnZombie();
     }
   }
 
@@ -431,16 +436,21 @@ export default class LevelManager extends AManager {
       this.spawnTimer = 0;
 
       if (this.zombieSpawnsLeft <= 0) return;
-      const entityId = this.entityIdCounter++;
-      this.zombies.set(entityId, new Zombie(this.getRandomZombieSpawnPosition(), entityId, this.gameInstance));
-      this.zombieSpawnsLeft--;
+      this.spawnZombie();
     }
   }
 
+  private spawnZombie(): Zombie | undefined {
+    const entityId = this.entityIdCounter++;
+    this.zombies.set(entityId, new Zombie(this.getRandomZombieSpawnPosition(), entityId, this.gameInstance));
+    this.zombieSpawnsLeft--;
+    return this.zombies.get(entityId);
+  }
+
   private getRandomZombieSpawnPosition(): WorldPosition {
-    // return this.mapSpawnPoints[Math.floor(Math.random() * this.mapSpawnPoints.length)] || { x: 0, y: 0 };
-    const result = this.mapSpawnPoints[Math.floor(Math.random() * this.mapSpawnPoints.length)] || { x: 0, y: 0 };
-    return { x: clamp(0, result.x, GRID_CONFIG.GRID_WIDTH - 1), y: clamp(0, result.y, GRID_CONFIG.GRID_HEIGHT - 1) };
+    return this.mapSpawnPoints[Math.floor(Math.random() * this.mapSpawnPoints.length)] || { x: 0, y: 0 };
+    // const result = this.mapSpawnPoints[Math.floor(Math.random() * this.mapSpawnPoints.length)] || { x: 0, y: 0 };
+    // return { x: clamp(1, result.x, GRID_CONFIG.GRID_WIDTH - 2), y: clamp(1, result.y, GRID_CONFIG.GRID_HEIGHT - 2) };
   }
 
   // Day and night
@@ -456,7 +466,6 @@ export default class LevelManager extends AManager {
     this.retreatFlowFields = undefined;
     this.levelState.phase = "night";
 
-    this.updatePathFindingGrid();
     for (const [_, zombie] of this.zombies) zombie.startChasingPlayer();
 
     const gameSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
@@ -485,6 +494,8 @@ export default class LevelManager extends AManager {
 
     for (const track of this.musicDay) track.pause();
     for (const track of this.musicNight) track.resume();
+
+    this.updatePathFindingGrid();
   }
 
   public startDay(): void {
@@ -492,19 +503,19 @@ export default class LevelManager extends AManager {
 
     this.addCurrency(this.gameInstance.MANAGERS.GameManager.getSettings().rules.game.endNightReward);
 
-    this.retreatFlowFields = [];
-    const amount = Math.max(20, this.zombies.size);
-    for (let i = 0; i < amount; i++) {
-      this.retreatFlowFields.push(
-        generateFlowField(
-          this.levelGrid,
-          this.zombies,
-          ...this.getRandomEdgePositions(),
-          ...this.getRandomEdgePositions(),
-        ),
-      );
-    }
-
+    // this.retreatFlowFields = [];
+    // const amount = Math.max(20, this.zombies.size);
+    // for (let i = 0; i < amount; i++) {
+    //   this.retreatFlowFields.push(
+    //     generateFlowField(
+    //       this.levelGrid,
+    //       this.zombies,
+    //       ...this.getRandomEdgePositions(),
+    //       ...this.getRandomEdgePositions(),
+    //     ),
+    //   );
+    // }
+    //
     this.levelState.phase = "day";
     this.stopSpawningZombies();
 
@@ -545,25 +556,25 @@ export default class LevelManager extends AManager {
   private updatePathFindingGrid(): void {
     // if (this.getIsDay()) return;
     if (!this.player || !this.levelGrid) return;
-    // this.lastPlayerGridPos = this.player.gridPos;
+    // this.lastPlayerGridPos = this.player._getGridPosition();
     this.flowField = generateFlowField(this.levelGrid, this.zombies, this.player._getGridPosition());
   }
 
   // Utils
   // ==================================================
 
-  private getRandomEdgePositions(): GridPosition[] {
-    return [
-      // Top edge
-      { x: Math.floor(GRID_CONFIG.GRID_WIDTH * Math.random()), y: 0 },
-      // Bottom edge
-      { x: Math.floor(GRID_CONFIG.GRID_WIDTH * Math.random()), y: GRID_CONFIG.GRID_HEIGHT - 1 },
-      // Left edge
-      { x: 0, y: Math.floor(GRID_CONFIG.GRID_HEIGHT * Math.random()) },
-      // Right edge
-      { x: GRID_CONFIG.GRID_WIDTH - 1, y: Math.floor(GRID_CONFIG.GRID_HEIGHT * Math.random()) },
-    ];
-  }
+  // private getRandomEdgePositions(): GridPosition[] {
+  //   return [
+  //     // Top edge
+  //     { x: Math.floor(GRID_CONFIG.GRID_WIDTH * Math.random()), y: 0 },
+  //     // Bottom edge
+  //     { x: Math.floor(GRID_CONFIG.GRID_WIDTH * Math.random()), y: GRID_CONFIG.GRID_HEIGHT - 1 },
+  //     // Left edge
+  //     { x: 0, y: Math.floor(GRID_CONFIG.GRID_HEIGHT * Math.random()) },
+  //     // Right edge
+  //     { x: GRID_CONFIG.GRID_WIDTH - 1, y: Math.floor(GRID_CONFIG.GRID_HEIGHT * Math.random()) },
+  //   ];
+  // }
 
   public destroy(): void {
     this.stopSpawningZombies();

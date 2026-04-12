@@ -1,4 +1,4 @@
-import { GRID_CONFIG, type GridPosition, gridToWorld, type WorldPosition } from "../../config/core/grid.config";
+import { GRID_CONFIG, type GridPosition, gridToWorld } from "../../config/core/grid.config";
 import type { DEFAULT_SETTINGS } from "../../config/game/settings.config";
 import type GameInstance from "../../GameInstance";
 import type { AssetImage } from "../../types/Asset";
@@ -8,9 +8,6 @@ import { ZIndex } from "../../types/ZIndex";
 import assertNever from "../../utils/assertNever";
 import { AnimatedSpriteSheet } from "../../utils/classes/AnimatedSpriteSheet";
 import isInsideGrid from "../../utils/grid/isInsideGrid";
-import { clamp } from "../../utils/math/clamp";
-import getDirectionalAngle from "../../utils/math/getDirectionalAngle";
-import getVectorDistance from "../../utils/math/getVectorDistance";
 import AEntity, { type EntityAnimations, type EntityBuiltInMethods } from "../abstract/AEntity";
 
 /** `this.gameInstance` */ let _game: GameInstance;
@@ -189,9 +186,9 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
       if (debug.showZombieState) {
         DrawManager.drawText(this._getState(), x, y - TILE_SIZE / 2, "#f89", 10, "Arial", "center");
       }
-      if (debug.enableFlowFieldRender) {
-        DrawManager.drawRectOutline(x, y, GRID_CONFIG.TILE_SIZE, GRID_CONFIG.TILE_SIZE, "#a24", 3);
-      }
+      // if (debug.enableFlowFieldRender) {
+      //   DrawManager.drawRectOutline(x, y, GRID_CONFIG.TILE_SIZE, GRID_CONFIG.TILE_SIZE, "#a24", 3);
+      // }
     },
 
     destructor: () => {},
@@ -200,6 +197,11 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
       const { LevelManager } = _game.MANAGERS;
       const state = this._getState();
 
+      if (!LevelManager.getIsDay() && !!LevelManager.player && this._getState() !== ZombieState.CHASING)
+        this.startChasingPlayer();
+
+      this.applyMovement(_deltaTime);
+
       switch (state) {
         case ZombieState.IDLE:
           this._animations.activeAnimations = [0];
@@ -207,19 +209,14 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
 
         case ZombieState.CHASING:
           this._animations.activeAnimations = [1];
-          this.updateChaseTarget();
-          this.applyMovement(_deltaTime);
           break;
 
         case ZombieState.ATTACKING:
           this._animations.activeAnimations = [2]; // TODO: This is not the correct animation
-          this.applyAttack(_deltaTime);
           break;
 
         case ZombieState.RETREATING:
           this._animations.activeAnimations = [1];
-          this.updateRetreatTarget();
-          this.applyMovement(_deltaTime);
 
           // Damage in sunlight
           if (isInsideGrid(this._getGridPosition()) && LevelManager.getIsDay()) this._handleDamage(_deltaTime * 1.5);
@@ -288,89 +285,49 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
     AssetManager.playAudioAsset("AZombieAttack", "sound", 0.85);
   }
 
-  private applyAttack(_deltaTime: number): void {
-    const zombieSettings = _game.MANAGERS.GameManager.getSettings().rules.zombie;
-    const { hasDealtDamage, distanceFromPlayer } = this._instance;
-    const { minDistanceFromPlayer } = this._attributes;
-    const worldPos = this._getWorldPosition();
-    const player = _game.MANAGERS.LevelManager.player;
+  // private applyAttack(_deltaTime: number): void {
+  //   const zombieSettings = _game.MANAGERS.GameManager.getSettings().rules.zombie;
+  //   const { hasDealtDamage, distanceFromPlayer } = this._instance;
+  //   const { minDistanceFromPlayer } = this._attributes;
+  //   const worldPos = this._getWorldPosition();
+  //   const player = _game.MANAGERS.LevelManager.player;
+  //
+  //   if (!hasDealtDamage && !!player) {
+  //     if (distanceFromPlayer < minDistanceFromPlayer) {
+  //       player._handleDamage(zombieSettings.attackDamage);
+  //       player.handlePhysicsPushback(
+  //         getDirectionalAngle(player._getWorldPosition(), worldPos),
+  //         zombieSettings.attackPushbackStr,
+  //       );
+  //       this._instance.hasDealtDamage = true;
+  //     }
+  //   }
 
-    if (!hasDealtDamage && !!player) {
-      if (distanceFromPlayer < minDistanceFromPlayer) {
-        player._handleDamage(zombieSettings.attackDamage);
-        player.handlePhysicsPushback(
-          getDirectionalAngle(player._getWorldPosition(), worldPos),
-          zombieSettings.attackPushbackStr,
-        );
-        this._instance.hasDealtDamage = true;
-      }
-    }
-
-    // Cool down and reset after the entire attack duration has passed
-    if (this._timers.attack >= 0) {
-      this._timers.attackCooldown = zombieSettings.attackCooldownSec * -1;
-      this._setState(ZombieState.CHASING);
-    }
-  }
-
-  private updateChaseTarget() {
-    const { LevelManager } = _game.MANAGERS;
-    const player = LevelManager.player;
-    const flowField = LevelManager.flowField;
-    const gridPos = this._getGridPosition();
-    if (!player || !flowField) return;
-
-    this._instance.distanceFromPlayer = getVectorDistance(this._getWorldPosition(), player._getWorldPosition());
-
-    if (isInsideGrid(gridPos) && this._instance.distanceFromPlayer > this._attributes.minDistanceFromPlayer) {
-      this._instance.normalizedNextPos = flowField?.[gridPos.x]?.[gridPos.y]?.normalizedVector ?? { x: 0, y: 0 };
-    } else {
-      const safeX = clamp(1, gridPos.x, GRID_CONFIG.GRID_WIDTH - 2);
-      const safeY = clamp(1, gridPos.y, GRID_CONFIG.GRID_HEIGHT - 2);
-      this._instance.normalizedNextPos = { x: safeX, y: safeY };
-    }
-
-    this._instance.prevGridPos = { ...this._getGridPosition() };
-  }
-
-  private updateRetreatTarget() {
-    const { LevelManager } = _game.MANAGERS;
-    const retreatFlowFields = LevelManager.retreatFlowFields;
-    const flowField = retreatFlowFields?.[0];
-    const gridPos = this._getGridPosition();
-    const { GRID_HEIGHT, GRID_WIDTH } = GRID_CONFIG;
-    if (!flowField) return;
-
-    if (!isInsideGrid(gridPos, GRID_CONFIG)) {
-      this._setState(ZombieState.IDLE);
-      this._setWorldPosition({
-        x: Math.floor(Math.random() * (GRID_WIDTH - 1)),
-        y: Math.floor(Math.random() * (GRID_HEIGHT - 1)),
-      });
-      return;
-    }
-
-    const { x, y } = gridPos;
-    if (x <= 0 || x >= GRID_WIDTH - 1 || y <= 0 || y >= GRID_HEIGHT - 1) {
-      const offsetX = x <= 0 ? -1 : x >= GRID_WIDTH - 1 ? 1 : 0;
-      const offsetY = y <= 0 ? -1 : y >= GRID_HEIGHT - 1 ? 1 : 0;
-      this._instance.normalizedNextPos = { x: x + offsetX * 2, y: y + offsetY * 2 };
-      return;
-    }
-
-    this._instance.normalizedNextPos = flowField[gridPos.x]?.[gridPos.y]?.normalizedVector ?? { x: 0, y: 0 };
-    this._instance.prevGridPos = { ...this._getGridPosition() };
-  }
+  // Cool down and reset after the entire attack duration has passed
+  //   if (this._timers.attack >= 0) {
+  //     this._timers.attackCooldown = zombieSettings.attackCooldownSec * -1;
+  //     this._setState(ZombieState.CHASING);
+  //   }
+  // }
 
   private applyMovement(_deltaTime: number): void {
-    if (!this._instance.normalizedNextPos) return;
+    if (this._getState() !== ZombieState.CHASING && this._getState() !== ZombieState.RETREATING) return;
 
+    const { LevelManager } = _game.MANAGERS;
+    const { flowField } = LevelManager;
     const { x, y } = this._getWorldPosition();
-    const { normalizedNextPos } = this._instance;
-    const futurePos: WorldPosition = {
-      x: x + normalizedNextPos.x * this._instance.speed * _deltaTime,
-      y: y + normalizedNextPos.y * this._instance.speed * _deltaTime,
+    const { x: gx, y: gy } = this._getGridPosition();
+    const { speed } = this._instance;
+
+    const flowFieldCurrentCell = flowField?.[gx]?.[gy];
+    const normalizedVector = flowFieldCurrentCell?.normalizedVector ?? { x: 0, y: 0 };
+    const futurePos = {
+      x: x + normalizedVector.x * speed * _deltaTime,
+      y: y + normalizedVector.y * speed * _deltaTime,
     };
+
+    // Check collision
+    // if flowFieldCurrentCell.
 
     this._setWorldPosition(futurePos);
 
