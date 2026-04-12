@@ -9,6 +9,7 @@ export interface FlowFieldCell {
   addedWeight: number;
   weight: number;
   normalizedVector: Vector;
+  // TODO: This is here for raycasting and should be made in a very different place
   enemiesOnCell: AnyEntity[];
 }
 
@@ -56,7 +57,7 @@ export default function generateFlowField(
     for (let dx = -1; dx <= 1; dx++) {
       for (let dy = -1; dy <= 1; dy++) {
         if (dx === 0 && dy === 0) continue; // Ignore self
-        if (dx !== 0 && dy !== 0) continue; // Ignore diagonal neighbors
+        // if (dx !== 0 && dy !== 0) continue; // Ignore diagonal neighbors
 
         const nx = currentVector.x + dx;
         const ny = currentVector.y + dy;
@@ -74,12 +75,11 @@ export default function generateFlowField(
     }
   }
 
-  // TODO: This is here for raycasting and should be made in a very different place
   for (const [_, enemy] of enemies) {
     const currentFieldCell = flowField?.[enemy._getGridPosition().x]?.[enemy._getGridPosition().y];
-    if (!currentFieldCell?.baseWeight) continue;
+    if (!currentFieldCell) continue;
     currentFieldCell.enemiesOnCell.push(enemy);
-    currentFieldCell.addedWeight += 1;
+    currentFieldCell.addedWeight += Infinity;
     currentFieldCell.weight = currentFieldCell.addedWeight + currentFieldCell.baseWeight;
     // if (currentFieldCell.weight === Infinity) continue;
     // currentFieldCell.weight = Infinity;

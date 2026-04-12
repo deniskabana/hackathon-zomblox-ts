@@ -88,7 +88,7 @@ export default abstract class AEntity<
 
     if (this._timers) {
       for (const timerName in this._timers) {
-        this._timers[timerName] += _deltaTime;
+        if (this._timers[timerName] !== Infinity) this._timers[timerName] += _deltaTime;
       }
     }
 

@@ -27,6 +27,7 @@ interface Timers {
   attackCooldown: number;
   attack: number;
   deathAnimation: number;
+  movementRestart: number;
 }
 
 interface Animations extends EntityAnimations {
@@ -59,12 +60,17 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
 
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     _game = gameInstance;
-    const { AssetManager, GameManager } = _game.MANAGERS;
+    const { AssetManager, GameManager, LevelManager } = _game.MANAGERS;
     const { maxSpeed, maxHealth, attackDuration, minDistanceFromPlayer } = GameManager.getSettings().rules.zombie;
 
     const size: number = GRID_CONFIG.TILE_SIZE * 1.5;
-    const fps: number = 11;
-    const timers: Timers = { attack: Infinity, attackCooldown: Infinity, deathAnimation: Infinity };
+    const fps: number = 9;
+    const timers: Timers = {
+      attack: Infinity,
+      attackCooldown: Infinity,
+      deathAnimation: Infinity,
+      movementRestart: Infinity,
+    };
 
     // Animations - could be much easier done as a json import
     type AnimationName = "idle" | "run" | "knocked" | "hit" | "death";
@@ -104,7 +110,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
 
     const animIndex = Math.floor(Math.random() * animationAssets.length);
     const animationList = [
-      AnimatedSpriteSheet.fromGrid(animationAssets[animIndex].idle!, fw, fh, frames.idle, fps),
+      AnimatedSpriteSheet.fromGrid(animationAssets[animIndex].idle!, fw, fh, frames.idle, fps * 0.65),
       AnimatedSpriteSheet.fromGrid(animationAssets[animIndex].run!, fw, fh, frames.run, fps),
       AnimatedSpriteSheet.fromGrid(animationAssets[animIndex].knocked!, fw, fh, frames.knocked, fps),
       AnimatedSpriteSheet.fromGrid(animationAssets[animIndex].hit!, fw, fh, frames.hit, fps, false),
@@ -115,7 +121,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
     const instance: Instance = {
       hasDealtDamage: false,
       normalizedNextPos: undefined,
-      speed: 0,
+      speed: maxSpeed,
       isFacingLeft: false,
       distanceFromPlayer: Infinity,
       prevGridPos: undefined,
@@ -126,14 +132,17 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
       size,
       entityId,
       animations,
-      initialState: ZombieState.IDLE,
+      initialState: ZombieState.CHASING,
       timers,
       health: maxHealth,
       instance,
     });
 
-    const rules = _game.MANAGERS.GameManager.getSettings().rules.zombie;
+    const rules = GameManager.getSettings().rules.zombie;
     this._attributes = Object.freeze({ maxSpeed, attackDuration, minDistanceFromPlayer, rules });
+
+    if (LevelManager.getIsDay()) this.startRetreating();
+    else this.startChasingPlayer();
   }
 
   public _builtIn: EntityBuiltInMethods = {
@@ -150,16 +159,20 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
         size,
         (size / 288) * 311,
         ZIndex.ENTITIES,
+        0,
+        1,
+        this._instance.isFacingLeft ? 1 : -1,
       );
     },
 
     drawShadow: () => {
       const { DrawManager, AssetManager } = _game.MANAGERS;
       const { x, y } = this._getWorldPosition();
-      const size = this._getSize();
+      const size = this._getSize() * 0.75;
       const shadowSprite = AssetManager.getImageAsset("IFXEntityShadow");
+
       if (!shadowSprite) return;
-      DrawManager.queueDraw(x - size / 2, y - size / 1.75, shadowSprite, size, size, ZIndex.GROUND_EFFECTS);
+      DrawManager.queueDraw(x - size / 2, y, shadowSprite, size, size, ZIndex.GROUND_EFFECTS);
     },
 
     drawDebug: () => {
@@ -186,9 +199,9 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
       if (debug.showZombieState) {
         DrawManager.drawText(this._getState(), x, y - TILE_SIZE / 2, "#f89", 10, "Arial", "center");
       }
-      // if (debug.enableFlowFieldRender) {
-      //   DrawManager.drawRectOutline(x, y, GRID_CONFIG.TILE_SIZE, GRID_CONFIG.TILE_SIZE, "#a24", 3);
-      // }
+      if (debug.enableFlowFieldRender) {
+        DrawManager.drawRectOutline(x, y, GRID_CONFIG.TILE_SIZE, GRID_CONFIG.TILE_SIZE, "#aa42a480", 1.5);
+      }
     },
 
     destructor: () => {},
@@ -196,15 +209,21 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
     update: (_deltaTime) => {
       const { LevelManager } = _game.MANAGERS;
       const state = this._getState();
-
-      if (!LevelManager.getIsDay() && !!LevelManager.player && this._getState() !== ZombieState.CHASING)
-        this.startChasingPlayer();
+      const { x: gx, y: gy } = this._getGridPosition();
+      const { x: pgx, y: pgy } = LevelManager.player?._getGridPosition() ?? { x: 0, y: 0 };
 
       this.applyMovement(_deltaTime);
 
       switch (state) {
         case ZombieState.IDLE:
           this._animations.activeAnimations = [0];
+          if (this._timers.movementRestart !== Infinity && this._timers.movementRestart >= 0) {
+            const isCloseToPlayer = pgx >= gx - 1 && pgx <= gx + 1 && pgy >= gy - 1 && pgy <= gy + 1;
+            if (!isCloseToPlayer) {
+              this._setState(ZombieState.CHASING);
+              this._timers.movementRestart = Infinity;
+            }
+          }
           break;
 
         case ZombieState.CHASING:
@@ -314,6 +333,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
     if (this._getState() !== ZombieState.CHASING && this._getState() !== ZombieState.RETREATING) return;
 
     const { LevelManager } = _game.MANAGERS;
+    const player = LevelManager.player;
     const { flowField } = LevelManager;
     const { x, y } = this._getWorldPosition();
     const { x: gx, y: gy } = this._getGridPosition();
@@ -326,13 +346,31 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
       y: y + normalizedVector.y * speed * _deltaTime,
     };
 
-    // Check collision
-    // if flowFieldCurrentCell.
+    if (futurePos.x < x)
+      // Sprite orientation
+      this._instance.isFacingLeft = true;
+    else if (futurePos.x > x) this._instance.isFacingLeft = false;
+
+    if (player) {
+      const { x: pgx, y: pgy } = player._getGridPosition();
+      // Do not move if 1 field next to player
+      if (pgx >= gx - 1 && pgx <= gx + 1 && pgy >= gy - 1 && pgy <= gy + 1) {
+        // TODO: Attack here I guess
+        this._setState(ZombieState.IDLE);
+        this._timers.movementRestart = -0.5;
+      }
+    }
+
+    if (normalizedVector.x === 0 && normalizedVector.y === 0) {
+      this._setState(ZombieState.IDLE);
+      this._timers.movementRestart = -2;
+    }
 
     this._setWorldPosition(futurePos);
 
-    // Sprite orientation
-    if (futurePos.x < x) this._instance.isFacingLeft = true;
+    if (futurePos.x < x)
+      // Sprite orientation
+      this._instance.isFacingLeft = true;
     else if (futurePos.x > x) this._instance.isFacingLeft = false;
   }
 }

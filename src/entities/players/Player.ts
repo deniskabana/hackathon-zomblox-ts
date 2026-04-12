@@ -73,7 +73,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
     const { GameManager, AssetManager } = _game.MANAGERS;
     const { startHealth, movementSpeed, defaultWeapon, stunCooldownSec } = GameManager.getSettings().rules.player;
     const size = GRID_CONFIG.TILE_SIZE * 1.5;
-    const fps = 11;
+    const fps = 13;
     const timers: Timers = {
       attackCooldown: Infinity,
       stepSound: Infinity,
@@ -82,7 +82,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
       stun: Infinity,
     };
     const animationList = [
-      AnimatedSpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerIdle")!, 32, 32, 6, fps),
+      AnimatedSpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerIdle")!, 32, 32, 6, fps * 0.65),
       AnimatedSpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerRun")!, 32, 32, 8, fps),
       AnimatedSpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerKnocked")!, 32, 32, 6, fps),
       AnimatedSpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerHit")!, 32, 32, 3, fps),
@@ -161,19 +161,12 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
 
     drawShadow: () => {
       const { DrawManager, AssetManager } = _game.MANAGERS;
-
+      const { x, y } = this._getWorldPosition();
       const shadowSprite = AssetManager.getImageAsset("IFXEntityShadow");
       const size = this._getSize() * 0.75;
 
-      if (shadowSprite)
-        DrawManager.queueDraw(
-          this._getWorldPosition().x - size / 2,
-          this._getWorldPosition().y - size * 0.65,
-          shadowSprite,
-          size,
-          size,
-          ZIndex.GROUND_EFFECTS,
-        );
+      if (!shadowSprite) return;
+      DrawManager.queueDraw(x - size / 2, y - size * 0.65, shadowSprite, size, size, ZIndex.GROUND_EFFECTS);
     },
 
     destructor: () => {
