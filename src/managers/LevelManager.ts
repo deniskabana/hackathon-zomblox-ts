@@ -56,6 +56,7 @@ export default class LevelManager extends AManager {
   // Gameplay
   private isSpawningZombies: boolean = false;
   private zombieSpawnsLeft: number = 0;
+  private pathfindingStaleAmountSec = 1 / 10;
 
   // Music
   private musicDay: AudioControl[] = [];
@@ -65,6 +66,7 @@ export default class LevelManager extends AManager {
   private nightEndCounter: number = 0;
   private spawnTimer: number = 0;
   private zombieSpawnInterval: number = 1200;
+  private pathfindingStaleTimer: number = 0;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
@@ -163,20 +165,15 @@ export default class LevelManager extends AManager {
 
     this.applyZombieSpawn(_deltaTime);
 
-    // const hasPlayerMoved = !areVectorsEqual(
-    //   this.lastPlayerGridPos ?? this.player._getGridPosition(),
-    //   this.player._getGridPosition(),
-    // );
-
     this.updateEnemyGrid();
 
     // if (hasPlayerMoved || !this.flowField) this.updatePathFindingGrid();
 
-    // if (this.pathfindingStaleTimer > 0) this.pathfindingStaleTimer -= _deltaTime;
-    // else {
-    this.updatePathFindingGrid();
-    //   this.pathfindingStaleTimer = this.pathfindingStaleAmountSec;
-    // }
+    if (this.pathfindingStaleTimer > 0) this.pathfindingStaleTimer -= _deltaTime;
+    else {
+      this.updatePathFindingGrid();
+      this.pathfindingStaleTimer = this.pathfindingStaleAmountSec;
+    }
 
     if (!this.getIsDay() && !!this.player) {
       this.nightEndCounter -= _deltaTime;
@@ -549,7 +546,7 @@ export default class LevelManager extends AManager {
     // if (this.getIsDay()) return;
     if (!this.player || !this.levelGrid) return;
     // this.lastPlayerGridPos = this.player._getGridPosition();
-    this.flowField = generateFlowField(this.levelGrid, this.zombies, this.player._getGridPosition());
+    this.flowField = generateFlowField(this.levelGrid, this.enemyGrid, this.player._getGridPosition());
   }
 
   // Utils

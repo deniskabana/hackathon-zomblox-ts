@@ -13,8 +13,7 @@ export type FlowField = FlowFieldCell[][];
 
 export default function generateFlowField(
   levelGrid: LevelGrid,
-  // enemyGrid: (Zombie[] | null)[][] | undefined,
-  enemies: Map<number, Zombie>,
+  enemyGrid: (Zombie[] | null)[][] | undefined,
   ...startPoints: GridPosition[]
 ): FlowField {
   const grid: FlowField = [];
@@ -39,7 +38,7 @@ export default function generateFlowField(
 
   while (queue.length > 0) {
     const currentVector = queue.shift()!;
-    const currentWeight = grid?.[currentVector.x]?.[currentVector.y]?.weight;
+    let currentWeight = grid?.[currentVector.x]?.[currentVector.y]?.weight;
 
     for (let dx = -1; dx <= 1; dx++) {
       for (let dy = -1; dy <= 1; dy++) {
@@ -51,7 +50,8 @@ export default function generateFlowField(
         const next: Vector = { x: nx, y: ny };
 
         if (!levelGrid?.[nx]?.[ny]) continue;
-        if (levelGrid?.[nx]?.[ny].state !== GridTileState.AVAILABLE) continue;
+        if (levelGrid?.[nx]?.[ny]?.state !== GridTileState.AVAILABLE) continue;
+        if (enemyGrid?.[nx]?.[ny]?.length) currentWeight++;
 
         if (grid[nx][ny].weight === Infinity) {
           grid[nx][ny].weight = currentWeight + 1;
@@ -59,11 +59,6 @@ export default function generateFlowField(
         }
       }
     }
-  }
-
-  for (const zombie of enemies.values()) {
-    const { x: zx, y: zy } = zombie._getGridPosition();
-    if (grid?.[zx]?.[zy]?.weight) grid[zx][zy].weight = Infinity;
   }
 
   // Calculate normalized vectors based on distances

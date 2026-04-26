@@ -1,4 +1,10 @@
-import { GRID_CONFIG, type GridPosition, gridToWorld, type WorldPosition } from "../../config/core/grid.config";
+import {
+  GRID_CONFIG,
+  type GridPosition,
+  gridToWorld,
+  type WorldPosition,
+  worldToGrid,
+} from "../../config/core/grid.config";
 import type { DEFAULT_SETTINGS } from "../../config/game/settings.config";
 import type GameInstance from "../../GameInstance";
 import type { AssetImage } from "../../types/Asset";
@@ -8,6 +14,7 @@ import { ZIndex } from "../../types/ZIndex";
 import assertNever from "../../utils/assertNever";
 import { AnimatedSpriteSheet } from "../../utils/classes/AnimatedSpriteSheet";
 import isInsideGrid from "../../utils/grid/isInsideGrid";
+import areVectorsEqual from "../../utils/math/areVectorsEqual";
 import lerp from "../../utils/math/lerp";
 import { lerpAngle } from "../../utils/math/radialLerp";
 import AEntity, { type EntityAnimations, type EntityBuiltInMethods } from "../abstract/AEntity";
@@ -188,17 +195,24 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
         DrawManager,
       } = _game.MANAGERS;
       const debug = GameManager.getSettings().debug;
-      const gridPos = this._getGridPosition();
       const { x, y } = this._getWorldPosition();
       const { TILE_SIZE } = GRID_CONFIG;
 
-      if (debug.showZombieTarget && player && this._instance.normalizedNextPos && isInsideGrid(gridPos)) {
+      if (debug.showZombieTarget && player) {
+        DrawManager.drawArrow(
+          x + 2,
+          y + 2,
+          x + (Math.cos(this._instance.direction) * TILE_SIZE) / 2 + 2,
+          y + (Math.sin(this._instance.direction) * TILE_SIZE) / 2 + 2,
+          "#000",
+          2,
+        );
         DrawManager.drawArrow(
           x,
           y,
-          x + TILE_SIZE * this._instance.normalizedNextPos?.x,
-          y + TILE_SIZE * this._instance.normalizedNextPos?.y,
-          "#5070ff",
+          x + (Math.cos(this._instance.direction) * TILE_SIZE) / 2,
+          y + (Math.sin(this._instance.direction) * TILE_SIZE) / 2,
+          "#a090ff",
           2,
         );
       }
@@ -244,7 +258,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
           this._animations.activeAnimations = [1];
 
           // Damage in sunlight
-          if (isInsideGrid(this._getGridPosition()) && LevelManager.getIsDay()) this._handleDamage(_deltaTime * 1.5);
+          if (isInsideGrid(this._getGridPosition()) && LevelManager.getIsDay()) this._handleDamage(_deltaTime * 5.5);
           break;
 
         case ZombieState.KNOCKED:
@@ -387,19 +401,30 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
     const separationVector = this.getSeparationVector();
     const separationWeight = 0.3;
 
-    const normalizedVector = {
+    const combined = {
       x: flowFieldVector.x + separationVector.x * separationWeight,
       y: flowFieldVector.y + separationVector.y * separationWeight,
     };
+    const mag = Math.hypot(combined.x, combined.y);
+    const normalizedVector = mag > 0 ? { x: combined.x / mag, y: combined.y / mag } : { x: 0, y: 0 };
 
-    this._instance.velocity = lerp(velocity, desiredVelocity, _deltaTime * 6);
+    this._instance.velocity = lerp(velocity, desiredVelocity, _deltaTime * 4);
     const targetDirection = Math.atan2(normalizedVector.y, normalizedVector.x);
-    this._instance.direction = lerpAngle(direction, targetDirection, _deltaTime * 8);
+    this._instance.direction = lerpAngle(direction, targetDirection, _deltaTime * 7);
 
     const futurePos: WorldPosition = {
-      x: x + Math.cos(this._instance.direction) * velocity * _deltaTime,
-      y: y + Math.sin(this._instance.direction) * velocity * _deltaTime,
+      x: x + Math.cos(this._instance.direction) * this._instance.velocity * _deltaTime,
+      y: y + Math.sin(this._instance.direction) * this._instance.velocity * _deltaTime,
     };
+
+    const futureGridPos = worldToGrid(futurePos);
+    const enemyGrid = LevelManager.getEnemyGrid();
+    if (
+      !areVectorsEqual(futureGridPos, this._getGridPosition()) &&
+      enemyGrid?.[futureGridPos.x]?.[futureGridPos.y]?.length
+    ) {
+      return;
+    }
 
     if (futurePos.x < x) this._instance.isFacingLeft = true;
     else if (futurePos.x > x) this._instance.isFacingLeft = false;
