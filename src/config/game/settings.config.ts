@@ -13,7 +13,7 @@ export const DEFAULT_SETTINGS = {
       coinLifetime: 20,
       rewardCoef: 1,
       zombieSpawnIntervalMs: 800,
-      zombieSpawnAmount: 30,
+      zombieSpawnAmount: 20,
       zombieSpawnCoef: 1.185,
       nightDurationSec: 30,
       enableBlocksDestruction: true,
