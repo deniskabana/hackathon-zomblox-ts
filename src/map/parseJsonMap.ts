@@ -1,4 +1,4 @@
-import testmap00 from "../../public/levels/basicmap-02.json";
+import testmap00 from "../../public/levels/basicmap-01.json";
 import { type GridPosition, type GridConfig, worldToGrid } from "../config/core/grid.config";
 import assertNever from "../utils/assertNever";
 import type { AnyLayer, LayerGroup, LayerObjectGroup, LayerTiles, MapObject } from "./map.types";

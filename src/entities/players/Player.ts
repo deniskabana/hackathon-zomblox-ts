@@ -129,7 +129,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
 
         DrawManager.queueDrawSprite(
           x - size / 2,
-          y - size * 0.95,
+          y - size * 0.9,
           animation,
           animation.getCurrentFrame(),
           size,
@@ -473,7 +473,6 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
       x: x + vector.x * _deltaTime * speed,
       y: y + vector.y * _deltaTime * speed,
     };
-    // const adjustedFuturePos = this.adjustMovementForCollisions(futurePos, GRID_CONFIG);
     const adjustedFuturePos = futurePos;
 
     if (areVectorsEqual(adjustedFuturePos, this._getWorldPosition())) return;
@@ -486,7 +485,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
 
     if (this._timers.stepSound >= 0) {
       AssetManager.playAudioAsset("APlayerStep", "sound");
-      this._timers.stepSound = this._attributes.stepSoundInterval;
+      this._timers.stepSound = -this._attributes.stepSoundInterval;
     }
   }
 

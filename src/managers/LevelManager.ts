@@ -24,7 +24,6 @@ import assertNever from "../utils/assertNever";
 import generateEmptyLevelGrid from "../utils/grid/generateEmptyLevelGrid";
 import generateFlowField, { type FlowField } from "../utils/grid/generateFlowFieldMap";
 import raycast2D from "../utils/grid/raycast2D";
-import areVectorsEqual from "../utils/math/areVectorsEqual";
 import { AManager } from "./abstract/AManager";
 import { BlockTypes } from "./BuildModeManager";
 
@@ -39,6 +38,7 @@ export default class LevelManager extends AManager {
   public flowField?: FlowField;
   public weightedFlowField?: FlowField;
   public retreatFlowFields?: FlowField[];
+  public enemyGrid?: (Zombie[] | null)[][];
 
   // Map data
   private tileLayers?: GameMap["tileLayers"];
@@ -56,7 +56,6 @@ export default class LevelManager extends AManager {
   // Gameplay
   private isSpawningZombies: boolean = false;
   private zombieSpawnsLeft: number = 0;
-  private lastPlayerGridPos: GridPosition | undefined;
 
   // Music
   private musicDay: AudioControl[] = [];
@@ -92,7 +91,7 @@ export default class LevelManager extends AManager {
     this.tileLayers = map.tileLayers;
 
     this.player = new Player(map.spawn, this.entityIdCounter++, this.gameInstance);
-    this.lastPlayerGridPos = this.player._getGridPosition();
+    // this.lastPlayerGridPos = this.player._getGridPosition();
 
     const gameSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
     this.zombieSpawnInterval = Math.min(
@@ -164,16 +163,18 @@ export default class LevelManager extends AManager {
 
     this.applyZombieSpawn(_deltaTime);
 
-    const hasPlayerMoved = !areVectorsEqual(
-      this.lastPlayerGridPos ?? this.player._getGridPosition(),
-      this.player._getGridPosition(),
-    );
+    // const hasPlayerMoved = !areVectorsEqual(
+    //   this.lastPlayerGridPos ?? this.player._getGridPosition(),
+    //   this.player._getGridPosition(),
+    // );
 
-    if (hasPlayerMoved || !this.flowField) this.updatePathFindingGrid();
+    this.updateEnemyGrid();
+
+    // if (hasPlayerMoved || !this.flowField) this.updatePathFindingGrid();
 
     // if (this.pathfindingStaleTimer > 0) this.pathfindingStaleTimer -= _deltaTime;
     // else {
-    // this.updatePathFindingGrid();
+    this.updatePathFindingGrid();
     //   this.pathfindingStaleTimer = this.pathfindingStaleAmountSec;
     // }
 
@@ -221,8 +222,8 @@ export default class LevelManager extends AManager {
             const y2 = cy + vector.y * half;
 
             // Shaft
-            DrawManager.drawLine(x1, y1, x2, y2, "#000000", 6);
-            DrawManager.drawLine(x1, y1, x2, y2, "#8fcffff0", 4);
+            DrawManager.drawLine(x1, y1, x2, y2, "#00000040", 4);
+            DrawManager.drawLine(x1, y1, x2, y2, "#8fcffff0", 2);
 
             // Arrow tip
             const tipLen = half * 0.5;
@@ -233,9 +234,12 @@ export default class LevelManager extends AManager {
               const wingAngle = angle + spread * side;
               const wx = x2 + Math.cos(wingAngle) * tipLen;
               const wy = y2 + Math.sin(wingAngle) * tipLen;
-              DrawManager.drawLine(x2, y2, wx, wy, "#000000", 6);
-              DrawManager.drawLine(x2, y2, wx, wy, "#8fcffff0", 4);
+              DrawManager.drawLine(x2, y2, wx, wy, "#00000040", 4);
+              DrawManager.drawLine(x2, y2, wx, wy, "#8fcffff0", 2);
             }
+
+            DrawManager.drawText(`${weight}`, x * size + size / 2 + 1, y * size + size / 2 + 1, "#000000");
+            DrawManager.drawText(`${weight}`, x * size + size / 2, y * size + size / 2);
           }
         }
       }
@@ -276,7 +280,6 @@ export default class LevelManager extends AManager {
       GRID_CONFIG.GRID_HEIGHT * GRID_CONFIG.TILE_SIZE,
       position === "above" ? ZIndex.MAP_OVERLAY : ZIndex.MAP_GROUND,
       0,
-      0.5,
     );
   }
 
@@ -545,8 +548,8 @@ export default class LevelManager extends AManager {
   private updatePathFindingGrid(): void {
     // if (this.getIsDay()) return;
     if (!this.player || !this.levelGrid) return;
-    this.lastPlayerGridPos = this.player._getGridPosition();
-    this.flowField = generateFlowField(this.levelGrid, this.player._getGridPosition());
+    // this.lastPlayerGridPos = this.player._getGridPosition();
+    this.flowField = generateFlowField(this.levelGrid, this.zombies, this.player._getGridPosition());
   }
 
   // Utils
@@ -585,5 +588,28 @@ export default class LevelManager extends AManager {
 
   public getTileset(): MapTilesetManager | undefined {
     return this.tileset;
+  }
+
+  private updateEnemyGrid(): void {
+    const grid: typeof this.enemyGrid = [];
+
+    for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
+      grid[x] = [];
+
+      for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
+        grid[x][y] = [];
+      }
+    }
+
+    for (const zombie of this.zombies.values()) {
+      const { x: zx, y: zy } = zombie._getGridPosition();
+      grid?.[zx]?.[zy]?.push(zombie);
+    }
+
+    this.enemyGrid = grid;
+  }
+
+  public getEnemyGrid(): typeof this.enemyGrid {
+    return this.enemyGrid;
   }
 }

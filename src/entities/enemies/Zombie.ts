@@ -1,4 +1,4 @@
-import { GRID_CONFIG, type GridPosition, gridToWorld } from "../../config/core/grid.config";
+import { GRID_CONFIG, type GridPosition, gridToWorld, type WorldPosition } from "../../config/core/grid.config";
 import type { DEFAULT_SETTINGS } from "../../config/game/settings.config";
 import type GameInstance from "../../GameInstance";
 import type { AssetImage } from "../../types/Asset";
@@ -9,6 +9,7 @@ import assertNever from "../../utils/assertNever";
 import { AnimatedSpriteSheet } from "../../utils/classes/AnimatedSpriteSheet";
 import isInsideGrid from "../../utils/grid/isInsideGrid";
 import lerp from "../../utils/math/lerp";
+import { lerpAngle } from "../../utils/math/radialLerp";
 import AEntity, { type EntityAnimations, type EntityBuiltInMethods } from "../abstract/AEntity";
 
 /** `this.gameInstance` */ let _game: GameInstance;
@@ -158,7 +159,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
       const activeAnimation = this._animations.animationList[this._animations.activeAnimations?.[0] ?? 0];
       DrawManager.queueDrawSprite(
         x - size / 2,
-        y - size / 2,
+        y - size / 2 - size / 4,
         activeAnimation,
         activeAnimation.getCurrentFrame(),
         size,
@@ -177,7 +178,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
       const shadowSprite = AssetManager.getImageAsset("IFXEntityShadow");
 
       if (!shadowSprite) return;
-      DrawManager.queueDraw(x - size / 2, y, shadowSprite, size, size, ZIndex.GROUND_EFFECTS);
+      DrawManager.queueDraw(x - size / 2, y - size / 4, shadowSprite, size, size, ZIndex.GROUND_EFFECTS);
     },
 
     drawDebug: () => {
@@ -333,6 +334,42 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
   //     this._setState(ZombieState.CHASING);
   //   }
   // }
+  //
+  private getSeparationVector(): Vector {
+    const vector = { x: 0, y: 0 };
+
+    if (this._getState() !== ZombieState.CHASING && this._getState() !== ZombieState.RETREATING) {
+      return vector;
+    }
+
+    const { LevelManager } = _game.MANAGERS;
+    const enemyGrid = LevelManager.getEnemyGrid();
+    const { x: gx, y: gy } = this._getGridPosition();
+    const selfWorldPos = this._getWorldPosition();
+
+    if (!enemyGrid) return vector;
+
+    const radius = GRID_CONFIG.TILE_SIZE * 2;
+
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        enemyGrid[gx + dx]?.[gy + dy]?.forEach((zombie) => {
+          if (this === zombie) return;
+
+          const worldPos = zombie._getWorldPosition();
+          const dist = Math.hypot(selfWorldPos.x - worldPos.x, selfWorldPos.y - worldPos.y);
+
+          if (dist === 0 || dist >= radius) return;
+
+          const strength = (radius - dist) / radius;
+          vector.x += ((selfWorldPos.x - worldPos.x) / dist) * strength;
+          vector.y += ((selfWorldPos.y - worldPos.y) / dist) * strength;
+        });
+      }
+    }
+
+    return vector;
+  }
 
   private applyMovement(_deltaTime: number): void {
     if (this._getState() !== ZombieState.CHASING && this._getState() !== ZombieState.RETREATING) return;
@@ -342,20 +379,29 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
     const { flowField } = LevelManager;
     const { x, y } = this._getWorldPosition();
     const { x: gx, y: gy } = this._getGridPosition();
-    const { velocity } = this._instance;
+    const { velocity, direction, desiredVelocity } = this._instance;
 
     const flowFieldCurrentCell = flowField?.[gx]?.[gy];
-    const normalizedVector = flowFieldCurrentCell?.normalizedVector ?? { x: 0, y: 0 };
-    this._instance.velocity = lerp(this._instance.velocity, this._instance.desiredVelocity, 0.25);
 
-    const futurePos = {
-      x: x + normalizedVector.x * velocity * _deltaTime,
-      y: y + normalizedVector.y * velocity * _deltaTime,
+    const flowFieldVector = flowFieldCurrentCell?.normalizedVector ?? { x: 0, y: 0 };
+    const separationVector = this.getSeparationVector();
+    const separationWeight = 0.3;
+
+    const normalizedVector = {
+      x: flowFieldVector.x + separationVector.x * separationWeight,
+      y: flowFieldVector.y + separationVector.y * separationWeight,
     };
 
-    if (futurePos.x < x)
-      // Sprite orientation
-      this._instance.isFacingLeft = true;
+    this._instance.velocity = lerp(velocity, desiredVelocity, _deltaTime * 6);
+    const targetDirection = Math.atan2(normalizedVector.y, normalizedVector.x);
+    this._instance.direction = lerpAngle(direction, targetDirection, _deltaTime * 8);
+
+    const futurePos: WorldPosition = {
+      x: x + Math.cos(this._instance.direction) * velocity * _deltaTime,
+      y: y + Math.sin(this._instance.direction) * velocity * _deltaTime,
+    };
+
+    if (futurePos.x < x) this._instance.isFacingLeft = true;
     else if (futurePos.x > x) this._instance.isFacingLeft = false;
 
     if (player) {
@@ -368,16 +414,11 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
       }
     }
 
-    if (normalizedVector.x === 0 && normalizedVector.y === 0) {
+    if (Math.abs(normalizedVector.x) < 0.5 && Math.abs(normalizedVector.y) < 0.5) {
       this._setState(ZombieState.IDLE);
-      this._timers.movementRestart = -2;
+      this._timers.movementRestart = -0.5;
     }
 
     this._setWorldPosition(futurePos);
-
-    if (futurePos.x < x)
-      // Sprite orientation
-      this._instance.isFacingLeft = true;
-    else if (futurePos.x > x) this._instance.isFacingLeft = false;
   }
 }
