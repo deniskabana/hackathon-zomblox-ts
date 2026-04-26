@@ -8,6 +8,7 @@ import { ZIndex } from "../../types/ZIndex";
 import assertNever from "../../utils/assertNever";
 import { AnimatedSpriteSheet } from "../../utils/classes/AnimatedSpriteSheet";
 import isInsideGrid from "../../utils/grid/isInsideGrid";
+import lerp from "../../utils/math/lerp";
 import AEntity, { type EntityAnimations, type EntityBuiltInMethods } from "../abstract/AEntity";
 
 /** `this.gameInstance` */ let _game: GameInstance;
@@ -42,7 +43,9 @@ interface Attributes {
 }
 
 interface Instance {
-  speed: number;
+  velocity: number;
+  desiredVelocity: number;
+  direction: number;
   hasDealtDamage: boolean;
   normalizedNextPos: Vector | undefined;
   isFacingLeft: boolean;
@@ -121,7 +124,9 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
     const instance: Instance = {
       hasDealtDamage: false,
       normalizedNextPos: undefined,
-      speed: maxSpeed,
+      direction: 0,
+      velocity: 0,
+      desiredVelocity: maxSpeed,
       isFacingLeft: false,
       distanceFromPlayer: Infinity,
       prevGridPos: undefined,
@@ -280,17 +285,17 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
 
   public startWaiting(): void {
     this._setState(ZombieState.IDLE);
-    this._instance.speed = 0;
+    this._instance.desiredVelocity = 0;
   }
 
   public startChasingPlayer(): void {
     this._setState(ZombieState.CHASING);
-    this._instance.speed = this._attributes.maxSpeed;
+    this._instance.desiredVelocity = this._attributes.maxSpeed;
   }
 
   public startRetreating(): void {
     this._setState(ZombieState.RETREATING);
-    this._instance.speed = this._attributes.maxSpeed * 3.25;
+    this._instance.desiredVelocity = this._attributes.maxSpeed * 3.25;
   }
 
   public startAttacking(): void {
@@ -337,13 +342,15 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
     const { flowField } = LevelManager;
     const { x, y } = this._getWorldPosition();
     const { x: gx, y: gy } = this._getGridPosition();
-    const { speed } = this._instance;
+    const { velocity } = this._instance;
 
     const flowFieldCurrentCell = flowField?.[gx]?.[gy];
     const normalizedVector = flowFieldCurrentCell?.normalizedVector ?? { x: 0, y: 0 };
+    this._instance.velocity = lerp(this._instance.velocity, this._instance.desiredVelocity, 0.25);
+
     const futurePos = {
-      x: x + normalizedVector.x * speed * _deltaTime,
-      y: y + normalizedVector.y * speed * _deltaTime,
+      x: x + normalizedVector.x * velocity * _deltaTime,
+      y: y + normalizedVector.y * velocity * _deltaTime,
     };
 
     if (futurePos.x < x)

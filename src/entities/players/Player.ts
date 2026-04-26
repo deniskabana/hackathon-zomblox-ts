@@ -533,12 +533,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
 
     for (const check of edgeChecks) {
       if (!isInsideGrid(check.pos)) continue;
-      if (
-        flowField?.[check.pos.x]?.[check.pos.y]?.baseWeight !== Infinity &&
-        flowField?.[check.pos.x]?.[check.pos.y]?.enemiesOnCell.length < 1
-      ) {
-        continue;
-      }
+      if (flowField?.[check.pos.x]?.[check.pos.y]?.weight !== Infinity) continue;
 
       hasEdgeCollision = true;
 
@@ -574,11 +569,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
 
       for (const check of cornerChecks) {
         if (!isInsideGrid(check.pos)) continue;
-        if (
-          flowField?.[check.pos.x]?.[check.pos.y]?.baseWeight !== Infinity &&
-          flowField?.[check.pos.x]?.[check.pos.y]?.enemiesOnCell.length < 1
-        )
-          continue;
+        if (flowField?.[check.pos.x]?.[check.pos.y]?.weight !== Infinity) continue;
 
         const blockRect = {
           left: check.pos.x * gridConfig.TILE_SIZE,

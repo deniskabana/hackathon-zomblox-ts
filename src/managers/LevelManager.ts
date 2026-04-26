@@ -211,16 +211,31 @@ export default class LevelManager extends AManager {
             const vector = currentFieldCell.normalizedVector;
             if (weight === Infinity) continue;
 
-            const green = `0${Math.floor(255 - Math.min(200, (200 / 20) * weight)).toString(16)}`.slice(-2);
-            const red = `0${Math.floor(25 + Math.min(200, (200 / 5) * weight)).toString(16)}`.slice(-2);
-            DrawManager.drawLine(
-              x * size + size / 2,
-              y * size + size / 2,
-              x * size + vector.x * (size / 2) + size / 2,
-              y * size + vector.y * (size / 2) + size / 2,
-              `#${red}${green}30ff`,
-              2,
-            );
+            const cx = x * size + size / 2;
+            const cy = y * size + size / 2;
+            const half = size / 2;
+
+            const x1 = cx - vector.x * half;
+            const y1 = cy - vector.y * half;
+            const x2 = cx + vector.x * half;
+            const y2 = cy + vector.y * half;
+
+            // Shaft
+            DrawManager.drawLine(x1, y1, x2, y2, "#000000", 6);
+            DrawManager.drawLine(x1, y1, x2, y2, "#8fcffff0", 4);
+
+            // Arrow tip
+            const tipLen = half * 0.5;
+            const angle = Math.atan2(vector.y, vector.x);
+            const spread = Math.PI * 0.75; // 135°
+
+            for (const side of [-1, 1]) {
+              const wingAngle = angle + spread * side;
+              const wx = x2 + Math.cos(wingAngle) * tipLen;
+              const wy = y2 + Math.sin(wingAngle) * tipLen;
+              DrawManager.drawLine(x2, y2, wx, wy, "#000000", 6);
+              DrawManager.drawLine(x2, y2, wx, wy, "#8fcffff0", 4);
+            }
           }
         }
       }
