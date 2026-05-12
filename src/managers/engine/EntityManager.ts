@@ -1,5 +1,7 @@
 import type AEntity from "../../entities/engine/AEntity";
+import type GameInstance from "../../GameInstance";
 import assertNever from "../../utils/assertNever";
+import { AManager } from "../abstract/AManager";
 
 export type EntityID = number;
 
@@ -10,7 +12,7 @@ export enum EntityType {
   BLOCK = "BLOCK",
 }
 
-export class EntityManager {
+export class EntityManager extends AManager {
   private _entityIdCounter: EntityID = 0;
   private _entities: Map<EntityID, AEntity>;
 
@@ -20,12 +22,26 @@ export class EntityManager {
   private _collectables: Set<EntityID>;
   private _blocks: Set<EntityID>;
 
-  constructor() {
+  constructor(gameInstance: GameInstance) {
+    super(gameInstance);
+
     this._entities = new Map<EntityID, AEntity>();
     this._players = new Set<EntityID>();
     this._enemies = new Set<EntityID>();
     this._collectables = new Set<EntityID>();
     this._blocks = new Set<EntityID>();
+  }
+
+  public init() {
+    this._entities.clear();
+    this._players.clear();
+    this._enemies.clear();
+    this._collectables.clear();
+    this._blocks.clear();
+  }
+
+  public destroy() {
+    this._entityIdCounter = 0;
   }
 
   public updateBefore(_deltaTime: number, _unscaledDeltaTime: number): void {

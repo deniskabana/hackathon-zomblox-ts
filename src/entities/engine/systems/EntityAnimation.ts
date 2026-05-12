@@ -1,8 +1,8 @@
-import { GRID_CONFIG, type WorldPosition } from "../../config/core/grid.config";
-import DrawManager from "../../managers/core/DrawManager";
-import type { AssetImage } from "../../types/Asset";
-import { ZIndex } from "../../types/ZIndex";
-import { AnimatedSpriteSheet } from "../../utils/classes/AnimatedSpriteSheet";
+import { type WorldPosition, GRID_CONFIG } from "../../../config/core/grid.config";
+import type DrawManager from "../../../managers/core/DrawManager";
+import type { AssetImage } from "../../../types/Asset";
+import { ZIndex } from "../../../types/ZIndex";
+import { AnimatedSpriteSheet } from "../../../utils/classes/AnimatedSpriteSheet";
 
 export type AnimationID = string;
 
@@ -83,6 +83,13 @@ export class EntityAnimations {
     worldPos: WorldPosition,
     size: number = GRID_CONFIG.TILE_SIZE,
     drawManager: DrawManager,
+    overrides?: Partial<{
+      scaleX: number;
+      scaleY: number;
+      alpha: number;
+      rotation: number;
+      offset: { x: number; y: number };
+    }>,
   ): void {
     for (const animationId of this.active) {
       const currentAnimation = this.animations.find(({ id }) => id === animationId);
@@ -91,16 +98,17 @@ export class EntityAnimations {
       const spritesheet = this.spriteSheets[currentAnimation.id][this.activeVariant];
 
       drawManager.queueDrawSprite(
-        worldPos.x + (currentAnimation.offset?.x ?? 0) - size / 2,
-        worldPos.y + (currentAnimation.offset?.y ?? 0) - size / 2,
+        worldPos.x + (overrides?.offset?.x ?? currentAnimation.offset?.x ?? 0) - size / 2,
+        worldPos.y + (overrides?.offset?.y ?? currentAnimation.offset?.y ?? 0) - size / 2,
         spritesheet,
         spritesheet.getCurrentFrame(),
         size,
         size,
         ZIndex.ENTITIES,
-        currentAnimation.rotation ?? 0,
-        currentAnimation.alpha ?? 1,
-        currentAnimation.scale ?? 1,
+        overrides?.rotation ?? currentAnimation.rotation ?? 0,
+        overrides?.alpha ?? currentAnimation.alpha ?? 1,
+        overrides?.scaleX ?? currentAnimation.scale ?? 1,
+        overrides?.scaleY ?? currentAnimation.scale ?? 1,
       );
     }
   }

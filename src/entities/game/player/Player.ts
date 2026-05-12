@@ -1,29 +1,30 @@
 import {
-  GRID_CONFIG,
-  type GridConfig,
   type GridPosition,
+  GRID_CONFIG,
   gridToWorld,
   type WorldPosition,
   worldToGrid,
-} from "../../config/core/grid.config";
-import type { AssetAudioName } from "../../config/game/assets.config";
-import { type Weapon, DEF_WEAPONS } from "../../config/game/weapons.config";
-import type GameInstance from "../../GameInstance";
-import { EntityType } from "../../types/EntityType";
-import { GameControls } from "../../types/GameControls";
-import { GridTileState } from "../../types/Grid";
-import { ZIndex } from "../../types/ZIndex";
-import assertNever from "../../utils/assertNever";
-import { AnimatedSpriteSheet } from "../../utils/classes/AnimatedSpriteSheet";
-import SpriteSheet from "../../utils/classes/SpriteSheet";
-import { Direction } from "../../utils/getCardinalDirection";
-import isInsideGrid from "../../utils/grid/isInsideGrid";
-import areVectorsEqual from "../../utils/math/areVectorsEqual";
-import getVectorDistance from "../../utils/math/getVectorDistance";
-import normalizeVector from "../../utils/math/normalizeVector";
-import radiansToVector from "../../utils/math/radiansToVector";
-import AEntity, { type AEntityAnimations, type AEntityEngine, type AEntityTimers } from "../abstract/AEntity";
-import { EntityTimer } from "../utils/EntityTimer";
+  type GridConfig,
+} from "../../../config/core/grid.config";
+import type { AssetAudioName } from "../../../config/game/assets.config";
+import type { Weapon, DEF_WEAPONS } from "../../../config/game/weapons.config";
+import type GameInstance from "../../../GameInstance";
+import { EntityType } from "../../../types/EntityType";
+import type { GameControls } from "../../../types/GameControls";
+import { GridTileState } from "../../../types/Grid";
+import { ZIndex } from "../../../types/ZIndex";
+import assertNever from "../../../utils/assertNever";
+import { AnimatedSpriteSheet } from "../../../utils/classes/AnimatedSpriteSheet";
+import SpriteSheet from "../../../utils/classes/SpriteSheet";
+import { Direction } from "../../../utils/getCardinalDirection";
+import isInsideGrid from "../../../utils/grid/isInsideGrid";
+import areVectorsEqual from "../../../utils/math/areVectorsEqual";
+import getVectorDistance from "../../../utils/math/getVectorDistance";
+import normalizeVector from "../../../utils/math/normalizeVector";
+import radiansToVector from "../../../utils/math/radiansToVector";
+import AEntity, { type AEntityTimers, type AEntityEngine } from "../../engine/AEntity";
+import type { EntityAnimations } from "../../engine/systems/EntityAnimation";
+import { EntityTimer } from "../../engine/systems/EntityTimer";
 
 /** `this.gameInstance` */ let _game: GameInstance;
 
@@ -84,7 +85,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       AnimatedSpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerHit")!, 32, 32, 3, fps),
       AnimatedSpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerDeath")!, 32, 32, 8, fps),
     ];
-    const animations: AEntityAnimations = { fps, animationList, activeAnimations: [0] };
+    const animations: EntityAnimations = { fps, animationList, activeAnimations: [0] };
     const instance: Instance = {
       currentWeapon: defaultWeapon,
       prevGridPos: undefined,
@@ -170,7 +171,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       if (LevelManager.levelState) UIManager.showGameOverScreen(LevelManager.levelState); // TODO: Move to LevelManager
     },
 
-    update: (_deltaTime) => {
+    update: (_deltaTime: number) => {
       const state = this._getState();
 
       switch (state) {

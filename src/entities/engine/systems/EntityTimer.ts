@@ -5,9 +5,9 @@ export class EntityTimer<_OptionalDescription extends string | undefined = undef
   private _initialValue: number;
 
   constructor({ initialValue, autoStart = true }: { initialValue: number; autoStart?: boolean }) {
-    this._value = initialValue;
+    this._initialValue = initialValue * -1;
+    this._value = this._initialValue;
     this._active = autoStart;
-    this._initialValue = initialValue;
   }
 
   public _tick(deltaTime: number): void {

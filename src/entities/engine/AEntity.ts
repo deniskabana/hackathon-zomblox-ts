@@ -1,11 +1,7 @@
 import { type WorldPosition, type GridPosition, worldToGrid } from "../../config/core/grid.config";
 import type GameInstance from "../../GameInstance";
-import { EntityAnimations, type EntityAnimationsSpecs } from "../utils/EntityAnimation";
-import { EntityTimer } from "../utils/EntityTimer";
-
-export type AEntityInstance = Record<string, unknown>;
-
-export type AEntityTimers = { [key: string]: EntityTimer };
+import { EntityAnimations, type EntityAnimationsSpecs } from "./systems/EntityAnimation";
+import { EntityTimer } from "./systems/EntityTimer";
 
 export interface AEntityEngine {
   draw: () => void;
@@ -33,6 +29,7 @@ export default abstract class AEntity<
   TState extends string | undefined = undefined,
   TInstance extends object | undefined = undefined,
   TTimers extends object | undefined = undefined,
+  TSettings extends object | undefined = undefined,
 > {
   protected readonly _entityId: number;
 
@@ -46,6 +43,7 @@ export default abstract class AEntity<
   protected _timers: TTimers;
   protected _animations: EntityAnimations | undefined;
   protected _instance: TInstance;
+  protected _settings: Readonly<TSettings>;
 
   /** Entity manifest — implement in every subclass as an object literal. */
   public abstract _engine: AEntityEngine;
@@ -59,6 +57,7 @@ export default abstract class AEntity<
     timers?: TTimers;
     animations?: EntityAnimationsSpecs;
     instance?: TInstance;
+    settings?: TSettings;
   }) {
     this._entityId = props.entityId;
     this._health = props.health ?? Infinity;
@@ -68,13 +67,15 @@ export default abstract class AEntity<
     this._state = props.initialState;
     this._instance = props.instance ?? ({} as TInstance);
     this._timers = props.timers ?? ({} as TTimers);
+    this._settings = Object.freeze({ ...props.settings }) as TSettings;
     if (props.animations) this._animations = new EntityAnimations(props.animations);
   }
 
   public _updateBefore(_deltaTime: number, _unscaledDeltaTime: number): void {
     if (this._timers) {
       for (const key in this._timers) {
-        (this._timers as AEntityTimers)[key]._tick(_deltaTime);
+        const timer = (this._timers as never)?.[key] as EntityTimer | undefined;
+        if (timer instanceof EntityTimer) timer._tick(_deltaTime);
       }
     }
 
@@ -126,6 +127,7 @@ export default abstract class AEntity<
       gridPos: this._getGridPosition(),
       timers,
       instance: this._instance ? { ...this._instance } : undefined,
+      settings: this._settings,
     };
   }
 

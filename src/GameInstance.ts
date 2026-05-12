@@ -4,6 +4,7 @@ import CameraManager from "./managers/core/CameraManager";
 import DrawManager from "./managers/core/DrawManager";
 import GameManager from "./managers/core/GameManager";
 import InputManager from "./managers/core/InputManager";
+import { EntityManager } from "./managers/engine/EntityManager";
 import LevelManager from "./managers/LevelManager";
 import LightManager from "./managers/LightManager";
 import UIManager from "./managers/UIManager";
@@ -21,6 +22,7 @@ export default class GameInstance {
     BuildModeManager: BuildModeManager;
     CameraManager: CameraManager;
     DrawManager: DrawManager;
+    EntityManager: EntityManager;
     GameManager: GameManager;
     InputManager: InputManager;
     LevelManager: LevelManager;
@@ -50,6 +52,7 @@ export default class GameInstance {
       BuildModeManager: new BuildModeManager(this),
       CameraManager: new CameraManager(this),
       DrawManager: new DrawManager(this, this.canvas),
+      EntityManager: new EntityManager(this),
       GameManager: new GameManager(this),
       InputManager: new InputManager(this),
       LevelManager: new LevelManager(this),
@@ -109,6 +112,7 @@ export default class GameInstance {
       UIManager,
       GameManager,
       CameraManager,
+      EntityManager,
       DrawManager,
       InputManager,
       LevelManager,
@@ -120,6 +124,7 @@ export default class GameInstance {
     // Asset manager was initialized in loadAndPrepareGame()
     BuildModeManager.init();
     CameraManager.init();
+    EntityManager.init();
     DrawManager.init();
     InputManager.init();
     LevelManager.init();
@@ -153,6 +158,7 @@ export default class GameInstance {
       GameManager,
       CameraManager,
       DrawManager,
+      EntityManager,
       InputManager,
       LevelManager,
       LightManager,
@@ -163,6 +169,7 @@ export default class GameInstance {
     BuildModeManager.destroy();
     CameraManager.destroy();
     DrawManager.destroy();
+    EntityManager.destroy();
     GameManager.destroy();
     InputManager.destroy();
     LevelManager.destroy();

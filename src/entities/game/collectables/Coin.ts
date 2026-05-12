@@ -50,8 +50,7 @@ export default class Coin extends AEntity<undefined, Instance, Timers> {
   public _engine: AEntityEngine = {
     draw: () => {
       const { DrawManager } = _game.MANAGERS;
-      const size = GRID_CONFIG.TILE_SIZE / 3;
-      this._animations?.drawActiveAnimations(this._getWorldPosition(), size, DrawManager);
+      this._animations?.drawActiveAnimations(this._getWorldPosition(), this._getSize(), DrawManager);
     },
 
     drawShadow: () => {
