@@ -1,6 +1,5 @@
 import { GRID_CONFIG, gridToWorld } from "../../../config/core/grid.config";
 import type GameInstance from "../../../GameInstance";
-import { EntityType } from "../../../types/EntityType";
 import { ZIndex } from "../../../types/ZIndex";
 import getVectorDistance from "../../../utils/math/getVectorDistance";
 import AEntity, { type EntityConstructorProps, type AEntityEngine } from "../../engine/AEntity";
@@ -15,18 +14,22 @@ interface Timers {
 
 interface Instance {
   playerDistance: number;
+  lightSourceId: number | undefined;
 }
 
 export default class Coin extends AEntity<undefined, Instance, Timers> {
   constructor({ gameInstance, entityId, gridPos }: EntityConstructorProps) {
     _game = gameInstance;
-    const { GameManager, AssetManager } = _game.MANAGERS;
-    const gameSettings = GameManager.getSettings().rules.game;
+    const { LightManager, AssetManager, SettingsManager } = _game.MANAGERS;
+    const { lifetimeCoin } = SettingsManager.getSettings().collectables;
     const size = GRID_CONFIG.TILE_SIZE / 3;
     const timers: Timers = {
-      coinLifetime: new EntityTimer({ initialValue: gameSettings.coinLifetime, autoStart: true }),
+      coinLifetime: new EntityTimer({ initialValue: lifetimeCoin, autoStart: true }),
     };
-    const instance: Instance = { playerDistance: Infinity };
+    const instance: Instance = {
+      playerDistance: Infinity,
+      lightSourceId: LightManager.addLightSource(gridToWorld(gridPos)),
+    };
 
     const animations: EntityAnimationsSpecs = {
       frameWidth: 128,
@@ -45,8 +48,6 @@ export default class Coin extends AEntity<undefined, Instance, Timers> {
       initialState: undefined,
       instance,
     });
-
-    if (gameSettings.enableRewardAutoCollect) this.handleCollected();
   }
 
   public _engine: AEntityEngine = {
@@ -67,31 +68,41 @@ export default class Coin extends AEntity<undefined, Instance, Timers> {
     drawDebug: () => {},
 
     updateBefore: () => {
-      {
-        const { LevelManager } = _game.MANAGERS;
-        const player = LevelManager.player;
-        if (!player) return;
+      const { LevelManager, SettingsManager } = _game.MANAGERS;
+      const { autoCollect } = SettingsManager.getSettings().collectables;
+      const player = LevelManager.player;
 
-        const { x: playerX, y: playerY } = player._getWorldPosition();
-        this._instance.playerDistance = player
-          ? getVectorDistance(
-              { x: playerX - GRID_CONFIG.TILE_SIZE / 2, y: playerY - GRID_CONFIG.TILE_SIZE / 2 },
-              this._getWorldPosition(),
-            )
-          : Infinity;
-      }
+      if (autoCollect) this.handleCollected();
+      if (!player) return;
+
+      const { x: playerX, y: playerY } = player._getWorldPosition();
+      this._instance.playerDistance = player
+        ? getVectorDistance(
+            { x: playerX - GRID_CONFIG.TILE_SIZE / 2, y: playerY - GRID_CONFIG.TILE_SIZE / 2 },
+            this._getWorldPosition(),
+          )
+        : Infinity;
+    },
+
+    onDestroy: () => {
+      const { LightManager } = _game.MANAGERS;
+      const { lightSourceId } = this._instance;
+      if (lightSourceId) LightManager.removeLightSource(lightSourceId);
     },
 
     updateAfter: () => {
-      if (this._instance.playerDistance < GRID_CONFIG.TILE_SIZE * 0.75) this.handleCollected();
+      const { SettingsManager } = _game.MANAGERS;
+      const { minDistanceFromPlayerPx } = SettingsManager.getSettings().collectables;
+
+      if (this._instance.playerDistance < minDistanceFromPlayerPx) this.handleCollected();
       if (this._timers.coinLifetime.getIsDone()) this._destructor();
     },
   };
 
   private handleCollected(): void {
-    const { AssetManager, LevelManager } = _game.MANAGERS;
+    const { AssetManager, LevelManager, EntityManager } = _game.MANAGERS;
     AssetManager.playAudioAsset("AFXCoinCollected", "sound", 0.3);
     LevelManager.addCurrency(1);
-    LevelManager.destroyEntity(this._entityId, EntityType.COLLECTABLE);
+    EntityManager.destroyEntity(this._entityId);
   }
 }

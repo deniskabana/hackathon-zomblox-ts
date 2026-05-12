@@ -14,8 +14,8 @@ interface Instance {
 export default class BlockBarrelFire extends AEntity<undefined, Instance> {
   constructor({ gameInstance, entityId, gridPos }: EntityConstructorProps) {
     _game = gameInstance;
-    const { GameManager, LightManager, AssetManager } = _game.MANAGERS;
-    const settings = GameManager.getSettings().rules.blocks;
+    const { SettingsManager, LightManager, AssetManager } = _game.MANAGERS;
+    const settings = SettingsManager.getSettings().blocks;
     const size = GRID_CONFIG.TILE_SIZE;
 
     const instance: Instance = { lightSourceId: undefined };
@@ -29,7 +29,7 @@ export default class BlockBarrelFire extends AEntity<undefined, Instance> {
 
     super({
       worldPos: gridToWorld(gridPos),
-      health: settings.woodStartHealth,
+      health: settings.healthFireBarrel,
       entityId,
       animations,
       size,
@@ -64,6 +64,14 @@ export default class BlockBarrelFire extends AEntity<undefined, Instance> {
       );
 
       this._animations?.drawActiveAnimations(this._getWorldPosition(), size, DrawManager);
+    },
+
+    updateAfter: () => {
+      const { SettingsManager } = _game.MANAGERS;
+      const settings = SettingsManager.getSettings().blocks;
+      if (this._getHealth() !== Infinity && !settings.enableDestruction) {
+        this._setHealth(Infinity);
+      }
     },
 
     drawDebug: () => {},

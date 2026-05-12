@@ -124,6 +124,7 @@ export default class GameInstance {
       InputManager,
       LevelManager,
       LightManager,
+      SettingsManager,
       VFXManager,
     } = this.MANAGERS;
     if (this.MANAGERS.GameManager.getState() !== GameState.READY) return;
@@ -136,6 +137,7 @@ export default class GameInstance {
     InputManager._init();
     LevelManager._init();
     LightManager._init();
+    SettingsManager._init();
     VFXManager._init();
 
     DrawManager.startRenderLoop();
@@ -169,6 +171,7 @@ export default class GameInstance {
       InputManager,
       LevelManager,
       LightManager,
+      SettingsManager,
       VFXManager,
     } = this.MANAGERS;
 
@@ -181,6 +184,7 @@ export default class GameInstance {
     InputManager._destroy();
     LevelManager._destroy();
     LightManager._destroy();
+    SettingsManager._destroy();
     UIManager._destroy();
     VFXManager._destroy();
   }

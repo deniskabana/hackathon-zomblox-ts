@@ -9,12 +9,12 @@ import AEntity, { type AEntityEngine, type EntityConstructorProps } from "../../
 export default class BlockWood extends AEntity {
   constructor({ gameInstance, entityId, gridPos }: EntityConstructorProps) {
     _game = gameInstance;
-    const { GameManager } = _game.MANAGERS;
-    const settings = GameManager.getSettings().rules.blocks;
+    const { SettingsManager } = _game.MANAGERS;
+    const settings = SettingsManager.getSettings().blocks;
 
     super({
       worldPos: gridToWorld(gridPos),
-      health: settings.woodStartHealth,
+      health: settings.healthWood,
       entityId,
       animations: undefined,
       size: GRID_CONFIG.TILE_SIZE,
@@ -57,6 +57,14 @@ export default class BlockWood extends AEntity {
         ZIndex.MAP_OVERLAY,
         0,
       );
+    },
+
+    updateAfter: () => {
+      const { SettingsManager } = _game.MANAGERS;
+      const settings = SettingsManager.getSettings().blocks;
+      if (this._getHealth() !== Infinity && !settings.enableDestruction) {
+        this._setHealth(Infinity);
+      }
     },
 
     drawDebug: () => {},

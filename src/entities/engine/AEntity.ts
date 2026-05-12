@@ -144,6 +144,9 @@ export default abstract class AEntity<
     this._worldPos = worldPos;
     this._gridPos = worldToGrid(worldPos);
   }
+  public _setHealth(health: number): void {
+    this._health = health;
+  }
 
   // Getters
   // --------------------------------------------------
