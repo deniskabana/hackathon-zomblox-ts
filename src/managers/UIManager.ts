@@ -197,7 +197,7 @@ export default class UIManager extends AManager {
 </div>
     `;
 
-    const zombiesAmount = this.gameInstance.MANAGERS.LevelManager.zombies.size;
+    const zombiesAmount = this.gameInstance.MANAGERS.EntityManager.getEnemies().length;
     this.debugTextZombies.innerHTML = `
 <div class="${styles.contentContainer}">
   <div class="${styles.uiTitle}">Zombies:</div>

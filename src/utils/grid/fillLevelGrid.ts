@@ -1,3 +1,4 @@
+import type AEntity from "../../entities/engine/AEntity";
 import type LevelManager from "../../managers/LevelManager";
 import { GridTileState, type LevelGrid } from "../../types/Grid";
 import { mergeDeep } from "../mergeDeep";
@@ -9,8 +10,8 @@ export type FillObjects = typeof DEFAULT_FILL_OBJECTS;
 
 interface Refs {
   player: LevelManager["player"];
-  zombies: LevelManager["zombies"];
-  blocks: LevelManager["blocks"];
+  zombies: AEntity[];
+  blocks: AEntity[];
   mapTiles: never; // TODO: Implement!
 }
 
@@ -42,7 +43,7 @@ export default function fillLevelGrid<K extends keyof FillObjects>(
   }
 
   if (fill.zombies && refs.zombies) {
-    for (const [_id, zombie] of refs.zombies) {
+    for (const zombie of refs.zombies) {
       const { x, y } = zombie._getGridPosition();
       if (!isInsideGrid(zombie._getGridPosition())) continue;
       levelGrid[x][y].state = GridTileState.BLOCKED;
