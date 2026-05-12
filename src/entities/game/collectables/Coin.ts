@@ -1,11 +1,11 @@
-import { gridToWorld, GRID_CONFIG } from "../../config/core/grid.config";
-import type GameInstance from "../../GameInstance";
-import { EntityType } from "../../types/EntityType";
-import { ZIndex } from "../../types/ZIndex";
-import getVectorDistance from "../../utils/math/getVectorDistance";
-import AEntity, { type AEntityEngine, type EntityConstructorProps } from "../abstract/AEntity";
-import type { EntityAnimationsSpecs } from "../utils/EntityAnimation";
-import { EntityTimer } from "../utils/EntityTimer";
+import { GRID_CONFIG, gridToWorld } from "../../../config/core/grid.config";
+import type GameInstance from "../../../GameInstance";
+import { EntityType } from "../../../types/EntityType";
+import { ZIndex } from "../../../types/ZIndex";
+import getVectorDistance from "../../../utils/math/getVectorDistance";
+import AEntity, { type EntityConstructorProps, type AEntityEngine } from "../../engine/AEntity";
+import type { EntityAnimationsSpecs } from "../../engine/systems/EntityAnimation";
+import { EntityTimer } from "../../engine/systems/EntityTimer";
 
 /** `this.gameInstance` */ let _game: GameInstance;
 
