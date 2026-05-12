@@ -7,14 +7,13 @@ import {
   type GridConfig,
 } from "../../../config/core/grid.config";
 import type { AssetAudioName } from "../../../config/game/assets.config";
-import type { Weapon, DEF_WEAPONS } from "../../../config/game/weapons.config";
+import { type Weapon, DEF_WEAPONS } from "../../../config/game/weapons.config";
 import type GameInstance from "../../../GameInstance";
 import { EntityType } from "../../../types/EntityType";
-import type { GameControls } from "../../../types/GameControls";
+import { GameControls } from "../../../types/GameControls";
 import { GridTileState } from "../../../types/Grid";
 import { ZIndex } from "../../../types/ZIndex";
 import assertNever from "../../../utils/assertNever";
-import { AnimatedSpriteSheet } from "../../../utils/classes/AnimatedSpriteSheet";
 import SpriteSheet from "../../../utils/classes/SpriteSheet";
 import { Direction } from "../../../utils/getCardinalDirection";
 import isInsideGrid from "../../../utils/grid/isInsideGrid";
@@ -22,8 +21,8 @@ import areVectorsEqual from "../../../utils/math/areVectorsEqual";
 import getVectorDistance from "../../../utils/math/getVectorDistance";
 import normalizeVector from "../../../utils/math/normalizeVector";
 import radiansToVector from "../../../utils/math/radiansToVector";
-import AEntity, { type AEntityTimers, type AEntityEngine } from "../../engine/AEntity";
-import type { EntityAnimations } from "../../engine/systems/EntityAnimation";
+import AEntity, { type AEntityEngine, type EntityConstructorProps } from "../../engine/AEntity";
+import type { EntityAnimationsSpecs } from "../../engine/systems/EntityAnimation";
 import { EntityTimer } from "../../engine/systems/EntityTimer";
 
 /** `this.gameInstance` */ let _game: GameInstance;
@@ -36,14 +35,14 @@ export enum PlayerState {
   DEAD = "DEAD",
 }
 
-interface Timers extends AEntityTimers {
+interface Timers {
   attackCooldown: EntityTimer<"Cooldown between allowed attacks">;
   stun: EntityTimer<"Controls if the player is stunned">;
   btnWeaponSwitch: EntityTimer<"Throttles weapon switching speed">;
   stepSound: EntityTimer<"Delay between steps">;
 }
 
-interface Attributes {
+interface Settings {
   stepSoundInterval: number;
   buildingModeInterval: number;
   stunDuration: number;
@@ -59,33 +58,44 @@ interface Instance {
   weaponSprites: SpriteSheet | undefined;
 }
 
-/**
- * Player (local)
- * - Represents the player who is the current device user
- */
-export default class Player extends AEntity<PlayerState, Instance, Timers> {
-  public _attributes: Readonly<Attributes>;
-
-  constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
+export default class Player extends AEntity<PlayerState, Instance, Timers, Settings> {
+  constructor({ gameInstance, entityId, gridPos }: EntityConstructorProps) {
     _game = gameInstance;
     const { GameManager, AssetManager } = _game.MANAGERS;
     const { startHealth, movementSpeed, defaultWeapon, stunCooldownSec } = GameManager.getSettings().rules.player;
     const size = GRID_CONFIG.TILE_SIZE * 1.5;
-    const fps = 13;
+
+    const settings: Settings = {
+      stepSoundInterval: 0.35,
+      buildingModeInterval: 2,
+      stunDuration: stunCooldownSec,
+      maxSpeed: movementSpeed,
+    };
+
     const timers: Timers = {
       attackCooldown: new EntityTimer({ initialValue: 0, autoStart: false }),
-      stepSound: new EntityTimer({ initialValue: 0, autoStart: false }),
-      btnWeaponSwitch: new EntityTimer({ initialValue: 0, autoStart: false }),
-      stun: new EntityTimer({ initialValue: 0, autoStart: false }),
+      stepSound: new EntityTimer({ initialValue: settings.stepSoundInterval, autoStart: false }),
+      btnWeaponSwitch: new EntityTimer({ initialValue: 0.25, autoStart: false }),
+      stun: new EntityTimer({ initialValue: settings.stunDuration, autoStart: false }),
     };
-    const animationList = [
-      AnimatedSpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerIdle")!, 32, 32, 6, fps * 0.65),
-      AnimatedSpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerRun")!, 32, 32, 8, fps),
-      AnimatedSpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerKnocked")!, 32, 32, 6, fps),
-      AnimatedSpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerHit")!, 32, 32, 3, fps),
-      AnimatedSpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerDeath")!, 32, 32, 8, fps),
-    ];
-    const animations: EntityAnimations = { fps, animationList, activeAnimations: [0] };
+
+    const animations: EntityAnimationsSpecs = {
+      frameWidth: 32,
+      frameHeight: 32,
+      fps: 12,
+      animations: [
+        { id: "idle", frameCount: 6, assetVariants: [AssetManager.getImageAsset("SPlayerIdle")!] },
+        {
+          id: "run",
+          frameCount: 8,
+          assetVariants: [AssetManager.getImageAsset("SPlayerRun")!],
+        },
+        { id: "knocked", frameCount: 6, assetVariants: [AssetManager.getImageAsset("SPlayerKnocked")!] },
+        { id: "hit", frameCount: 3, assetVariants: [AssetManager.getImageAsset("SPlayerHit")!] },
+        { id: "death", frameCount: 8, assetVariants: [AssetManager.getImageAsset("SPlayerDeath")!] },
+      ],
+    };
+
     const instance: Instance = {
       currentWeapon: defaultWeapon,
       prevGridPos: undefined,
@@ -100,45 +110,25 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       size,
       entityId,
       animations,
+      settings,
       initialState: PlayerState.IDLE,
       timers,
       health: startHealth,
       instance,
     });
-
-    this._attributes = {
-      stepSoundInterval: 0.35,
-      buildingModeInterval: 2,
-      stunDuration: stunCooldownSec,
-      maxSpeed: movementSpeed,
-    };
   }
 
   public _engine: AEntityEngine = {
     draw: () => {
       const { DrawManager } = _game.MANAGERS;
-      const animation = this._animations.animationList?.[this._animations.activeAnimations?.[0] ?? 0];
 
-      if (animation) {
-        const weaponSize = GRID_CONFIG.TILE_SIZE * 1.5;
-        const size = this._getSize();
-        const { x, y } = this._getWorldPosition();
+      const size = this._getSize();
+      this._animations?.drawActiveAnimations(this._getWorldPosition(), size, DrawManager, {
+        scaleX: this._instance.isFacingLeft ? 1 : -1,
+      });
 
-        DrawManager.queueDrawSprite(
-          x - size / 2,
-          y - size * 0.9,
-          animation,
-          animation.getCurrentFrame(),
-          size,
-          size,
-          ZIndex.ENTITIES,
-          0,
-          1,
-          this._instance.isFacingLeft ? 1 : -1,
-        );
-
-        this.drawWeapon(weaponSize);
-      }
+      const weaponSize = GRID_CONFIG.TILE_SIZE * 1.5;
+      this.drawWeapon(weaponSize);
     },
 
     drawDebug: () => {
@@ -166,50 +156,51 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       DrawManager.queueDraw(x - size / 2, y - size * 0.65, shadowSprite, size, size, ZIndex.GROUND_EFFECTS);
     },
 
-    destructor: () => {
+    onDestroy: () => {
       const { LevelManager, UIManager } = _game.MANAGERS;
       if (LevelManager.levelState) UIManager.showGameOverScreen(LevelManager.levelState); // TODO: Move to LevelManager
     },
 
-    update: (_deltaTime: number) => {
+    updateBefore: (_deltaTime: number) => {
       const state = this._getState();
 
       switch (state) {
         case PlayerState.IDLE:
-          this._animations.activeAnimations = [0];
+          this._animations?.setActiveAnimations(["idle"]);
           break;
         case PlayerState.WALK:
-          this._animations.activeAnimations = [1];
+          this._animations?.setActiveAnimations(["run"]);
           break;
         case PlayerState.KNOCKED:
-          this._animations.activeAnimations = [2];
+          this._animations?.setActiveAnimations(["knocked"]);
           break;
         case PlayerState.HIT:
-          this._animations.activeAnimations = [3];
+          this._animations?.setActiveAnimations(["hit"]);
           break;
         case PlayerState.DEAD:
-          this._animations.activeAnimations = [4];
+          this._animations?.setActiveAnimations(["death"]);
           break;
         default:
           assertNever(state);
       }
 
-      if (this._timers.stun >= 0) {
-        if (state === PlayerState.KNOCKED) {
-          this._setState(PlayerState.IDLE);
-        }
+      this.getShootingInput();
+      this.getWeaponCycleInput();
+      this.getBuildingModeInput(_deltaTime);
+    },
 
-        this.applyMovement(_deltaTime);
-        this.getShootingInput();
-        this.getWeaponCycleInput();
-        this.getBuildingModeInput(_deltaTime);
+    updateAfter: (_deltaTime: number) => {
+      if (this._getState() === PlayerState.KNOCKED && this._timers.stun.getIsDone()) {
+        this._setState(PlayerState.IDLE);
       }
+
+      this.applyMovement(_deltaTime);
     },
 
     onDamage: (amount) => {
       const { AssetManager, CameraManager } = _game.MANAGERS;
 
-      this._timers.stun = this._attributes.stunDuration;
+      this._timers.stun.reset();
       this._setState(PlayerState.KNOCKED);
 
       CameraManager.effectZoom(amount * 2);
@@ -325,9 +316,8 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     const { InputManager, BuildModeManager } = _game.MANAGERS;
     const isPressed = InputManager.isControlDown(GameControls.BUILD_MENU);
 
-    if (this._timers.btnBuildMode >= 0 && isPressed) {
+    if (isPressed) {
       BuildModeManager.setBuildMode(!BuildModeManager.isBuildModeActive);
-      this._timers.btnBuildMode = this._attributes.buildingModeInterval * -1;
     }
   }
 
@@ -345,9 +335,9 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
 
     if (!InputManager.isControlDown(GameControls.SHOOT)) return;
     if (state === PlayerState.KNOCKED || state === PlayerState.DEAD) return;
-    if (this._timers.attackCooldown < 0) return;
+    if (!this._timers.attackCooldown.getIsDone()) return;
 
-    this._timers.attackCooldown = weaponDef.cooldown * -1;
+    this._timers.attackCooldown.reset(weaponDef.cooldown);
     if (weaponSound) AssetManager.playAudioAsset(weaponSound, "sound");
 
     for (let i = 0; i < weaponDef.shots; i++) {
@@ -448,10 +438,10 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     const newIndex = (currentWeaponIndex + 1) % allWeaponsDef.length;
 
     if (!InputManager.isControlDown(GameControls.CHANGE_WEAPON)) return;
-    if (this._timers.btnWeaponSwitch < 0) return;
+    if (!this._timers.btnWeaponSwitch.getIsDone()) return;
 
     this._instance.currentWeapon = allWeaponsDef[newIndex];
-    this._timers.btnWeaponSwitch = 0.25 * -1;
+    this._timers.btnWeaponSwitch.reset();
   }
 
   private applyMovement(_deltaTime: number): void {
@@ -460,7 +450,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     const vector = this.getMovementInputVector();
     const state = this._getState();
     const { x, y } = this._getWorldPosition();
-    const speed = this._attributes.maxSpeed;
+    const speed = this._settings.maxSpeed;
 
     if (vector.x === 0 && vector.y === 0) {
       if (state === PlayerState.WALK) this._setState(PlayerState.IDLE);
@@ -491,9 +481,9 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     this._setWorldPosition(adjustedFuturePos);
     this._setState(PlayerState.WALK);
 
-    if (this._timers.stepSound >= 0) {
+    if (this._timers.stepSound.getIsDone()) {
       AssetManager.playAudioAsset("APlayerStep", "sound");
-      this._timers.stepSound = -this._attributes.stepSoundInterval;
+      this._timers.stepSound.reset();
     }
   }
 
