@@ -20,7 +20,7 @@ export default class CameraManager extends AManager {
     super(gameInstance);
   }
 
-  public init(): void {
+  public _init(): void {
     window.addEventListener("resize", this.onResize);
     this.onResize();
   }
@@ -110,7 +110,7 @@ export default class CameraManager extends AManager {
     this.calculateZoom();
   }
 
-  public destroy(): void {
+  public _destroy(): void {
     window.removeEventListener("resize", this.onResize);
   }
 }

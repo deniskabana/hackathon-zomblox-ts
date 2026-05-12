@@ -7,6 +7,6 @@ export abstract class AManager {
     this.gameInstance = gameInstance;
   }
 
-  public abstract init(): void;
-  public abstract destroy(): void;
+  public abstract _init(): void;
+  public abstract _destroy(): void;
 }

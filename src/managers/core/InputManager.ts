@@ -23,7 +23,7 @@ export default class InputManager extends AManager {
     super(gameInstance);
   }
 
-  public init(): void {
+  public _init(): void {
     document.addEventListener("mousedown", this.onMouseDown);
     document.addEventListener("mouseup", this.onMouseUp);
     document.addEventListener("mousemove", this.onMouseMove);
@@ -298,7 +298,7 @@ export default class InputManager extends AManager {
     return control;
   }
 
-  public destroy(): void {
+  public _destroy(): void {
     document.removeEventListener("mousedown", this.onMouseDown);
     document.removeEventListener("mouseup", this.onMouseUp);
     document.removeEventListener("mousemove", this.onMouseMove);

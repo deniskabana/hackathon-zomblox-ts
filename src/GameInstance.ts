@@ -4,6 +4,7 @@ import CameraManager from "./managers/core/CameraManager";
 import DrawManager from "./managers/core/DrawManager";
 import GameManager from "./managers/core/GameManager";
 import InputManager from "./managers/core/InputManager";
+import { SettingsManager } from "./managers/core/SettingsManager";
 import { EntityManager } from "./managers/engine/EntityManager";
 import LevelManager from "./managers/LevelManager";
 import LightManager from "./managers/LightManager";
@@ -27,6 +28,7 @@ export default class GameInstance {
     InputManager: InputManager;
     LevelManager: LevelManager;
     LightManager: LightManager;
+    SettingsManager: SettingsManager;
     UIManager: UIManager;
     VFXManager: VFXManager;
   };
@@ -57,6 +59,7 @@ export default class GameInstance {
       InputManager: new InputManager(this),
       LevelManager: new LevelManager(this),
       LightManager: new LightManager(this),
+      SettingsManager: new SettingsManager(this),
       UIManager: new UIManager(this),
       VFXManager: new VFXManager(this),
     };
@@ -100,13 +103,13 @@ export default class GameInstance {
   private async loadAndPrepareGame(): Promise<void> {
     const { UIManager, GameManager, AssetManager } = this.MANAGERS;
 
-    AssetManager.init();
+    AssetManager._init();
     await AssetManager.preloadAssets();
 
-    GameManager.init();
+    GameManager._init();
     GameManager.stateSetReady();
 
-    UIManager.init();
+    UIManager._init();
     UIManager.showStartGameContainer();
   }
 
@@ -126,14 +129,14 @@ export default class GameInstance {
     if (this.MANAGERS.GameManager.getState() !== GameState.READY) return;
 
     // Asset manager was initialized in loadAndPrepareGame()
-    BuildModeManager.init();
-    CameraManager.init();
-    EntityManager.init();
-    DrawManager.init();
-    InputManager.init();
-    LevelManager.init();
-    LightManager.init();
-    VFXManager.init();
+    BuildModeManager._init();
+    CameraManager._init();
+    EntityManager._init();
+    DrawManager._init();
+    InputManager._init();
+    LevelManager._init();
+    LightManager._init();
+    VFXManager._init();
 
     DrawManager.startRenderLoop();
 
@@ -169,16 +172,16 @@ export default class GameInstance {
       VFXManager,
     } = this.MANAGERS;
 
-    AssetManager.destroy();
-    BuildModeManager.destroy();
-    CameraManager.destroy();
-    DrawManager.destroy();
-    EntityManager.destroy();
-    GameManager.destroy();
-    InputManager.destroy();
-    LevelManager.destroy();
-    LightManager.destroy();
-    UIManager.destroy();
-    VFXManager.destroy();
+    AssetManager._destroy();
+    BuildModeManager._destroy();
+    CameraManager._destroy();
+    DrawManager._destroy();
+    EntityManager._destroy();
+    GameManager._destroy();
+    InputManager._destroy();
+    LevelManager._destroy();
+    LightManager._destroy();
+    UIManager._destroy();
+    VFXManager._destroy();
   }
 }

@@ -25,7 +25,7 @@ export default class AssetManager extends AManager {
     super(gameInstance);
   }
 
-  public init(): void {}
+  public _init(): void {}
 
   public async preloadAssets(): Promise<void> {
     this.isAssetsLoading = true;
@@ -181,7 +181,7 @@ export default class AssetManager extends AManager {
     return this.isReady && !this.isAssetsLoading;
   }
 
-  public destroy(): void {
+  public _destroy(): void {
     this.pauseAllMusic();
     this.assetsAudioMap.clear();
     this.assetsImageMap.clear();

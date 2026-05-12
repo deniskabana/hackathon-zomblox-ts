@@ -79,7 +79,7 @@ export default class UIManager extends AManager {
     this.hudToolbar = document.getElementById("build-toolbar") as HTMLDivElement;
   }
 
-  public init(): void {
+  public _init(): void {
     this.startGameContainer.className = cx(styles.startGameContainer);
 
     this.joystickLeft.className = cx(uiControlsStyles.joystick, uiControlsStyles.joystickLeft);
@@ -259,7 +259,7 @@ export default class UIManager extends AManager {
     if (text && "innerText" in text) text.innerText = stock + "x";
   }
 
-  public destroy(): void {
+  public _destroy(): void {
     if (this.uiControls) {
       for (const control of Object.values(this.uiControls)) control.destroy();
       this.uiControls = undefined;

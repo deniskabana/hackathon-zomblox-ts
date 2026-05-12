@@ -1,54 +1,88 @@
 import { GRID_CONFIG } from "../core/grid.config";
-import type { Weapon } from "./weapons.config";
+import type { GameSettingsBlocks } from "../../types/GameSettingsBlocks";
+import type { GameSettingsCollectables } from "../../types/GameSettingsCollectables";
+import type { GameSettingsPlayer } from "../../types/GameSettingsPlayer";
+import type { GameSettingsZombie } from "../../types/GameSettingsZombie";
 
 export const KEY_SETTINGS = "game-manager-key-settings";
 
-export const DEFAULT_SETTINGS = {
-  volume: { master: 1, music: 1, effects: 1 },
-  debug: { enableFlowFieldRender: false, showZombieState: false, showZombieTarget: false, seeThroughNight: false },
+export interface GameSettingsSpec {
+  gameplay: {
+    speedScale: number;
+
+    volumeAll: number;
+    volumeEffects: number;
+    volumeMusic: number;
+  };
+
   rules: {
-    game: {
-      startCurrency: 10,
-      enableRewardAutoCollect: false,
-      coinLifetime: 20,
-      rewardCoef: 1,
-      zombieSpawnIntervalMs: 800,
-      zombieSpawnAmount: 20,
-      zombieSpawnCoef: 1.285,
-      nightDurationSec: 30,
-      enableBlocksDestruction: true,
-      startZombiesAmount: 5,
-      playerLightRadius: 4.5,
-      endNightReward: 5,
-    },
-    zombie: {
-      enableErraticBehavior: true,
-      enableErraticNavOffset: true,
-      swimChanceNilToOne: 1,
-      maxSpeed: 60,
-      speedDeviation: 0,
-      maxHealth: 28,
-      healthDeviation: 10,
-      enableDamagedSlowdown: true,
-      damagedSlowdownCoef: 0.5,
-      attackDuration: 0.4,
-      attackDamage: 5,
-      attackDamageDeviation: 1,
-      attackCooldownSec: 2,
-      attackPushbackStr: 5,
-      minDistanceFromPlayer: GRID_CONFIG.TILE_SIZE * 1.65,
-    },
-    player: {
-      startHealth: 100,
-      movementSpeed: 160,
-      stunCooldownSec: 0,
-      defaultWeapon: "Revolver" as Weapon,
-    },
-    blocks: {
-      woodStartHealth: 30,
-      concreteStartHealth: 500,
-    },
+    startingCurrency: number;
+    incomeScale: number;
+    endNightReward: number;
+
+    difficultyIncreaseCoef: number;
+    nightDurationSec: number;
+  };
+
+  zombie: GameSettingsZombie;
+  blocks: GameSettingsBlocks;
+  player: GameSettingsPlayer;
+  collectables: GameSettingsCollectables;
+}
+
+export const DEFAULT_SETTINGS: GameSettingsSpec = {
+  gameplay: {
+    speedScale: 1,
+    volumeAll: 1,
+    volumeEffects: 1,
+    volumeMusic: 1,
+  },
+  rules: {
+    startingCurrency: 10,
+    incomeScale: 1,
+    endNightReward: 10,
+    difficultyIncreaseCoef: 1.2385,
+    nightDurationSec: 60,
+  },
+  zombie: {
+    attackDurationSec: 0.4,
+    attackCooldownSec: 2,
+    maxSpeed: 60,
+    maxHealth: 30,
+    minDistanceFromPlayerPx: GRID_CONFIG.TILE_SIZE * 1.65,
+    isHurtBySunlight: true,
+    movementSeparationWeight: 0.55,
+    movementDensityWeight: 0.9,
+    debugDrawState: false,
+    debugDrawWireframe: false,
+    debugDrawFlowFieldVector: false,
+    debugDrawPosition: false,
+    debugDrawSeparationVector: false,
+  },
+  player: {
+    startHealth: 200,
+    movementSpeed: 160,
+    stunCooldownSec: 2,
+    defaultWeapon: "Revolver",
+    lightRadius: 4.5,
+    debugDrawState: false,
+    debugDrawPosition: false,
+    debugDrawWireframe: false,
+    debugIsInvincible: false,
+    debugDisablePhysics: false,
+  },
+  blocks: {
+    enableDestruction: true,
+    healthWood: 60,
+    healthFireBarrel: 70,
+    debugDrawHealth: false,
+    debugDrawWireframe: false,
+  },
+  collectables: {
+    autoCollect: false,
+    lifetimeCoin: 6,
+    emitLight: true,
+    minDistanceFromPlayerPx: GRID_CONFIG.TILE_SIZE * 0.3,
+    debugDrawWireframe: false,
   },
 };
-
-export type Settings = typeof DEFAULT_SETTINGS;

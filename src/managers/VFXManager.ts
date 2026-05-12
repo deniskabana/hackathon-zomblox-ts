@@ -14,7 +14,7 @@ export default class VFXManager extends AManager {
     super(gameInstance);
   }
 
-  public init(): void {}
+  public _init(): void {}
 
   public draw(_deltaTime: number): void {
     for (const [id, effect] of this.effects) {
@@ -120,7 +120,7 @@ export default class VFXManager extends AManager {
     });
   }
 
-  public destroy(): void {
+  public _destroy(): void {
     this.effects.clear();
   }
 }

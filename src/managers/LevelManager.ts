@@ -71,7 +71,7 @@ export default class LevelManager extends AManager {
     this.mapSpawnPoints = [];
   }
 
-  public init(): void {
+  public _init(): void {
     // TODO: Only dev
     document.addEventListener("keydown", (e) => {
       if (e.key === "p") this.spawnZombie();
@@ -574,7 +574,7 @@ export default class LevelManager extends AManager {
   //   ];
   // }
 
-  public destroy(): void {
+  public _destroy(): void {
     this.stopSpawningZombies();
     this.player = undefined;
     this.mapLayerBelowPlayer.remove();

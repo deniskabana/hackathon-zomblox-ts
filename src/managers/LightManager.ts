@@ -19,7 +19,7 @@ export default class LightManager extends AManager {
     super(gameInstance);
   }
 
-  public init(): void {
+  public _init(): void {
     this.lightMaskCanvas = document.createElement("canvas");
 
     const ctx = this.lightMaskCanvas.getContext("2d");
@@ -27,7 +27,7 @@ export default class LightManager extends AManager {
     this.ctx = ctx;
   }
 
-  public destroy(): void {
+  public _destroy(): void {
     this.lightMaskCanvas?.remove();
     this.lightMaskCanvas = undefined;
     this.lightSources.clear();

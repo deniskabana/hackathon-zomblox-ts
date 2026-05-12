@@ -1,33 +1,16 @@
-import { DEFAULT_SETTINGS, KEY_SETTINGS, type Settings } from "../../config/game/settings.config";
 import type GameInstance from "../../GameInstance";
-import type { DeepPartial } from "../../types/DeepPartial";
 import { GameState } from "../../types/GameState";
-import { mergeDeep } from "../../utils/mergeDeep";
 import { AManager } from "../abstract/AManager";
 
 export default class GameManager extends AManager {
   private gameState: GameState = GameState.INITIALIZING;
   private prePauseState: GameState | undefined = undefined;
-  private gameSettings: Settings = DEFAULT_SETTINGS;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
-
-    const storedSettings = localStorage.getItem(KEY_SETTINGS);
-    if (storedSettings !== null) {
-      try {
-        const settings = JSON.parse(storedSettings);
-        if (settings) {
-          const { rules: _, ...safeSettings } = settings;
-          this.setSettings(safeSettings);
-        }
-      } catch {
-        // Swallow
-      }
-    }
   }
 
-  public init(): void {
+  public _init(): void {
     this.stateSetLoading();
   }
 
@@ -63,19 +46,6 @@ export default class GameManager extends AManager {
     return this.gameState;
   }
 
-  public setSettings(settings: DeepPartial<Settings>): void {
-    const newSettings = mergeDeep({ ...this.gameSettings }, settings);
-    this.gameSettings = newSettings;
-    const { rules: _, ...safeSettings } = this.gameSettings;
-    localStorage.setItem(KEY_SETTINGS, JSON.stringify(safeSettings));
-
-    if (settings?.volume) this.gameInstance.MANAGERS.AssetManager.updateMusicVolume();
-  }
-
-  public getSettings(): Settings {
-    return this.gameSettings;
-  }
-
   public isPlaying(): boolean {
     return this.gameState === GameState.PLAYING;
   }
@@ -84,7 +54,7 @@ export default class GameManager extends AManager {
     return this.gameState === GameState.PAUSED;
   }
 
-  public destroy(): void {
+  public _destroy(): void {
     this.gameState = GameState.INITIALIZING;
   }
 }

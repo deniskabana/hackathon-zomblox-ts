@@ -6,7 +6,7 @@ export default class ShopManager extends AManager {
     super(gameInstance);
   }
 
-  init() {}
+  _init() {}
 
-  destroy() {}
+  _destroy() {}
 }

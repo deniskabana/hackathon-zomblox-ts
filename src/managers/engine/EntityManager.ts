@@ -42,7 +42,7 @@ export class EntityManager extends AManager {
     this._blocks = new Set<EntityID>();
   }
 
-  public init() {
+  public _init() {
     this._entities.clear();
     this._players.clear();
     this._enemies.clear();
@@ -50,7 +50,7 @@ export class EntityManager extends AManager {
     this._blocks.clear();
   }
 
-  public destroy() {
+  public _destroy() {
     this._entityIdCounter = 0;
   }
 

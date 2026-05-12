@@ -26,12 +26,12 @@ export default class BuildModeManager extends AManager {
     this.isBuildModeActive = false;
   }
 
-  public init(): void {
+  public _init(): void {
     this.isBuildModeActive = false;
     this.activeGridTile = undefined;
   }
 
-  public destroy(): void {
+  public _destroy(): void {
     this.setBuildMode(false);
   }
 

@@ -27,7 +27,7 @@ export default class DrawManager extends AManager {
     this.canvas = canvas;
   }
 
-  public init(): void {
+  public _init(): void {
     window.addEventListener("resize", this.updateCanvasSize);
 
     const ctx = this.canvas.getContext("2d");
@@ -398,7 +398,7 @@ export default class DrawManager extends AManager {
   // Utils
   // ==================================================
 
-  public destroy(): void {
+  public _destroy(): void {
     this.stopRenderLoop();
     window.removeEventListener("resize", this.updateCanvasSize);
 

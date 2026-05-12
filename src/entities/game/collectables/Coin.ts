@@ -23,7 +23,9 @@ export default class Coin extends AEntity<undefined, Instance, Timers> {
     const { GameManager, AssetManager } = _game.MANAGERS;
     const gameSettings = GameManager.getSettings().rules.game;
     const size = GRID_CONFIG.TILE_SIZE / 3;
-    const timers: Timers = { coinLifetime: new EntityTimer({ initialValue: gameSettings.coinLifetime }) };
+    const timers: Timers = {
+      coinLifetime: new EntityTimer({ initialValue: gameSettings.coinLifetime, autoStart: true }),
+    };
     const instance: Instance = { playerDistance: Infinity };
 
     const animations: EntityAnimationsSpecs = {

@@ -146,7 +146,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Setti
       minDistanceFromPlayer,
       maxSpeed: maxSpeed,
       moveSeparationWeight: 0.55,
-      moveDensityWeight: 0.8,
+      moveDensityWeight: 0.9,
     };
 
     super({
