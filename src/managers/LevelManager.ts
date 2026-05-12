@@ -5,12 +5,12 @@ import {
   type GridPosition,
   type WorldPosition,
 } from "../config/core/grid.config";
-import type { AnyEntity } from "../entities/abstract/AEntity";
-import BlockBarrelFire from "../entities/blocks/BlockBarrelFire";
-import BlockWood from "../entities/blocks/BlockWood";
-import Coin from "../entities/collectables/Coin";
-import Zombie from "../entities/enemies/Zombie";
-import Player from "../entities/players/Player";
+import type { AnyEntity } from "../entities/engine/AEntity";
+import BlockBarrelFire from "../entities/game/blocks/BlockBarrelFire";
+import BlockWood from "../entities/game/blocks/BlockWood";
+import Coin from "../entities/game/collectables/Coin";
+import Zombie from "../entities/game/enemies/Zombie";
+import Player from "../entities/game/player/Player";
 import type GameInstance from "../GameInstance";
 import MapTilesetManager from "../map/MapTilesetManager";
 import type { GameMap } from "../map/parseJsonMap";
@@ -31,7 +31,6 @@ export default class LevelManager extends AManager {
   public worldWidth: number = WORLD_SIZE.WIDTH;
   public worldHeight: number = WORLD_SIZE.HEIGHT;
   public levelState?: LevelState;
-  private entityIdCounter: number = 0;
 
   // Grids
   public levelGrid?: LevelGrid;
@@ -49,9 +48,6 @@ export default class LevelManager extends AManager {
 
   // Entities
   public player?: Player;
-  public zombies: Map<number, Zombie> = new Map();
-  public blocks: Map<number, AnyEntity> = new Map();
-  public collectables: Map<number, AnyEntity> = new Map();
 
   // Gameplay
   private isSpawningZombies: boolean = false;
@@ -92,7 +88,10 @@ export default class LevelManager extends AManager {
     this.tileset = new MapTilesetManager(tilesetImage, config.TILE_SIZE);
     this.tileLayers = map.tileLayers;
 
-    this.player = new Player(map.spawn, this.entityIdCounter++, this.gameInstance);
+    this.player = this.gameInstance.MANAGERS.EntityManager.createEntity<Player>(
+      EntityType.PLAYER,
+      (entityId) => new Player({ gridPos: map.spawn, entityId, gameInstance: this.gameInstance }),
+    );
     // this.lastPlayerGridPos = this.player._getGridPosition();
 
     const gameSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
@@ -156,15 +155,9 @@ export default class LevelManager extends AManager {
 
   public update(_deltaTime: number) {
     if (!this.player) return;
-    this.player?._update(_deltaTime);
     if (this.player && this.levelState) this.levelState.totalTimeCounter += _deltaTime;
 
-    for (const zombie of this.zombies.values()) zombie._update(_deltaTime);
-    for (const block of this.blocks.values()) block._update(_deltaTime);
-    for (const coin of this.collectables.values()) coin._update(_deltaTime);
-
     this.applyZombieSpawn(_deltaTime);
-
     this.updateEnemyGrid();
 
     // if (hasPlayerMoved || !this.flowField) this.updatePathFindingGrid();
@@ -182,14 +175,10 @@ export default class LevelManager extends AManager {
   }
 
   public drawEntities(): void {
-    const { DrawManager, CameraManager, GameManager } = this.gameInstance.MANAGERS;
+    const { DrawManager, CameraManager, GameManager, EntityManager } = this.gameInstance.MANAGERS;
 
     this.drawMapLayers("below");
-    for (const zombie of this.zombies.values()) zombie._draw();
-    for (const block of this.blocks.values()) block._draw();
-    for (const coin of this.collectables.values()) coin._draw();
-    this.player?._draw();
-    this.player?._builtIn.drawDebug?.();
+    EntityManager.draw();
     this.drawMapLayers("above");
 
     if (GameManager.getSettings().debug.enableFlowFieldRender) {
@@ -337,63 +326,76 @@ export default class LevelManager extends AManager {
   // ==================================================
 
   private destroyPlayer(): void {
+    const { AssetManager, EntityManager } = this.gameInstance.MANAGERS;
+
     for (const track of this.musicDay) track.pause();
     for (const track of this.musicNight) track.pause();
-    this.gameInstance.MANAGERS.AssetManager.playAudioAsset("AMusicBackgroundDead", "music");
+
+    AssetManager.playAudioAsset("AMusicBackgroundDead", "music");
     this.player = undefined;
-    for (const zombie of this.zombies.values()) zombie.startWaiting();
+    for (const zombie of EntityManager.getEnemies()) zombie.startWaiting();
   }
 
   public spawnBlock(pos: GridPosition, type: BlockTypes = BlockTypes.Wood): void {
-    const entityId = this.entityIdCounter++;
-    let entity: AnyEntity;
+    const { EntityManager } = this.gameInstance.MANAGERS;
 
-    switch (type) {
-      case BlockTypes.Wood:
-        entity = new BlockWood(pos, entityId, this.gameInstance);
-        break;
-      case BlockTypes.FireBarrel:
-        entity = new BlockBarrelFire(pos, entityId, this.gameInstance);
-        break;
-      default:
-        return assertNever(type);
-    }
+    EntityManager.createEntity(EntityType.BLOCK, (entityId) => {
+      let entity: AnyEntity | undefined = undefined;
 
-    this.blocks.set(entityId, entity);
-    if (!this.levelGrid) return;
-    const { x, y } = pos;
-    this.levelGrid[x][y] = { ...this.levelGrid[x][y], state: GridTileState.BLOCKED, ref: entity };
+      switch (type) {
+        case BlockTypes.Wood:
+          entity = new BlockWood({ gridPos: pos, entityId, gameInstance: this.gameInstance });
+          break;
+        case BlockTypes.FireBarrel:
+          entity = new BlockBarrelFire({ gridPos: pos, entityId, gameInstance: this.gameInstance });
+          break;
+        default:
+          assertNever(type);
+      }
+
+      if (!entity) throw new Error("Failed to create an entity");
+
+      if (this.levelGrid) {
+        const { x, y } = pos;
+        this.levelGrid[x][y] = { ...this.levelGrid[x][y], state: GridTileState.BLOCKED, ref: entity };
+      }
+
+      return entity;
+    });
+
     this.updatePathFindingGrid();
   }
 
   private destroyBlock(entityId: number): void {
-    const entity = this.blocks.get(entityId);
+    const { EntityManager } = this.gameInstance.MANAGERS;
+
+    const entity = EntityManager.findEntity(entityId);
     if (!entity) return;
-    entity._destructor();
-    this.blocks.delete(entityId);
-    if (!this.levelGrid) return;
     const { x, y } = entity._getGridPosition();
+    EntityManager.destroyEntity(entityId);
+
+    if (!this.levelGrid) return;
+
     this.levelGrid[x][y] = { ...this.levelGrid[x][y], state: GridTileState.AVAILABLE, ref: null };
     this.updatePathFindingGrid();
   }
 
-  public spawnCoin(pos: GridPosition): void {
-    const entityId = this.entityIdCounter++;
-    this.collectables.set(entityId, new Coin(pos, entityId, this.gameInstance));
+  public spawnCoin(gridPos: GridPosition): void {
+    const { EntityManager } = this.gameInstance.MANAGERS;
+    EntityManager.createEntity(
+      EntityType.COLLECTABLE,
+      (entityId) => new Coin({ gameInstance: this.gameInstance, entityId, gridPos }),
+    );
   }
 
   private destroyCoin(entityId: number): void {
-    const entity = this.collectables.get(entityId);
-    if (!entity) return;
-    entity._destructor();
-    this.collectables.delete(entityId);
+    const { EntityManager } = this.gameInstance.MANAGERS;
+    EntityManager.destroyEntity(entityId);
   }
 
   private destroyZombie(entityId: number): void {
-    const entity = this.zombies.get(entityId);
-    if (!entity) return;
-    entity._destructor();
-    this.zombies.delete(entityId);
+    const { EntityManager } = this.gameInstance.MANAGERS;
+    EntityManager.destroyEntity(entityId);
   }
 
   // Zombies
@@ -430,10 +432,13 @@ export default class LevelManager extends AManager {
   }
 
   private spawnZombie(): Zombie | undefined {
-    const entityId = this.entityIdCounter++;
-    this.zombies.set(entityId, new Zombie(this.getRandomZombieSpawnPosition(), entityId, this.gameInstance));
-    this.zombieSpawnsLeft--;
-    return this.zombies.get(entityId);
+    const { EntityManager } = this.gameInstance.MANAGERS;
+
+    return EntityManager.createEntity(
+      EntityType.ENEMY,
+      (entityId) =>
+        new Zombie({ gameInstance: this.gameInstance, entityId, gridPos: this.getRandomZombieSpawnPosition() }),
+    );
   }
 
   private getRandomZombieSpawnPosition(): WorldPosition {
@@ -451,11 +456,13 @@ export default class LevelManager extends AManager {
 
   public startNight(): void {
     if (!this.levelState) return;
+    const { EntityManager } = this.gameInstance.MANAGERS;
+
     this.gameInstance.MANAGERS.BuildModeManager.setBuildMode(false);
     this.retreatFlowFields = undefined;
     this.levelState.phase = "night";
 
-    for (const [_, zombie] of this.zombies) zombie.startChasingPlayer();
+    for (const zombie of EntityManager.getEnemies()) zombie.startChasingPlayer();
 
     const gameSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
     this.nightEndCounter = gameSettings.nightDurationSec;
@@ -488,6 +495,7 @@ export default class LevelManager extends AManager {
   }
 
   public startDay(): void {
+    const { EntityManager } = this.gameInstance.MANAGERS;
     if (!this.levelState || !this.levelGrid) return;
 
     this.addCurrency(this.gameInstance.MANAGERS.GameManager.getSettings().rules.game.endNightReward);
@@ -508,7 +516,7 @@ export default class LevelManager extends AManager {
     this.levelState.phase = "day";
     this.stopSpawningZombies();
 
-    for (const [_, zombie] of this.zombies) zombie.startRetreating();
+    for (const zombie of EntityManager.getEnemies()) zombie.startRetreating();
 
     if (!this.musicDay.length) {
       const musicDay = this.gameInstance.MANAGERS.AssetManager.playAudioAsset(
@@ -538,8 +546,9 @@ export default class LevelManager extends AManager {
   // ==================================================
 
   public raycastShot(from: WorldPosition, angleRad: number, maxDistance: number): null | GridTileRef {
+    const { EntityManager } = this.gameInstance.MANAGERS;
     if (!this.levelGrid) return null;
-    return raycast2D(from, angleRad, maxDistance, this.levelGrid, this.zombies);
+    return raycast2D(from, angleRad, maxDistance, this.levelGrid, EntityManager.getEnemies());
   }
 
   private updatePathFindingGrid(): void {
@@ -567,12 +576,7 @@ export default class LevelManager extends AManager {
 
   public destroy(): void {
     this.stopSpawningZombies();
-
     this.player = undefined;
-    this.zombies.clear();
-    this.blocks.clear();
-    this.collectables.clear();
-
     this.mapLayerBelowPlayer.remove();
     this.mapLayerAbovePlayer.remove();
   }
@@ -588,6 +592,7 @@ export default class LevelManager extends AManager {
   }
 
   private updateEnemyGrid(): void {
+    const { EntityManager } = this.gameInstance.MANAGERS;
     const grid: typeof this.enemyGrid = [];
 
     for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
@@ -598,7 +603,7 @@ export default class LevelManager extends AManager {
       }
     }
 
-    for (const zombie of this.zombies.values()) {
+    for (const zombie of EntityManager.getEnemies()) {
       const { x: zx, y: zy } = zombie._getGridPosition();
       grid?.[zx]?.[zy]?.push(zombie);
     }

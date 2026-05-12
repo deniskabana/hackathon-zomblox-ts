@@ -1,13 +1,13 @@
-import { type GridPosition, gridToWorld, GRID_CONFIG } from "../../config/core/grid.config";
-import type GameInstance from "../../GameInstance";
-import { EntityType } from "../../types/EntityType";
-import { ZIndex } from "../../types/ZIndex";
-import AEntity, { type EntityBuiltInMethods } from "../abstract/AEntity";
+import { gridToWorld, GRID_CONFIG } from "../../../config/core/grid.config";
+import type GameInstance from "../../../GameInstance";
+import { EntityType } from "../../../types/EntityType";
+import { ZIndex } from "../../../types/ZIndex";
+import AEntity, { type AEntityEngine, type EntityConstructorProps } from "../../engine/AEntity";
 
 /** `this.gameInstance` */ let _game: GameInstance;
 
-export default class BlockWood extends AEntity<undefined, undefined, undefined, undefined> {
-  constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
+export default class BlockWood extends AEntity {
+  constructor({ gameInstance, entityId, gridPos }: EntityConstructorProps) {
     _game = gameInstance;
     const { GameManager } = _game.MANAGERS;
     const settings = GameManager.getSettings().rules.blocks;
@@ -24,7 +24,7 @@ export default class BlockWood extends AEntity<undefined, undefined, undefined, 
     });
   }
 
-  public _builtIn: EntityBuiltInMethods = {
+  public _engine: AEntityEngine = {
     draw: () => {
       const { LevelManager, DrawManager } = _game.MANAGERS;
       const { x, y } = this._getWorldPosition();
@@ -60,10 +60,6 @@ export default class BlockWood extends AEntity<undefined, undefined, undefined, 
     },
 
     drawDebug: () => {},
-
-    destructor: () => {},
-
-    update: (_deltaTime) => {},
 
     onDeath: () => {
       const { AssetManager, LevelManager } = _game.MANAGERS;

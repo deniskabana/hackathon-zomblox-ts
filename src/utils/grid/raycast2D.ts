@@ -1,5 +1,5 @@
 import { type WorldPosition, worldToGrid, GRID_CONFIG } from "../../config/core/grid.config";
-import type { AnyEntity } from "../../entities/abstract/AEntity";
+import type { AnyEntity } from "../../entities/engine/AEntity";
 import { GridTileState, type GridTileRef, type LevelGrid } from "../../types/Grid";
 import getVectorDistance from "../math/getVectorDistance";
 import radiansToVector from "../math/radiansToVector";
@@ -12,7 +12,7 @@ export default function raycast2D(
   angleRad: number,
   maxDistance: number,
   levelGrid: LevelGrid,
-  enemies: Map<number, AnyEntity>,
+  enemies: AnyEntity[],
 ): null | GridTileRef {
   // DDA Algorithm (put together from a few articles and reddit posts)
   const direction = radiansToVector(angleRad);
@@ -23,7 +23,7 @@ export default function raycast2D(
   const deltaDistY = Math.abs(1 / direction.y);
 
   const enemyGrid: Map<string, AnyEntity> = new Map();
-  for (const [_, enemy] of enemies) enemyGrid.set(`${enemy._getGridPosition().x},${enemy._getGridPosition().y}`, enemy);
+  for (const enemy of enemies) enemyGrid.set(`${enemy._getGridPosition().x},${enemy._getGridPosition().y}`, enemy);
 
   let tMaxX = Math.abs((startGrid.x + (stepX > 0 ? 1 : 0) - from.x / GRID_CONFIG.TILE_SIZE) / direction.x);
   let tMaxY = Math.abs((startGrid.y + (stepY > 0 ? 1 : 0) - from.y / GRID_CONFIG.TILE_SIZE) / direction.y);

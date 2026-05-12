@@ -1,7 +1,17 @@
-import type AEntity from "../../entities/engine/AEntity";
+import type { AnyEntity } from "../../entities/engine/AEntity";
+import type BlockBarrelFire from "../../entities/game/blocks/BlockBarrelFire";
+import type BlockWood from "../../entities/game/blocks/BlockWood";
+import type Coin from "../../entities/game/collectables/Coin";
+import type Zombie from "../../entities/game/enemies/Zombie";
+import type Player from "../../entities/game/player/Player";
 import type GameInstance from "../../GameInstance";
 import assertNever from "../../utils/assertNever";
 import { AManager } from "../abstract/AManager";
+
+type EntityTypePlayer = Player;
+type EntityTypeEnemy = Zombie;
+type EntityTypeCollectable = Coin;
+type EntityTypeBlock = BlockBarrelFire | BlockWood;
 
 export type EntityID = number;
 
@@ -14,7 +24,7 @@ export enum EntityType {
 
 export class EntityManager extends AManager {
   private _entityIdCounter: EntityID = 0;
-  private _entities: Map<EntityID, AEntity>;
+  private _entities: Map<EntityID, AnyEntity>;
 
   // Indexing helpers
   private _players: Set<EntityID>;
@@ -25,7 +35,7 @@ export class EntityManager extends AManager {
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
 
-    this._entities = new Map<EntityID, AEntity>();
+    this._entities = new Map<EntityID, AnyEntity>();
     this._players = new Set<EntityID>();
     this._enemies = new Set<EntityID>();
     this._collectables = new Set<EntityID>();
@@ -54,11 +64,11 @@ export class EntityManager extends AManager {
     for (const entity of this._entities.values()) entity._draw();
   }
 
-  public findEntity(id: EntityID): AEntity | undefined {
+  public findEntity(id: EntityID): AnyEntity | undefined {
     return this._entities.get(id);
   }
 
-  public createEntity<T extends AEntity>(type: EntityType, createFactory: (id: EntityID) => T): T {
+  public createEntity<T extends AnyEntity>(type: EntityType, createFactory: (id: EntityID) => T): T {
     const id = ++this._entityIdCounter;
     const entity = createFactory(id);
     this._entities.set(id, entity);
@@ -96,31 +106,31 @@ export class EntityManager extends AManager {
     this._entities.delete(id);
   }
 
-  public getEnemies(): AEntity[] {
-    return Array.from(this._enemies).reduce<AEntity[]>((list, id) => {
+  public getEnemies(): EntityTypeEnemy[] {
+    return Array.from(this._enemies).reduce<EntityTypeEnemy[]>((list, id) => {
       const entity = this._entities.get(id);
-      if (entity) list.push(entity);
+      if (entity) list.push(entity as EntityTypeEnemy);
       return list;
     }, []);
   }
-  public getPlayers(): AEntity[] {
-    return Array.from(this._players).reduce<AEntity[]>((list, id) => {
+  public getPlayers(): EntityTypePlayer[] {
+    return Array.from(this._players).reduce<EntityTypePlayer[]>((list, id) => {
       const entity = this._entities.get(id);
-      if (entity) list.push(entity);
+      if (entity) list.push(entity as EntityTypePlayer);
       return list;
     }, []);
   }
-  public getCollectables(): AEntity[] {
-    return Array.from(this._collectables).reduce<AEntity[]>((list, id) => {
+  public getCollectables(): EntityTypeCollectable[] {
+    return Array.from(this._collectables).reduce<EntityTypeCollectable[]>((list, id) => {
       const entity = this._entities.get(id);
-      if (entity) list.push(entity);
+      if (entity) list.push(entity as unknown as EntityTypeCollectable);
       return list;
     }, []);
   }
-  public getBlocks(): AEntity[] {
-    return Array.from(this._blocks).reduce<AEntity[]>((list, id) => {
+  public getBlocks(): EntityTypeBlock[] {
+    return Array.from(this._blocks).reduce<EntityTypeBlock[]>((list, id) => {
       const entity = this._entities.get(id);
-      if (entity) list.push(entity);
+      if (entity) list.push(entity as unknown as EntityTypeBlock);
       return list;
     }, []);
   }

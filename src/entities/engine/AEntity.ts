@@ -22,6 +22,9 @@ export interface EntityConstructorProps {
   gameInstance: GameInstance;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type AnyEntity = AEntity<any, any, any, any> | AEntity;
+
 /**
  * Abstract class `AEntity` describes shared structure of all in-game entities.
  */
@@ -43,7 +46,7 @@ export default abstract class AEntity<
   protected _timers: TTimers;
   protected _animations: EntityAnimations | undefined;
   protected _instance: TInstance;
-  protected _settings: Readonly<TSettings>;
+  protected _settings: TSettings;
 
   /** Entity manifest — implement in every subclass as an object literal. */
   public abstract _engine: AEntityEngine;

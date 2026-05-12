@@ -82,15 +82,19 @@ export default class GameInstance {
     return canvas;
   }
 
-  public update(_deltaTime: number): void {
-    const { LevelManager, GameManager, CameraManager, AssetManager } = this.MANAGERS;
+  public update(_deltaTime: number, _unscaledDeltaTime: number): void {
+    const { LevelManager, GameManager, CameraManager, AssetManager, EntityManager } = this.MANAGERS;
     if (!GameManager.isPlaying() && !AssetManager.getIsReady()) return;
+
+    EntityManager.updateBefore(_deltaTime, _unscaledDeltaTime);
 
     const player = this.MANAGERS.LevelManager.player;
     if (player) CameraManager.followPlayer(_deltaTime, player._getWorldPosition());
 
     LevelManager.update(_deltaTime);
     CameraManager.update(_deltaTime);
+
+    EntityManager.updateAfter(_deltaTime, _unscaledDeltaTime);
   }
 
   private async loadAndPrepareGame(): Promise<void> {

@@ -1,9 +1,9 @@
-import { type GridPosition, gridToWorld, GRID_CONFIG } from "../../config/core/grid.config";
-import type GameInstance from "../../GameInstance";
-import { EntityType } from "../../types/EntityType";
-import { ZIndex } from "../../types/ZIndex";
-import { AnimatedSpriteSheet } from "../../utils/classes/AnimatedSpriteSheet";
-import AEntity, { type AEntityAnimations } from "../abstract/AEntity";
+import { GRID_CONFIG, gridToWorld } from "../../../config/core/grid.config";
+import type GameInstance from "../../../GameInstance";
+import { EntityType } from "../../../types/EntityType";
+import { ZIndex } from "../../../types/ZIndex";
+import AEntity, { type AEntityEngine, type EntityConstructorProps } from "../../engine/AEntity";
+import type { EntityAnimationsSpecs } from "../../engine/systems/EntityAnimation";
 
 /** `this.gameInstance` */ let _game: GameInstance;
 
@@ -11,19 +11,20 @@ interface Instance {
   lightSourceId: number | undefined;
 }
 
-export default class BlockBarrelFire extends AEntity<undefined, Instance, undefined, AEntityAnimations> {
-  constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
+export default class BlockBarrelFire extends AEntity<undefined, Instance> {
+  constructor({ gameInstance, entityId, gridPos }: EntityConstructorProps) {
     _game = gameInstance;
     const { GameManager, LightManager, AssetManager } = _game.MANAGERS;
     const settings = GameManager.getSettings().rules.blocks;
     const size = GRID_CONFIG.TILE_SIZE;
-    const fps = 15;
+
     const instance: Instance = { lightSourceId: undefined };
-    const animationList = [AnimatedSpriteSheet.fromGrid(AssetManager.getImageAsset("SFire")!, 32, 48, 14, fps, true)];
-    const animations: AEntityAnimations = {
-      fps,
-      animationList,
-      activeAnimations: [0],
+
+    const animations: EntityAnimationsSpecs = {
+      fps: 15,
+      frameWidth: 128,
+      frameHeight: 128,
+      animations: [{ id: "fire", assetVariants: [AssetManager.getImageAsset("SFire")!], frameCount: 14 }],
     };
 
     super({
@@ -40,12 +41,11 @@ export default class BlockBarrelFire extends AEntity<undefined, Instance, undefi
     this._instance.lightSourceId = LightManager.addLightSource(this._getWorldPosition());
   }
 
-  public _builtIn: EntityBuiltInMethods = {
+  public _engine: AEntityEngine = {
     draw: () => {
       const { LevelManager, DrawManager } = _game.MANAGERS;
       const { x, y } = this._getWorldPosition();
       const size = this._getSize();
-      const currentAnimation = this._animations.animationList[this._animations.activeAnimations?.[0] ?? 0];
 
       const tileset = LevelManager.getTileset();
       if (!tileset) return;
@@ -63,25 +63,12 @@ export default class BlockBarrelFire extends AEntity<undefined, Instance, undefi
         ZIndex.BLOCKS,
       );
 
-      if (!currentAnimation) return;
-
-      DrawManager.queueDrawSprite(
-        x,
-        y - size,
-        currentAnimation,
-        currentAnimation.getCurrentFrame(),
-        size,
-        size * 1.5,
-        ZIndex.EFFECTS,
-        0,
-      );
+      this._animations?.drawActiveAnimations(this._getWorldPosition(), size, DrawManager);
     },
 
     drawDebug: () => {},
 
-    update: (_deltaTime) => {},
-
-    destructor: () => {
+    onDestroy: () => {
       const { LightManager } = _game.MANAGERS;
       const { lightSourceId } = this._instance;
       if (lightSourceId) LightManager.removeLightSource(lightSourceId);

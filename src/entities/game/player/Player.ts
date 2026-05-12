@@ -9,7 +9,6 @@ import {
 import type { AssetAudioName } from "../../../config/game/assets.config";
 import { type Weapon, DEF_WEAPONS } from "../../../config/game/weapons.config";
 import type GameInstance from "../../../GameInstance";
-import { EntityType } from "../../../types/EntityType";
 import { GameControls } from "../../../types/GameControls";
 import { GridTileState } from "../../../types/Grid";
 import { ZIndex } from "../../../types/ZIndex";
@@ -212,12 +211,13 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Setti
     },
 
     onDeath: () => {
-      const { VFXManager, AssetManager, LevelManager } = _game.MANAGERS;
+      const { VFXManager, AssetManager, EntityManager } = _game.MANAGERS;
 
       this._setState(PlayerState.DEAD);
+
       VFXManager.drawBloodOnScreen(600);
       AssetManager.playAudioAsset("APlayerDie", "sound");
-      LevelManager.destroyEntity(-1, EntityType.PLAYER);
+      EntityManager.destroyEntity(this._entityId);
     },
   };
 
