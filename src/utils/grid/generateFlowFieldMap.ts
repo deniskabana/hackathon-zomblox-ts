@@ -38,7 +38,7 @@ export default function generateFlowField(
 
   while (queue.length > 0) {
     const currentVector = queue.shift()!;
-    let currentWeight = grid?.[currentVector.x]?.[currentVector.y]?.weight;
+    const currentWeight = grid?.[currentVector.x]?.[currentVector.y]?.weight;
 
     for (let dx = -1; dx <= 1; dx++) {
       for (let dy = -1; dy <= 1; dy++) {
@@ -51,7 +51,7 @@ export default function generateFlowField(
 
         if (!levelGrid?.[nx]?.[ny]) continue;
         if (levelGrid?.[nx]?.[ny]?.state !== GridTileState.AVAILABLE) continue;
-        if (enemyGrid?.[nx]?.[ny]?.length) currentWeight++;
+        // if (enemyGrid?.[nx]?.[ny]?.length) currentWeight++;
 
         if (grid[nx][ny].weight === Infinity) {
           grid[nx][ny].weight = currentWeight + 1;

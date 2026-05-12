@@ -11,6 +11,7 @@ import { type Weapon, DEF_WEAPONS } from "../../config/game/weapons.config";
 import type GameInstance from "../../GameInstance";
 import { EntityType } from "../../types/EntityType";
 import { GameControls } from "../../types/GameControls";
+import { GridTileState } from "../../types/Grid";
 import { ZIndex } from "../../types/ZIndex";
 import assertNever from "../../utils/assertNever";
 import { AnimatedSpriteSheet } from "../../utils/classes/AnimatedSpriteSheet";
@@ -21,7 +22,8 @@ import areVectorsEqual from "../../utils/math/areVectorsEqual";
 import getVectorDistance from "../../utils/math/getVectorDistance";
 import normalizeVector from "../../utils/math/normalizeVector";
 import radiansToVector from "../../utils/math/radiansToVector";
-import AEntity, { type EntityAnimations, type EntityBuiltInMethods } from "../abstract/AEntity";
+import AEntity, { type AEntityAnimations, type AEntityEngine, type AEntityTimers } from "../abstract/AEntity";
+import { EntityTimer } from "../utils/EntityTimer";
 
 /** `this.gameInstance` */ let _game: GameInstance;
 
@@ -33,17 +35,12 @@ export enum PlayerState {
   DEAD = "DEAD",
 }
 
-interface Timers {
-  attackCooldown: number;
-  stun: number;
-  btnWeaponSwitch: number;
-  stepSound: number;
-  btnBuildMode: number;
-  [key: string]: number;
+interface Timers extends AEntityTimers {
+  attackCooldown: EntityTimer<"Cooldown between allowed attacks">;
+  stun: EntityTimer<"Controls if the player is stunned">;
+  btnWeaponSwitch: EntityTimer<"Throttles weapon switching speed">;
+  stepSound: EntityTimer<"Delay between steps">;
 }
-
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-interface Animations extends EntityAnimations {}
 
 interface Attributes {
   stepSoundInterval: number;
@@ -65,7 +62,7 @@ interface Instance {
  * Player (local)
  * - Represents the player who is the current device user
  */
-export default class Player extends AEntity<PlayerState, Instance, Timers, Animations> {
+export default class Player extends AEntity<PlayerState, Instance, Timers> {
   public _attributes: Readonly<Attributes>;
 
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
@@ -75,11 +72,10 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
     const size = GRID_CONFIG.TILE_SIZE * 1.5;
     const fps = 13;
     const timers: Timers = {
-      attackCooldown: Infinity,
-      stepSound: Infinity,
-      btnWeaponSwitch: Infinity,
-      btnBuildMode: Infinity,
-      stun: Infinity,
+      attackCooldown: new EntityTimer({ initialValue: 0, autoStart: false }),
+      stepSound: new EntityTimer({ initialValue: 0, autoStart: false }),
+      btnWeaponSwitch: new EntityTimer({ initialValue: 0, autoStart: false }),
+      stun: new EntityTimer({ initialValue: 0, autoStart: false }),
     };
     const animationList = [
       AnimatedSpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerIdle")!, 32, 32, 6, fps * 0.65),
@@ -88,7 +84,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
       AnimatedSpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerHit")!, 32, 32, 3, fps),
       AnimatedSpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerDeath")!, 32, 32, 8, fps),
     ];
-    const animations: Animations = { fps, animationList, activeAnimations: [0] };
+    const animations: AEntityAnimations = { fps, animationList, activeAnimations: [0] };
     const instance: Instance = {
       currentWeapon: defaultWeapon,
       prevGridPos: undefined,
@@ -117,7 +113,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
     };
   }
 
-  public _builtIn: EntityBuiltInMethods = {
+  public _engine: AEntityEngine = {
     draw: () => {
       const { DrawManager } = _game.MANAGERS;
       const animation = this._animations.animationList?.[this._animations.activeAnimations?.[0] ?? 0];
@@ -458,7 +454,8 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
   }
 
   private applyMovement(_deltaTime: number): void {
-    const { AssetManager } = _game.MANAGERS;
+    const { AssetManager, LevelManager } = _game.MANAGERS;
+    const { levelGrid } = LevelManager;
     const vector = this.getMovementInputVector();
     const state = this._getState();
     const { x, y } = this._getWorldPosition();
@@ -473,6 +470,16 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Anima
       x: x + vector.x * _deltaTime * speed,
       y: y + vector.y * _deltaTime * speed,
     };
+
+    const futureGridPos = worldToGrid(futurePos);
+    if (
+      !areVectorsEqual(futureGridPos, this._getGridPosition()) &&
+      levelGrid?.[futureGridPos.x]?.[futureGridPos.y]?.state === GridTileState.BLOCKED
+    ) {
+      this._setState(PlayerState.IDLE);
+      return;
+    }
+
     const adjustedFuturePos = futurePos;
 
     if (areVectorsEqual(adjustedFuturePos, this._getWorldPosition())) return;

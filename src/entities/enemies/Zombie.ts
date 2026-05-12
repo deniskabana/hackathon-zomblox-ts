@@ -1,10 +1,4 @@
-import {
-  GRID_CONFIG,
-  type GridPosition,
-  gridToWorld,
-  type WorldPosition,
-  worldToGrid,
-} from "../../config/core/grid.config";
+import { GRID_CONFIG, type GridPosition, gridToWorld, type WorldPosition } from "../../config/core/grid.config";
 import type { DEFAULT_SETTINGS } from "../../config/game/settings.config";
 import type GameInstance from "../../GameInstance";
 import type { AssetImage } from "../../types/Asset";
@@ -14,10 +8,9 @@ import { ZIndex } from "../../types/ZIndex";
 import assertNever from "../../utils/assertNever";
 import { AnimatedSpriteSheet } from "../../utils/classes/AnimatedSpriteSheet";
 import isInsideGrid from "../../utils/grid/isInsideGrid";
-import areVectorsEqual from "../../utils/math/areVectorsEqual";
 import lerp from "../../utils/math/lerp";
 import { lerpAngle } from "../../utils/math/radialLerp";
-import AEntity, { type EntityAnimations, type EntityBuiltInMethods } from "../abstract/AEntity";
+import AEntity, { type AEntityAnimations, type EntityBuiltInMethods } from "../abstract/AEntity";
 
 /** `this.gameInstance` */ let _game: GameInstance;
 
@@ -37,9 +30,10 @@ interface Timers {
   attack: number;
   deathAnimation: number;
   movementRestart: number;
+  facingDirection: number;
 }
 
-interface Animations extends EntityAnimations {
+interface Animations extends AEntityAnimations {
   spriteVariant: number;
 }
 
@@ -51,11 +45,11 @@ interface Attributes {
 }
 
 interface Instance {
-  velocity: number;
+  movementVelocity: number;
   desiredVelocity: number;
-  direction: number;
+  movementDirection: number;
   hasDealtDamage: boolean;
-  normalizedNextPos: Vector | undefined;
+  movementVector: Vector | undefined;
   isFacingLeft: boolean;
   distanceFromPlayer: number;
   prevGridPos: GridPosition | undefined;
@@ -81,6 +75,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
       attackCooldown: Infinity,
       deathAnimation: Infinity,
       movementRestart: Infinity,
+      facingDirection: Infinity,
     };
 
     // Animations - could be much easier done as a json import
@@ -131,9 +126,9 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
 
     const instance: Instance = {
       hasDealtDamage: false,
-      normalizedNextPos: undefined,
-      direction: 0,
-      velocity: 0,
+      movementVector: undefined,
+      movementDirection: 0,
+      movementVelocity: 0,
       desiredVelocity: maxSpeed,
       isFacingLeft: false,
       distanceFromPlayer: Infinity,
@@ -202,16 +197,16 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
         DrawManager.drawArrow(
           x + 2,
           y + 2,
-          x + (Math.cos(this._instance.direction) * TILE_SIZE) / 2 + 2,
-          y + (Math.sin(this._instance.direction) * TILE_SIZE) / 2 + 2,
+          x + (Math.cos(this._instance.movementDirection) * TILE_SIZE) / 2 + 2,
+          y + (Math.sin(this._instance.movementDirection) * TILE_SIZE) / 2 + 2,
           "#000",
           2,
         );
         DrawManager.drawArrow(
           x,
           y,
-          x + (Math.cos(this._instance.direction) * TILE_SIZE) / 2,
-          y + (Math.sin(this._instance.direction) * TILE_SIZE) / 2,
+          x + (Math.cos(this._instance.movementDirection) * TILE_SIZE) / 2,
+          y + (Math.sin(this._instance.movementDirection) * TILE_SIZE) / 2,
           "#a090ff",
           2,
         );
@@ -349,21 +344,18 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
   //   }
   // }
   //
-  private getSeparationVector(): Vector {
-    const vector = { x: 0, y: 0 };
 
-    if (this._getState() !== ZombieState.CHASING && this._getState() !== ZombieState.RETREATING) {
-      return vector;
-    }
-
+  private getNeighborData(flowFieldVector: Vector): { separation: Vector; density: number } {
     const { LevelManager } = _game.MANAGERS;
     const enemyGrid = LevelManager.getEnemyGrid();
     const { x: gx, y: gy } = this._getGridPosition();
     const selfWorldPos = this._getWorldPosition();
-
-    if (!enemyGrid) return vector;
-
     const radius = GRID_CONFIG.TILE_SIZE * 2;
+
+    const separation = { x: 0, y: 0 };
+    let aheadCount = 0;
+
+    if (!enemyGrid) return { separation, density: 0 };
 
     for (let dx = -1; dx <= 1; dx++) {
       for (let dy = -1; dy <= 1; dy++) {
@@ -372,17 +364,24 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
 
           const worldPos = zombie._getWorldPosition();
           const dist = Math.hypot(selfWorldPos.x - worldPos.x, selfWorldPos.y - worldPos.y);
-
           if (dist === 0 || dist >= radius) return;
 
+          // separation — all neighbors
           const strength = (radius - dist) / radius;
-          vector.x += ((selfWorldPos.x - worldPos.x) / dist) * strength;
-          vector.y += ((selfWorldPos.y - worldPos.y) / dist) * strength;
+          separation.x += ((selfWorldPos.x - worldPos.x) / dist) * strength;
+          separation.y += ((selfWorldPos.y - worldPos.y) / dist) * strength;
+
+          // density — only ahead
+          const toNeighbor = {
+            x: (worldPos.x - selfWorldPos.x) / dist,
+            y: (worldPos.y - selfWorldPos.y) / dist,
+          };
+          if (toNeighbor.x * flowFieldVector.x + toNeighbor.y * flowFieldVector.y > 0) aheadCount++;
         });
       }
     }
 
-    return vector;
+    return { separation, density: Math.min(aheadCount / 5, 1) };
   }
 
   private applyMovement(_deltaTime: number): void {
@@ -393,57 +392,68 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Anima
     const { flowField } = LevelManager;
     const { x, y } = this._getWorldPosition();
     const { x: gx, y: gy } = this._getGridPosition();
-    const { velocity, direction, desiredVelocity } = this._instance;
+    const { movementVelocity, movementDirection: direction, desiredVelocity } = this._instance;
 
-    const flowFieldCurrentCell = flowField?.[gx]?.[gy];
+    const flowFieldVector = flowField?.[gx]?.[gy]?.normalizedVector ?? { x: 0, y: 0 };
 
-    const flowFieldVector = flowFieldCurrentCell?.normalizedVector ?? { x: 0, y: 0 };
-    const separationVector = this.getSeparationVector();
-    const separationWeight = 0.3;
+    const { separation, density } = this.getNeighborData(flowFieldVector);
+    const separationWeight = 0.55;
+    const densityWeight = 0.8;
 
     const combined = {
-      x: flowFieldVector.x + separationVector.x * separationWeight,
-      y: flowFieldVector.y + separationVector.y * separationWeight,
+      x: lerp(flowFieldVector.x, separation.x, separationWeight),
+      y: lerp(flowFieldVector.y, separation.y, separationWeight),
     };
     const mag = Math.hypot(combined.x, combined.y);
     const normalizedVector = mag > 0 ? { x: combined.x / mag, y: combined.y / mag } : { x: 0, y: 0 };
 
-    this._instance.velocity = lerp(velocity, desiredVelocity, _deltaTime * 4);
+    const targetSpeed = desiredVelocity * lerp(1, 1 - densityWeight, density);
+    this._instance.movementVelocity = lerp(movementVelocity, targetSpeed, _deltaTime * 4);
+
     const targetDirection = Math.atan2(normalizedVector.y, normalizedVector.x);
-    this._instance.direction = lerpAngle(direction, targetDirection, _deltaTime * 7);
-
-    const futurePos: WorldPosition = {
-      x: x + Math.cos(this._instance.direction) * this._instance.velocity * _deltaTime,
-      y: y + Math.sin(this._instance.direction) * this._instance.velocity * _deltaTime,
-    };
-
-    const futureGridPos = worldToGrid(futurePos);
-    const enemyGrid = LevelManager.getEnemyGrid();
-    if (
-      !areVectorsEqual(futureGridPos, this._getGridPosition()) &&
-      enemyGrid?.[futureGridPos.x]?.[futureGridPos.y]?.length
-    ) {
-      return;
-    }
-
-    if (futurePos.x < x) this._instance.isFacingLeft = true;
-    else if (futurePos.x > x) this._instance.isFacingLeft = false;
+    this._instance.movementDirection = lerpAngle(direction, targetDirection, _deltaTime * 7);
 
     if (player) {
       const { x: pgx, y: pgy } = player._getGridPosition();
-      // Do not move if 1 field next to player
       if (pgx >= gx - 1 && pgx <= gx + 1 && pgy >= gy - 1 && pgy <= gy + 1) {
-        // TODO: Attack here I guess
         this._setState(ZombieState.IDLE);
         this._timers.movementRestart = -0.5;
+        return;
       }
     }
 
-    if (Math.abs(normalizedVector.x) < 0.5 && Math.abs(normalizedVector.y) < 0.5) {
-      this._setState(ZombieState.IDLE);
-      this._timers.movementRestart = -0.5;
-    }
+    // if (this._instance.movementVelocity < 5) {
+    //   this._setState(ZombieState.IDLE);
+    //   this._timers.movementRestart = -0.5;
+    //   return;
+    // }
 
+    const futurePos: WorldPosition = {
+      x: x + Math.cos(this._instance.movementDirection) * this._instance.movementVelocity * _deltaTime,
+      y: y + Math.sin(this._instance.movementDirection) * this._instance.movementVelocity * _deltaTime,
+    };
+
+    // const futureGridPos = worldToGrid(futurePos);
+    // const enemyGrid = LevelManager.getEnemyGrid();
+    // if (
+    //   !areVectorsEqual(futureGridPos, this._getGridPosition()) &&
+    //   ((levelGrid?.[futureGridPos.x]?.[futureGridPos.y]?.state === GridTileState.BLOCKED ||
+    //     enemyGrid?.[futureGridPos.x]?.[futureGridPos.y]?.length) ??
+    //     0 > 2)
+    // ) {
+    //   this._setState(ZombieState.IDLE);
+    //   this._timers.movementRestart = -0.5;
+    //   return;
+    // }
+
+    this.changeFacingPosition(futurePos.x < x);
     this._setWorldPosition(futurePos);
+  }
+
+  private changeFacingPosition(isFacingLeft: boolean): void {
+    if (this._timers.facingDirection >= 0 || this._timers.facingDirection === Infinity) {
+      this._instance.isFacingLeft = isFacingLeft;
+      this._timers.facingDirection = -0.25;
+    }
   }
 }

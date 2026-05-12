@@ -3,7 +3,7 @@ import type GameInstance from "../../GameInstance";
 import { EntityType } from "../../types/EntityType";
 import { ZIndex } from "../../types/ZIndex";
 import { AnimatedSpriteSheet } from "../../utils/classes/AnimatedSpriteSheet";
-import AEntity, { type EntityAnimations, type EntityBuiltInMethods } from "../abstract/AEntity";
+import AEntity, { type AEntityAnimations } from "../abstract/AEntity";
 
 /** `this.gameInstance` */ let _game: GameInstance;
 
@@ -11,7 +11,7 @@ interface Instance {
   lightSourceId: number | undefined;
 }
 
-export default class BlockBarrelFire extends AEntity<undefined, Instance, undefined, EntityAnimations> {
+export default class BlockBarrelFire extends AEntity<undefined, Instance, undefined, AEntityAnimations> {
   constructor(gridPos: GridPosition, entityId: number, gameInstance: GameInstance) {
     _game = gameInstance;
     const { GameManager, LightManager, AssetManager } = _game.MANAGERS;
@@ -20,7 +20,7 @@ export default class BlockBarrelFire extends AEntity<undefined, Instance, undefi
     const fps = 15;
     const instance: Instance = { lightSourceId: undefined };
     const animationList = [AnimatedSpriteSheet.fromGrid(AssetManager.getImageAsset("SFire")!, 32, 48, 14, fps, true)];
-    const animations: EntityAnimations = {
+    const animations: AEntityAnimations = {
       fps,
       animationList,
       activeAnimations: [0],

@@ -1,40 +1,38 @@
 import { type WorldPosition, type GridPosition, worldToGrid } from "../../config/core/grid.config";
-import type { AnimatedSpriteSheet } from "../../utils/classes/AnimatedSpriteSheet";
+import type GameInstance from "../../GameInstance";
+import { EntityAnimations, type EntityAnimationsSpecs } from "../utils/EntityAnimation";
+import { EntityTimer } from "../utils/EntityTimer";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type AnyEntity = AEntity<any, any, any, any>;
+export type AEntityInstance = Record<string, unknown>;
 
-/**
- * Built-in methods defined and used by AEntity
- */
-export interface EntityBuiltInMethods {
+export type AEntityTimers = { [key: string]: EntityTimer };
+
+export interface AEntityEngine {
   draw: () => void;
-  drawShadow?: () => void;
   drawDebug: () => void;
-  destructor: () => void;
-  update: (_deltaTime: number) => void;
+  drawShadow?: () => void;
+
+  updateBefore?: (_deltaTime: number, _unscaledDeltaTime: number) => void;
+  updateAfter?: (_deltaTime: number, _unscaledDeltaTime: number) => void;
+
   onDamage?: (amount: number) => void;
   onDeath?: () => void;
+  onDestroy?: () => void;
+}
+
+export interface EntityConstructorProps {
+  gridPos: GridPosition;
+  entityId: number;
+  gameInstance: GameInstance;
 }
 
 /**
- * Extend from this interface for `this._animations`
- */
-export interface EntityAnimations {
-  fps: number;
-  activeAnimations: number[] | null;
-  animationList: AnimatedSpriteSheet[];
-}
-
-/**
- * Abstract class `AEntity` describes shared structure of all in-game entities
- * that can be instantiated.
+ * Abstract class `AEntity` describes shared structure of all in-game entities.
  */
 export default abstract class AEntity<
-  TState extends string | undefined,
-  TInstance extends object | undefined,
-  TTimers extends { [key: string]: number } | undefined,
-  TAnimations extends EntityAnimations | undefined,
+  TState extends string | undefined = undefined,
+  TInstance extends object | undefined = undefined,
+  TTimers extends object | undefined = undefined,
 > {
   protected readonly _entityId: number;
 
@@ -42,18 +40,15 @@ export default abstract class AEntity<
   private _gridPos: GridPosition;
   private _size: number;
   private _health: number;
+  private _isDead: boolean = false;
   private _state: TState;
+
   protected _timers: TTimers;
-
-  /** Animations object updated by `AEntity` using fps. */
-  protected _animations: TAnimations;
-  /** Runtime instance memory. */
+  protected _animations: EntityAnimations | undefined;
   protected _instance: TInstance;
-  /** Readonly attributes assigned in constructor. */
-  protected _attributes?: Readonly<Record<string, unknown>>;
 
-  /** Built-in methods used by the game engine. Shared API. */
-  abstract _builtIn: EntityBuiltInMethods;
+  /** Entity manifest — implement in every subclass as an object literal. */
+  public abstract _engine: AEntityEngine;
 
   constructor(props: {
     health?: number;
@@ -61,91 +56,101 @@ export default abstract class AEntity<
     entityId: number;
     size: number;
     initialState: TState;
-    timers: TTimers;
-    animations: TAnimations;
-    instance: TInstance;
+    timers?: TTimers;
+    animations?: EntityAnimationsSpecs;
+    instance?: TInstance;
   }) {
     this._entityId = props.entityId;
-
     this._health = props.health ?? Infinity;
     this._worldPos = props.worldPos;
     this._gridPos = worldToGrid(props.worldPos);
     this._size = props.size;
-
     this._state = props.initialState;
-    this._instance = props.instance;
-
-    this._timers = props.timers;
-    this._animations = props.animations;
+    this._instance = props.instance ?? ({} as TInstance);
+    this._timers = props.timers ?? ({} as TTimers);
+    if (props.animations) this._animations = new EntityAnimations(props.animations);
   }
 
-  /*
-   * Built-in
-   */
-
-  public _update(_deltaTime: number): void {
-    this._builtIn.update(_deltaTime);
-
+  public _updateBefore(_deltaTime: number, _unscaledDeltaTime: number): void {
     if (this._timers) {
-      for (const timerName in this._timers) {
-        if (this._timers[timerName] !== Infinity) this._timers[timerName] += _deltaTime;
+      for (const key in this._timers) {
+        (this._timers as AEntityTimers)[key]._tick(_deltaTime);
       }
     }
 
-    if (this._animations?.activeAnimations?.length) {
-      const { activeAnimations, fps, animationList } = this._animations;
-      for (const animationIndex of activeAnimations) {
-        animationList[animationIndex]?.update?.(Math.min(_deltaTime, 1 / fps));
-      }
-    }
+    this._animations?.tick(_deltaTime);
+    this._engine.updateBefore?.(_deltaTime, _unscaledDeltaTime);
+  }
+
+  public _updateAfter(_deltaTime: number, _unscaledDeltaTime: number): void {
+    this._engine.updateAfter?.(_deltaTime, _unscaledDeltaTime);
   }
 
   public _draw(): void {
-    this._builtIn.drawDebug();
-    this._builtIn.drawShadow?.();
-    this._builtIn.draw();
+    this._engine.drawDebug();
+    this._engine.drawShadow?.();
+    this._engine.draw();
   }
 
   public _destructor(): void {
-    this._builtIn.destructor();
-  }
-
-  /*
-   * Handlers
-   */
-
-  public _handleDeath(): void {
-    this._builtIn.onDeath?.();
+    this._engine.onDestroy?.();
   }
 
   public _handleDamage(amount: number): void {
-    if (this._health - amount <= 0) this._handleDeath();
-    this._health -= amount;
-    this._builtIn.onDamage?.(amount);
+    if (this._isDead) return;
+    this._health = Math.max(0, this._health - amount);
+    this._engine.onDamage?.(amount);
+
+    if (this._health <= 0) {
+      this._isDead = true;
+      this._engine.onDeath?.();
+    }
   }
 
-  /*
-   * Setters
-   */
+  public _toDebugSnapshot(): Record<string, unknown> {
+    const timers: Record<string, { value: number; active: boolean }> = {};
+    if (this._timers) {
+      for (const key in this._timers)
+        timers[key] = {
+          value: (this._timers as Record<string, EntityTimer>)[key].value,
+          active: (this._timers as Record<string, EntityTimer>)[key].getIsActive(),
+        };
+    }
+
+    return {
+      entityId: this._entityId,
+      state: this._state,
+      health: this._health,
+      isDead: this._isDead,
+      worldPos: this._getWorldPosition(),
+      gridPos: this._getGridPosition(),
+      timers,
+      instance: this._instance ? { ...this._instance } : undefined,
+    };
+  }
+
+  // Setters
+  // --------------------------------------------------
 
   public _setState(state: TState): void {
     this._state = state;
   }
-
   public _setWorldPosition(worldPos: WorldPosition): void {
     this._worldPos = worldPos;
     this._gridPos = worldToGrid(worldPos);
   }
 
-  /*
-   * Getters
-   */
+  // Getters
+  // --------------------------------------------------
 
   public _getSize(): number {
     return this._size;
   }
   public _getHealth(): number {
     return this._health;
+  }
+  public _getIsDead(): boolean {
+    return this._isDead;
   }
   public _getState(): TState {
     return this._state;
@@ -155,5 +160,8 @@ export default abstract class AEntity<
   }
   public _getWorldPosition(): WorldPosition {
     return { ...this._worldPos };
+  }
+  public _getEntityId(): number {
+    return this._entityId;
   }
 }
