@@ -117,8 +117,8 @@ function getBuildModeButton(gameInstance: GameInstance): UiControls[string] {
 
   const handleClick = () => {
     gameInstance.MANAGERS.AssetManager.playAudioAsset("AFXUiClick", "sound");
-    gameInstance.MANAGERS.InputManager.simulateControlPress(GameControls.BUILD_MENU);
-    setTimeout(() => gameInstance.MANAGERS.InputManager.simulateControlRelease(GameControls.BUILD_MENU), 0);
+    gameInstance.MANAGERS.InputManager.simulateControlPress(GameControls.PLAYER_BUILD_MENU);
+    setTimeout(() => gameInstance.MANAGERS.InputManager.simulateControlRelease(GameControls.PLAYER_BUILD_MENU), 0);
 
     const active = !gameInstance.MANAGERS.BuildModeManager.isBuildModeActive;
     if (active) {
@@ -156,11 +156,11 @@ export function getShootButton(gameInstance: GameInstance): UiControls[string] {
   buttonEl.innerText = `💥 ${gameInstance.translation.dictionary["hud.shootBtn"]}!`;
 
   const handleClick = () => {
-    gameInstance.MANAGERS.InputManager.simulateControlPress(GameControls.SHOOT);
+    gameInstance.MANAGERS.InputManager.simulateControlPress(GameControls.ACTION_SHOOT);
     buttonEl.classList.add(styles.uiControlActive);
   };
   const handleRelase = () => {
-    gameInstance.MANAGERS.InputManager.simulateControlRelease(GameControls.SHOOT);
+    gameInstance.MANAGERS.InputManager.simulateControlRelease(GameControls.ACTION_SHOOT);
     buttonEl.classList.remove(styles.uiControlActive);
   };
 
@@ -190,8 +190,8 @@ function getNextWeaponButton(gameInstance: GameInstance): UiControls[string] {
 
   const handleClick = () => {
     gameInstance.MANAGERS.AssetManager.playAudioAsset("AFXUiClick", "sound");
-    gameInstance.MANAGERS.InputManager.simulateControlPress(GameControls.CHANGE_WEAPON);
-    setTimeout(() => gameInstance.MANAGERS.InputManager.simulateControlRelease(GameControls.CHANGE_WEAPON), 0);
+    gameInstance.MANAGERS.InputManager.simulateControlPress(GameControls.PLAYER_CHANGE_WEAPON);
+    setTimeout(() => gameInstance.MANAGERS.InputManager.simulateControlRelease(GameControls.PLAYER_CHANGE_WEAPON), 0);
   };
 
   buttonEl.addEventListener("click", handleClick);

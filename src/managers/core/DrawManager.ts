@@ -22,6 +22,9 @@ export default class DrawManager extends AManager {
   private canvasUpdateTimer: number = 0;
   private readonly canvasUpdateInterval: number = 2;
 
+  // Ticks should not be tied to render frames in the future
+  private _tick: number = 0;
+
   constructor(gameInstance: GameInstance, canvas: HTMLCanvasElement) {
     super(gameInstance);
     this.canvas = canvas;
@@ -29,6 +32,7 @@ export default class DrawManager extends AManager {
 
   public _init(): void {
     window.addEventListener("resize", this.updateCanvasSize);
+    this._tick = 0;
 
     const ctx = this.canvas.getContext("2d");
     if (!ctx) throw new Error("Failed to get 2D context from canvas");
@@ -123,6 +127,7 @@ export default class DrawManager extends AManager {
     BuildModeManager.draw();
 
     this.rafId = requestAnimationFrame(this.renderLoop.bind(this));
+    this._tick++;
   }
 
   // Draw queue
@@ -405,5 +410,9 @@ export default class DrawManager extends AManager {
     this.drawQueue = {};
     this.lastFrameTime = 0;
     this.fps = 0;
+  }
+
+  public _getTick(): number {
+    return this._tick;
   }
 }

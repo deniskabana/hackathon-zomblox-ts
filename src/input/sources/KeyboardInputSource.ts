@@ -1,4 +1,5 @@
-import GameInstance from "../../GameInstance";
+import type GameInstance from "../../GameInstance";
+import { GameControls } from "../../types/GameControls";
 import {
   DEFAULT_KEY_BINDINGS,
   EMPTY_CONTROL_STATE,
@@ -6,8 +7,7 @@ import {
   type KeyBindings,
   type InputFrame,
   type ControlState,
-} from "../../input/types/inputTypes";
-import { GameControls } from "../../types/GameControls";
+} from "../types/inputTypes";
 
 /** Keys that are prevented in the browser if the game is playing */
 const PREVENT_DEFAULT_KEYS = new Set(["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Tab"]);
@@ -15,20 +15,13 @@ const PREVENT_DEFAULT_KEYS = new Set(["Space", "ArrowUp", "ArrowDown", "ArrowLef
 type RawKeyState = { isDown: boolean; wasDown: boolean };
 
 export class KeyboardInputSource implements IInputSource {
-  private _gameInstance: GameInstance;
   private _bindings: KeyBindings;
   private _rawKeys: Map<string, RawKeyState> = new Map();
+  private _gameInstance: GameInstance;
 
-  constructor({
-    gameInstance,
-    bindings = DEFAULT_KEY_BINDINGS,
-  }: {
-    gameInstance: GameInstance;
-    bindings: KeyBindings;
-  }) {
+  constructor(gameInstance: GameInstance, bindings: KeyBindings = DEFAULT_KEY_BINDINGS) {
     this._gameInstance = gameInstance;
     this._bindings = bindings;
-
     window.addEventListener("keydown", this._onKeyDown);
     window.addEventListener("keyup", this._onKeyUp);
   }
@@ -64,7 +57,6 @@ export class KeyboardInputSource implements IInputSource {
       const raw = this._rawKeys.get(keyCode);
       if (!raw) continue;
 
-      // Modifier keys are also tracked as raw keys — no synthetic detection needed
       const modifiersMatch = requiredModifiers.every(
         (m) => this._rawKeys.get(`${m}Left`)?.isDown || this._rawKeys.get(`${m}Right`)?.isDown,
       );
@@ -84,7 +76,7 @@ export class KeyboardInputSource implements IInputSource {
       else this._rawKeys.set(code, { isDown: state.isDown, wasDown: state.isDown });
     }
 
-    const direction = this.deriveDirection(controls);
+    const direction = deriveDirection(controls);
 
     return {
       tick,
@@ -95,22 +87,12 @@ export class KeyboardInputSource implements IInputSource {
     };
   }
 
-  public setBindings(bindings: KeyBindings): void {
-    this._bindings = bindings;
+  public getKeyBindings(): KeyBindings {
+    return { ...this._bindings };
   }
 
-  private deriveDirection(controls: Record<GameControls, ControlState>): { x: number; y: number } {
-    let x = 0;
-    let y = 0;
-    if (controls[GameControls.MOVE_LEFT].held) x -= 1;
-    if (controls[GameControls.MOVE_RIGHT].held) x += 1;
-    if (controls[GameControls.MOVE_UP].held) y -= 1;
-    if (controls[GameControls.MOVE_DOWN].held) y += 1;
-    if (x !== 0 && y !== 0) {
-      const mag = Math.hypot(x, y);
-      return { x: x / mag, y: y / mag };
-    }
-    return { x, y };
+  public setKeyBindings(bindings: KeyBindings): void {
+    this._bindings = bindings;
   }
 
   public destroy(): void {
@@ -118,4 +100,18 @@ export class KeyboardInputSource implements IInputSource {
     window.removeEventListener("keyup", this._onKeyUp);
     this._rawKeys.clear();
   }
+}
+
+function deriveDirection(controls: Record<GameControls, ControlState>): { x: number; y: number } {
+  let x = 0;
+  let y = 0;
+  if (controls[GameControls.MOVE_LEFT].held) x -= 1;
+  if (controls[GameControls.MOVE_RIGHT].held) x += 1;
+  if (controls[GameControls.MOVE_UP].held) y -= 1;
+  if (controls[GameControls.MOVE_DOWN].held) y += 1;
+  if (x !== 0 && y !== 0) {
+    const mag = Math.hypot(x, y);
+    return { x: x / mag, y: y / mag };
+  }
+  return { x, y };
 }

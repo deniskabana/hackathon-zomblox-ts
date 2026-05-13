@@ -41,13 +41,8 @@ interface Timers {
   stepSound: EntityTimer<"Delay between steps">;
 }
 
-interface Settings {
-  stepSoundInterval: number;
-  stunDuration: number;
-  maxSpeed: number;
-}
-
 interface Instance {
+  maxSpeed: number;
   speed: number;
   isFacingLeft: boolean;
   prevGridPos: GridPosition | undefined;
@@ -56,24 +51,18 @@ interface Instance {
   weaponSprites: SpriteSheet | undefined;
 }
 
-export default class Player extends AEntity<PlayerState, Instance, Timers, Settings> {
+export default class Player extends AEntity<PlayerState, Instance, Timers> {
   constructor({ gameInstance, entityId, gridPos }: EntityConstructorProps) {
     _game = gameInstance;
     const { SettingsManager, AssetManager } = _game.MANAGERS;
     const { worldSize, startHealth, movementSpeed, defaultWeapon, stunCooldownSec, stepSoundCooldownSec } =
       SettingsManager.getSettings().player;
 
-    const settings: Settings = {
-      stepSoundInterval: stepSoundCooldownSec,
-      stunDuration: stunCooldownSec,
-      maxSpeed: movementSpeed,
-    };
-
     const timers: Timers = {
       attackCooldown: new EntityTimer({ initialValue: 0, autoStart: false }), // Value filled by WEAPON_DEF['cooldown']
-      stepSound: new EntityTimer({ initialValue: settings.stepSoundInterval, autoStart: false }),
+      stepSound: new EntityTimer({ initialValue: stepSoundCooldownSec, autoStart: false }),
       btnWeaponSwitch: new EntityTimer({ initialValue: 0.25, autoStart: false }),
-      stun: new EntityTimer({ initialValue: settings.stunDuration, autoStart: false }),
+      stun: new EntityTimer({ initialValue: stunCooldownSec, autoStart: false }),
     };
 
     const animations: EntityAnimationsSpecs = {
@@ -98,6 +87,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Setti
       prevGridPos: undefined,
       isFacingLeft: false,
       speed: 0,
+      maxSpeed: movementSpeed,
       facingDirection: Direction.RIGHT,
       weaponSprites: SpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerWeapons")!, 32, 32, 12),
     };
@@ -107,7 +97,6 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Setti
       size: worldSize,
       entityId,
       animations,
-      settings,
       initialState: PlayerState.IDLE,
       timers,
       health: startHealth,
@@ -322,7 +311,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Setti
 
   private getBuildingModeInput(_deltaTime: number): void {
     const { InputManager, BuildModeManager } = _game.MANAGERS;
-    const isPressed = InputManager.isControlDown(GameControls.BUILD_MENU);
+    const isPressed = InputManager.isControlDown(GameControls.PLAYER_BUILD_MENU);
 
     if (isPressed) {
       BuildModeManager.setBuildMode(!BuildModeManager.isBuildModeActive);
@@ -341,7 +330,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Setti
     const playerCardinalDirection = this._instance.facingDirection;
     const { x, y } = this._getWorldPosition();
 
-    if (!InputManager.isControlDown(GameControls.SHOOT)) return;
+    if (!InputManager.isControlDown(GameControls.ACTION_SHOOT)) return;
     if (state === PlayerState.KNOCKED || state === PlayerState.DEAD) return;
     if (!this._timers.attackCooldown.getIsDone()) return;
 
@@ -445,7 +434,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Setti
     const currentWeaponIndex = allWeaponsDef.findIndex((name) => name === currentWeapon);
     const newIndex = (currentWeaponIndex + 1) % allWeaponsDef.length;
 
-    if (!InputManager.isControlDown(GameControls.CHANGE_WEAPON)) return;
+    if (!InputManager.isControlDown(GameControls.PLAYER_CHANGE_WEAPON)) return;
     if (!this._timers.btnWeaponSwitch.getIsDone()) return;
 
     this._instance.currentWeapon = allWeaponsDef[newIndex];
@@ -459,7 +448,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Setti
     const vector = this.getMovementInputVector();
     const state = this._getState();
     const { x, y } = this._getWorldPosition();
-    const speed = this._settings.maxSpeed;
+    const speed = this._instance.maxSpeed;
 
     if (vector.x === 0 && vector.y === 0) {
       if (state === PlayerState.WALK) this._setState(PlayerState.IDLE);
