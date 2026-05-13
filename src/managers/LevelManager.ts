@@ -419,7 +419,7 @@ export default class LevelManager extends AManager {
     }
   }
 
-  private spawnZombie(): Zombie | undefined {
+  public spawnZombie(): Zombie | undefined {
     const { EntityManager } = this.gameInstance.MANAGERS;
 
     return EntityManager.createEntity(

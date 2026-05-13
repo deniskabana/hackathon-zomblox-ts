@@ -31,34 +31,75 @@ export type SettingsDebugSchema = {
 
 export class DebugPanel {
   private _gui: GUI;
-  private _game: GameInstance;
+  private _gameInstance: GameInstance;
   private _visible: boolean = false;
   private _unsubscribeSettings: VoidFunction | null = null;
 
   constructor(gameInstance: GameInstance) {
-    this._game = gameInstance;
-    this._gui = new GUI({ title: "Zomblocks Debug Menu", width: 320, autoPlace: true });
+    this._gameInstance = gameInstance;
+    this._gui = new GUI({ title: "Zomblocks Debug Menu", width: 320 });
+
+    this._buildControlsFolder();
+    this._buildSettingsFolder();
     this._gui.hide();
-    this._build();
   }
 
-  private _build(): void {
-    const { SettingsManager } = this._game.MANAGERS;
+  // ---------------------------------------------------------------------------
+  // Game controls
+  // ---------------------------------------------------------------------------
+
+  private _buildControlsFolder(): void {
+    const { LevelManager } = this._gameInstance.MANAGERS;
+    const folder = this._gui.addFolder("Game Controls");
+
+    const zombiesFolder = folder.addFolder("Game Controls / Zombies");
+    const zombieActions = {
+      "Spawn Random": () => LevelManager.spawnZombie(),
+    };
+    zombiesFolder.add(zombieActions, "Spawn Random");
+
+    const gameplayFolder = folder.addFolder("Game Controls / Gameplay");
+    const speedProxy = { speedScale: this._gameInstance.MANAGERS.SettingsManager.getSettings().gameplay.speedScale };
+    const speedScales = { "0.5x": 0.5, "1x": 1, "2x": 2, "4x": 4 };
+
+    for (const [label, value] of Object.entries(speedScales)) {
+      gameplayFolder.add({ [label]: () => this._setSpeedScale(value) }, label);
+    }
+
+    // Slider stays in sync with buttons
+    gameplayFolder
+      .add(speedProxy, "speedScale", 0, 4, 0.05)
+      .name("Speed Scale")
+      .onChange(() => this._setSpeedScale(speedProxy.speedScale))
+      .listen(); // reflects external changes
+
+    folder.open();
+    zombiesFolder.open();
+    gameplayFolder.open();
+  }
+
+  private _setSpeedScale(value: number): void {
+    this._gameInstance.MANAGERS.SettingsManager.setSettings({ gameplay: { speedScale: value } });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Settings — schema driven
+  // ---------------------------------------------------------------------------
+
+  private _buildSettingsFolder(): void {
+    const { SettingsManager } = this._gameInstance.MANAGERS;
     const settings = SettingsManager.getSettings();
 
-    const resetButton = { "Reset defaults": () => SettingsManager.restoreDefaults() };
-    this._gui.add(resetButton, "Reset defaults");
-
     const settingsFolder = this._gui.addFolder("Settings");
+    settingsFolder.add({ "Reset Defaults": () => SettingsManager.restoreDefaults() }, "Reset Defaults");
 
     for (const sectionKey in SettingsDebugControlSchema) {
       const section = SettingsDebugControlSchema[sectionKey as keyof GameSettingsSpec];
       if (!section) continue;
 
-      const sectionFolder = settingsFolder.addFolder(`Settings / ${sectionKey}`);
       const sectionSettings = settings[sectionKey as keyof GameSettingsSpec];
+      const sectionFolder = settingsFolder.addFolder(sectionKey);
 
-      // Proxy for this section — lil-gui mutates it directly
       const proxy: Record<string, unknown> = {};
       for (const fieldKey in section) {
         proxy[fieldKey] = sectionSettings[fieldKey as keyof typeof sectionSettings];
@@ -82,20 +123,22 @@ export class DebugPanel {
         })();
 
         controller.name(control.label ?? fieldKey).onChange(() => {
-          SettingsManager.setSettings({
-            [sectionKey]: { [fieldKey]: proxy[fieldKey] },
-          });
+          SettingsManager.setSettings({ [sectionKey]: { [fieldKey]: proxy[fieldKey] } });
         });
       }
 
       sectionFolder.close();
     }
 
-    settingsFolder.open();
+    settingsFolder.close();
   }
 
+  // ---------------------------------------------------------------------------
+  // Lifecycle
+  // ---------------------------------------------------------------------------
+
   public subscribeToSettings(): void {
-    this._unsubscribeSettings = this._game.MANAGERS.SettingsManager.subscribeToChange(() => {
+    this._unsubscribeSettings = this._gameInstance.MANAGERS.SettingsManager.subscribeToChange(() => {
       this._gui.controllersRecursive().forEach((c) => c.updateDisplay());
     });
   }
