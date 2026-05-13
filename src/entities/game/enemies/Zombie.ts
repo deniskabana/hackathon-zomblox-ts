@@ -269,10 +269,11 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Setti
     },
 
     updateAfter: (_deltaTime) => {
-      const { LevelManager } = _game.MANAGERS;
+      const { LevelManager, SettingsManager } = _game.MANAGERS;
+      const settings = SettingsManager.getSettings().zombie;
 
-      // Damage in sunlight
-      if (isInsideGrid(this._getGridPosition()) && LevelManager.getIsDay()) this._handleDamage(_deltaTime * 10);
+      if (settings.isHurtBySunlight && isInsideGrid(this._getGridPosition()) && LevelManager.getIsDay())
+        this._handleDamage(_deltaTime * 10);
 
       this.applyMovement(_deltaTime);
     },

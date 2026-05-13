@@ -11,7 +11,8 @@ export interface AEntityEngine {
   updateBefore?: (_deltaTime: number, _unscaledDeltaTime: number) => void;
   updateAfter?: (_deltaTime: number, _unscaledDeltaTime: number) => void;
 
-  onDamage?: (amount: number) => void;
+  /** Returning `false` will exit without modifying health. */
+  onDamage?: (amount: number) => boolean | void;
   onDeath?: () => void;
   onDestroy?: () => void;
 }
@@ -102,8 +103,8 @@ export default abstract class AEntity<
 
   public _handleDamage(amount: number): void {
     if (this._isDead) return;
+    if (this._engine.onDamage?.(amount) === false) return;
     this._health = Math.max(0, this._health - amount);
-    this._engine.onDamage?.(amount);
 
     if (this._health <= 0) {
       this._isDead = true;

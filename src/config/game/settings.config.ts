@@ -45,7 +45,7 @@ export const DEFAULT_SETTINGS: GameSettingsSpec = {
     nightDurationSec: 60,
   },
   zombie: {
-    worldSize: GRID_CONFIG.TILE_SIZE * 1.5,
+    worldSize: GRID_CONFIG.TILE_SIZE * 1,
     attackDurationSec: 0.4,
     attackCooldownSec: 2,
     maxSpeed: 60,
@@ -61,11 +61,13 @@ export const DEFAULT_SETTINGS: GameSettingsSpec = {
     debugDrawSeparationVector: false,
   },
   player: {
+    worldSize: GRID_CONFIG.TILE_SIZE * 1.5,
     startHealth: 200,
     movementSpeed: 160,
-    stunCooldownSec: 2,
     defaultWeapon: "Revolver",
     lightRadius: 4.5,
+    stunCooldownSec: 2,
+    stepSoundCooldownSec: 0.35,
     debugDrawState: false,
     debugDrawPosition: false,
     debugDrawWireframe: false,

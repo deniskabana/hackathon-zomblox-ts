@@ -43,7 +43,6 @@ interface Timers {
 
 interface Settings {
   stepSoundInterval: number;
-  buildingModeInterval: number;
   stunDuration: number;
   maxSpeed: number;
 }
@@ -60,19 +59,18 @@ interface Instance {
 export default class Player extends AEntity<PlayerState, Instance, Timers, Settings> {
   constructor({ gameInstance, entityId, gridPos }: EntityConstructorProps) {
     _game = gameInstance;
-    const { GameManager, AssetManager } = _game.MANAGERS;
-    const { startHealth, movementSpeed, defaultWeapon, stunCooldownSec } = GameManager.getSettings().rules.player;
-    const size = GRID_CONFIG.TILE_SIZE * 1.5;
+    const { SettingsManager, AssetManager } = _game.MANAGERS;
+    const { worldSize, startHealth, movementSpeed, defaultWeapon, stunCooldownSec, stepSoundCooldownSec } =
+      SettingsManager.getSettings().player;
 
     const settings: Settings = {
-      stepSoundInterval: 0.35,
-      buildingModeInterval: 2,
+      stepSoundInterval: stepSoundCooldownSec,
       stunDuration: stunCooldownSec,
       maxSpeed: movementSpeed,
     };
 
     const timers: Timers = {
-      attackCooldown: new EntityTimer({ initialValue: 0, autoStart: false }),
+      attackCooldown: new EntityTimer({ initialValue: 0, autoStart: false }), // Value filled by WEAPON_DEF['cooldown']
       stepSound: new EntityTimer({ initialValue: settings.stepSoundInterval, autoStart: false }),
       btnWeaponSwitch: new EntityTimer({ initialValue: 0.25, autoStart: false }),
       stun: new EntityTimer({ initialValue: settings.stunDuration, autoStart: false }),
@@ -106,7 +104,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Setti
 
     super({
       worldPos: gridToWorld(gridPos),
-      size,
+      size: worldSize,
       entityId,
       animations,
       settings,
@@ -131,17 +129,24 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Setti
     },
 
     drawDebug: () => {
-      const { GameManager, DrawManager } = _game.MANAGERS;
+      const { SettingsManager, DrawManager } = _game.MANAGERS;
+      const settings = SettingsManager.getSettings().player;
+      const { x: gx, y: gy } = this._getGridPosition();
+      const { x, y } = this._getWorldPosition();
+      const { TILE_SIZE } = GRID_CONFIG;
+      const debugSize = TILE_SIZE;
 
-      if (GameManager.getSettings().debug.enableFlowFieldRender) {
-        const gridPos = this._getGridPosition();
-        const debugSize = GRID_CONFIG.TILE_SIZE / 2;
-        const { x, y } = this._getWorldPosition();
-        const { TILE_SIZE } = GRID_CONFIG;
+      if (settings.debugDrawWireframe) {
+        DrawManager.drawRectOutline(gx, gy, TILE_SIZE, TILE_SIZE, "#ca6", 3);
+      }
 
-        DrawManager.drawRectOutline(gridPos.x, gridPos.y, TILE_SIZE, TILE_SIZE, "#ca6", 3);
+      if (settings.debugDrawPosition) {
         DrawManager.drawLine(x - debugSize / 2, y - debugSize / 2, x + debugSize / 2, y + debugSize / 2, "#ca6", 3);
         DrawManager.drawLine(x + debugSize / 2, y - debugSize / 2, x - debugSize / 2, y + debugSize / 2, "#ca6", 3);
+      }
+
+      if (settings.debugDrawState) {
+        DrawManager.drawText(this._getState(), x, y - TILE_SIZE / 2, "#ca6", 10, "Arial", "center");
       }
     },
 
@@ -197,9 +202,10 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Setti
     },
 
     onDamage: (amount) => {
-      const { AssetManager, CameraManager } = _game.MANAGERS;
+      const { AssetManager, CameraManager, SettingsManager } = _game.MANAGERS;
+      const settings = SettingsManager.getSettings().player;
 
-      this._timers.stun.reset();
+      this._timers.stun.reset(settings.stunCooldownSec);
       this._setState(PlayerState.KNOCKED);
 
       CameraManager.effectZoom(amount * 2);
@@ -208,6 +214,8 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Setti
       if (this._getHealth() - amount > 0) {
         AssetManager.playAudioAsset("APlayerHurt", "sound");
       }
+
+      if (settings.debugIsInvincible) return false;
     },
 
     onDeath: () => {
@@ -445,7 +453,8 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Setti
   }
 
   private applyMovement(_deltaTime: number): void {
-    const { AssetManager, LevelManager } = _game.MANAGERS;
+    const { AssetManager, LevelManager, SettingsManager } = _game.MANAGERS;
+    const settings = SettingsManager.getSettings().player;
     const { levelGrid } = LevelManager;
     const vector = this.getMovementInputVector();
     const state = this._getState();
@@ -462,13 +471,15 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Setti
       y: y + vector.y * _deltaTime * speed,
     };
 
-    const futureGridPos = worldToGrid(futurePos);
-    if (
-      !areVectorsEqual(futureGridPos, this._getGridPosition()) &&
-      levelGrid?.[futureGridPos.x]?.[futureGridPos.y]?.state === GridTileState.BLOCKED
-    ) {
-      this._setState(PlayerState.IDLE);
-      return;
+    if (!settings.debugDisablePhysics) {
+      const futureGridPos = worldToGrid(futurePos);
+      if (
+        !areVectorsEqual(futureGridPos, this._getGridPosition()) &&
+        levelGrid?.[futureGridPos.x]?.[futureGridPos.y]?.state === GridTileState.BLOCKED
+      ) {
+        this._setState(PlayerState.IDLE);
+        return;
+      }
     }
 
     const adjustedFuturePos = futurePos;
@@ -483,7 +494,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Setti
 
     if (this._timers.stepSound.getIsDone()) {
       AssetManager.playAudioAsset("APlayerStep", "sound");
-      this._timers.stepSound.reset();
+      this._timers.stepSound.reset(stepSoundCooldownSec);
     }
   }
 
