@@ -367,7 +367,16 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
 
           const worldPos = zombie._getWorldPosition();
           const dist = Math.hypot(selfWorldPos.x - worldPos.x, selfWorldPos.y - worldPos.y);
-          if (dist === 0 || dist >= radius) return;
+
+          if (dist === 0) {
+            // Deterministic push based on ID difference — always consistent direction
+            const idDiff = this._entityId - zombie._getEntityId();
+            separation.x += idDiff > 0 ? 0.1 : -0.1;
+            separation.y += idDiff > 0 ? 0.1 : -0.1;
+            return;
+          }
+
+          if (dist >= radius) return;
 
           // separation — all neighbors
           const strength = (radius - dist) / radius;
@@ -443,15 +452,15 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     };
 
     // NAIVE COLLISION SYSTEM
-    // const futureGridPos = worldToGrid(futurePos);
-    // if (
-    //   !areVectorsEqual(futureGridPos, this._getGridPosition()) &&
-    //   levelGrid?.[futureGridPos.x]?.[futureGridPos.y]?.state === GridTileState.BLOCKED
-    // ) {
-    //   this._timers.movementRestart.reset(settings.movementRestartSec);
-    //   this._setState(ZombieState.IDLE);
-    //   return;
-    // }
+    const futureGridPos = worldToGrid(futurePos);
+    if (
+      !areVectorsEqual(futureGridPos, this._getGridPosition()) &&
+      levelGrid?.[futureGridPos.x]?.[futureGridPos.y]?.state === GridTileState.BLOCKED
+    ) {
+      this._timers.movementRestart.reset(settings.movementRestartSec);
+      this._setState(ZombieState.IDLE);
+      return;
+    }
 
     this.changeFacingPosition(futurePos.x < x);
     this._setWorldPosition(futurePos);
