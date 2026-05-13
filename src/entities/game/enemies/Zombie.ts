@@ -428,17 +428,17 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     } = this._instance;
 
     const combined = {
-      x: lerp(movementFlowFieldVector.x, movementSeparationVector.x, settings.movementSeparationWeight),
-      y: lerp(movementFlowFieldVector.y, movementSeparationVector.y, settings.movementSeparationWeight),
+      x: movementFlowFieldVector.x + movementSeparationVector.x * settings.movementSeparationWeight,
+      y: movementFlowFieldVector.y + movementSeparationVector.y * settings.movementSeparationWeight,
     };
     const mag = Math.hypot(combined.x, combined.y);
     const normalizedVector = mag > 0 ? { x: combined.x / mag, y: combined.y / mag } : { x: 0, y: 0 };
 
     const targetSpeed = desiredVelocity * lerp(1, 1 - settings.movementDensityWeight, movementGridDensity);
-    this._instance.movementVelocity = lerp(movementVelocity, targetSpeed, _deltaTime * 4);
+    this._instance.movementVelocity = lerp(movementVelocity, targetSpeed, _deltaTime * 3);
 
     const targetDirection = Math.atan2(normalizedVector.y, normalizedVector.x);
-    this._instance.movementDirection = lerpAngle(movementDirection, targetDirection, _deltaTime * 3.5);
+    this._instance.movementDirection = lerpAngle(movementDirection, targetDirection, _deltaTime * 5);
 
     if (this.getIsNextToPlayer()) {
       this._setState(ZombieState.IDLE);
@@ -451,14 +451,26 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
       y: y + Math.sin(this._instance.movementDirection) * this._instance.movementVelocity * _deltaTime,
     };
 
-    // NAIVE COLLISION SYSTEM
+    // Collision handling with sliding
     const futureGridPos = worldToGrid(futurePos);
     if (
       !areVectorsEqual(futureGridPos, this._getGridPosition()) &&
       levelGrid?.[futureGridPos.x]?.[futureGridPos.y]?.state === GridTileState.BLOCKED
     ) {
-      this._timers.movementRestart.reset(settings.movementRestartSec);
-      this._setState(ZombieState.IDLE);
+      const slideX = worldToGrid({ x: futurePos.x, y });
+      const slideY = worldToGrid({ x, y: futurePos.y });
+      const canSlideX = levelGrid?.[slideX.x]?.[slideX.y]?.state !== GridTileState.BLOCKED;
+      const canSlideY = levelGrid?.[slideY.x]?.[slideY.y]?.state !== GridTileState.BLOCKED;
+
+      if (canSlideX) {
+        this.changeFacingPosition(futurePos.x < x);
+        this._setWorldPosition({ x: futurePos.x, y });
+      } else if (canSlideY) {
+        this._setWorldPosition({ x, y: futurePos.y });
+      } else {
+        this._setState(ZombieState.IDLE);
+        this._timers.movementRestart.reset(settings.movementRestartSec);
+      }
       return;
     }
 
