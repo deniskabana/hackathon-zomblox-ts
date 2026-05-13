@@ -68,7 +68,12 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       frameHeight: 32,
       fps: 12,
       animations: [
-        { id: "idle", frameCount: 6, assetVariants: [AssetManager.getImageAsset("SPlayerIdle")!], fps: 8 },
+        {
+          id: "idle",
+          frameCount: 6,
+          assetVariants: [AssetManager.getImageAsset("SPlayerIdle")!],
+          fps: 8,
+        },
         {
           id: "run",
           frameCount: 8,
@@ -109,6 +114,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       const size = this._getSize();
       this._animations?.drawActiveAnimations(this._getWorldPosition(), size, DrawManager, {
         scaleX: this._instance.isFacingLeft ? 1 : -1,
+        offset: { x: 0, y: -this._getSize() * 0.35 },
       });
 
       const weaponSize = GRID_CONFIG.TILE_SIZE * 1.5;
@@ -144,7 +150,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       const size = this._getSize() * 0.75;
 
       if (!shadowSprite) return;
-      DrawManager.queueDraw(x - size / 2, y - size * 0.65, shadowSprite, size, size, ZIndex.GROUND_EFFECTS);
+      DrawManager.queueDraw(x - size / 2, y - size * 0.55, shadowSprite, size, size, ZIndex.GROUND_EFFECTS);
     },
 
     onDestroy: () => {

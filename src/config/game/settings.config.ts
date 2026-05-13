@@ -34,7 +34,7 @@ export interface GameSettingsSpec {
   collectables: GameSettingsCollectables;
 }
 
-export const DEFAULT_SETTINGS: GameSettingsSpec = {
+export const DEFAULT_SETTINGS: Readonly<GameSettingsSpec> = {
   gameplay: {
     speedScale: 1,
     volumeMaster: 1,
@@ -99,7 +99,7 @@ export const DEFAULT_SETTINGS: GameSettingsSpec = {
     minDistanceFromPlayerPx: GRID_CONFIG.TILE_SIZE * 0.3,
     debugDrawWireframe: false,
   },
-};
+} as const;
 
 export const SettingsDebugControlSchema: SettingsDebugSchema = {
   gameplay: {

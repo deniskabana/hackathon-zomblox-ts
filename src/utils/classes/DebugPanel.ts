@@ -34,6 +34,8 @@ export class DebugPanel {
   private _gameInstance: GameInstance;
   private _visible: boolean = false;
   private _unsubscribeSettings: VoidFunction | null = null;
+  private _proxies: Record<string, Record<string, unknown>> = {};
+  private _speedProxy: { speedScale: number } = { speedScale: 1 };
 
   constructor(gameInstance: GameInstance) {
     this._gameInstance = gameInstance;
@@ -59,7 +61,7 @@ export class DebugPanel {
     zombiesFolder.add(zombieActions, "Spawn Random");
 
     const gameplayFolder = folder.addFolder("Game Controls / Gameplay");
-    const speedProxy = { speedScale: this._gameInstance.MANAGERS.SettingsManager.getSettings().gameplay.speedScale };
+    this._speedProxy = { speedScale: this._gameInstance.MANAGERS.SettingsManager.getSettings().gameplay.speedScale };
     const speedScales = { "0.5x": 0.5, "1x": 1, "2x": 2, "4x": 4 };
 
     for (const [label, value] of Object.entries(speedScales)) {
@@ -68,9 +70,9 @@ export class DebugPanel {
 
     // Slider stays in sync with buttons
     gameplayFolder
-      .add(speedProxy, "speedScale", 0, 4, 0.05)
+      .add(this._speedProxy, "speedScale", 0, 4, 0.05)
       .name("Speed Scale")
-      .onChange(() => this._setSpeedScale(speedProxy.speedScale))
+      .onChange(() => this._setSpeedScale(this._speedProxy.speedScale))
       .listen(); // reflects external changes
 
     folder.open();
@@ -98,7 +100,7 @@ export class DebugPanel {
       if (!section) continue;
 
       const sectionSettings = settings[sectionKey as keyof GameSettingsSpec];
-      const sectionFolder = settingsFolder.addFolder(sectionKey);
+      const sectionFolder = settingsFolder.addFolder("Settings / " + sectionKey);
 
       const proxy: Record<string, unknown> = {};
       for (const fieldKey in section) {
@@ -122,6 +124,8 @@ export class DebugPanel {
           }
         })();
 
+        this._proxies[sectionKey] = proxy;
+
         controller.name(control.label ?? fieldKey).onChange(() => {
           SettingsManager.setSettings({ [sectionKey]: { [fieldKey]: proxy[fieldKey] } });
         });
@@ -138,7 +142,17 @@ export class DebugPanel {
   // ---------------------------------------------------------------------------
 
   public subscribeToSettings(): void {
-    this._unsubscribeSettings = this._gameInstance.MANAGERS.SettingsManager.subscribeToChange(() => {
+    this._unsubscribeSettings = this._gameInstance.MANAGERS.SettingsManager.subscribeToChange((settings) => {
+      this._speedProxy.speedScale = settings.gameplay.speedScale;
+
+      for (const sectionKey in this._proxies) {
+        const sectionSettings = settings[sectionKey as keyof GameSettingsSpec];
+        const proxy = this._proxies[sectionKey];
+        for (const fieldKey in proxy) {
+          proxy[fieldKey] = sectionSettings[fieldKey as keyof typeof sectionSettings];
+        }
+      }
+
       this._gui.controllersRecursive().forEach((c) => c.updateDisplay());
     });
   }

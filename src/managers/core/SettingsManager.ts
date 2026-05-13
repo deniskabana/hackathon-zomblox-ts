@@ -10,7 +10,7 @@ export class SettingsManager extends AManager {
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
-    this._settings = { ...DEFAULT_SETTINGS };
+    this._settings = mergeDeep({}, { ...DEFAULT_SETTINGS });
     this._changeListeners = new Set();
   }
 
@@ -53,7 +53,6 @@ export class SettingsManager extends AManager {
   }
 
   private getFromStorage(): GameSettingsSpec | undefined {
-    return undefined;
     try {
       const settings = JSON.parse(localStorage.getItem(KEY_SETTINGS) || "");
       return settings;
