@@ -67,6 +67,9 @@ export default class GameInstance {
       UIManager: new UIManager(this),
       VFXManager: new VFXManager(this),
     };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (import.meta.env.DEV) (window as any)._DEBUG_gameInstance = this;
   }
 
   async init() {

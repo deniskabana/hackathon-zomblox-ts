@@ -40,7 +40,6 @@ interface Instance {
 
   maxSpeed: number;
   desiredVelocity: number;
-  movementVector: Vector | undefined;
   movementDirection: number;
   movementVelocity: number;
 
@@ -128,7 +127,6 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
 
     const instance: Instance = {
       maxSpeed: settings.maxSpeed,
-      movementVector: undefined,
       movementDirection: 0,
       movementVelocity: 0,
       desiredVelocity: 0,
@@ -162,6 +160,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
       const size = this._getSize();
       this._animations?.drawActiveAnimations(this._getWorldPosition(), size, DrawManager, {
         scaleX: this._instance.isFacingLeft ? 1 : -1,
+        offset: { x: 0, y: -this._getSize() * 0.35 },
       });
     },
 
@@ -171,49 +170,67 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
       const size = this._getSize() * 0.75;
       const shadowSprite = AssetManager.getImageAsset("IFXEntityShadow");
       if (!shadowSprite) return;
-      DrawManager.queueDraw(x - size / 2, y - size / 4, shadowSprite, size, size, ZIndex.GROUND_EFFECTS);
+      DrawManager.queueDraw(x - size / 2, y - size * 0.55, shadowSprite, size, size, ZIndex.GROUND_EFFECTS);
     },
 
     drawDebug: () => {
       const { SettingsManager, DrawManager } = _game.MANAGERS;
       const settings = SettingsManager.getSettings().zombie;
       const { x, y } = this._getWorldPosition();
-      const { x: gx, y: gy } = this._getGridPosition();
       const { TILE_SIZE } = GRID_CONFIG;
 
       if (settings.debugDrawFlowFieldVector) {
-        // DrawManager.drawArrow(
-        //   x,
-        //   y,
-        //   x + (Math.cos(this._instance.movementDirection) * TILE_SIZE) / 2,
-        //   y + (Math.sin(this._instance.movementDirection) * TILE_SIZE) / 2,
-        //   "#a090ff",
-        //   2,
-        // );
+        DrawManager.drawArrow(
+          x,
+          y,
+          x + (TILE_SIZE * this._instance.movementFlowFieldVector.x) / 2,
+          y + (TILE_SIZE * this._instance.movementFlowFieldVector.y) / 2,
+          "#10a05f",
+          2,
+        );
+      }
+
+      if (settings.debugDrawFlowFieldVector) {
+        DrawManager.drawArrow(
+          x,
+          y,
+          x + Math.cos(this._instance.movementDirection) * TILE_SIZE,
+          y + Math.sin(this._instance.movementDirection) * TILE_SIZE,
+          "#ff90a0",
+          2,
+        );
       }
 
       if (settings.debugDrawSeparationVector) {
-        // DrawManager.drawArrow(
-        //   x,
-        //   y,
-        //   x + (Math.cos(this._instance.movementDirection) * TILE_SIZE) / 2,
-        //   y + (Math.sin(this._instance.movementDirection) * TILE_SIZE) / 2,
-        //   "#a090ff",
-        //   2,
-        // );
+        DrawManager.drawArrow(
+          x,
+          y,
+          x + TILE_SIZE * this._instance.movementSeparationVector.x,
+          y + TILE_SIZE * this._instance.movementSeparationVector.y,
+          "#a090ff",
+          2,
+        );
       }
 
       if (settings.debugDrawState) {
-        DrawManager.drawText(this._getState(), x, y - TILE_SIZE / 2, "#f89", 10, "Arial", "center");
+        DrawManager.drawText(this._getState(), x + 1, y + 1 - TILE_SIZE, "#000", 11, "Arial", "center");
+        DrawManager.drawText(this._getState(), x, y - TILE_SIZE, "#f89", 11, "Arial", "center");
       }
 
       if (settings.debugDrawPosition) {
-        DrawManager.drawLine(x - TILE_SIZE / 2, y - TILE_SIZE / 2, x + TILE_SIZE / 2, y + TILE_SIZE / 2, "#ca6", 3);
-        DrawManager.drawLine(x + TILE_SIZE / 2, y - TILE_SIZE / 2, x - TILE_SIZE / 2, y + TILE_SIZE / 2, "#ca6", 3);
+        DrawManager.drawLine(x - TILE_SIZE / 2, y - TILE_SIZE / 2, x + TILE_SIZE / 2, y + TILE_SIZE / 2, "#f89", 3);
+        DrawManager.drawLine(x + TILE_SIZE / 2, y - TILE_SIZE / 2, x - TILE_SIZE / 2, y + TILE_SIZE / 2, "#f89", 3);
       }
 
       if (settings.debugDrawWireframe) {
-        DrawManager.drawRectOutline(gx, gy, GRID_CONFIG.TILE_SIZE, GRID_CONFIG.TILE_SIZE, "#aa42a480", 1.5);
+        DrawManager.drawRectOutline(
+          gridToWorld(this._getGridPosition()).x,
+          gridToWorld(this._getGridPosition()).y,
+          GRID_CONFIG.TILE_SIZE,
+          GRID_CONFIG.TILE_SIZE,
+          "#f89",
+          1.5,
+        );
       }
     },
 
@@ -412,7 +429,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     this._instance.movementVelocity = lerp(movementVelocity, targetSpeed, _deltaTime * 4);
 
     const targetDirection = Math.atan2(normalizedVector.y, normalizedVector.x);
-    this._instance.movementDirection = lerpAngle(movementDirection, targetDirection, _deltaTime * 7);
+    this._instance.movementDirection = lerpAngle(movementDirection, targetDirection, _deltaTime * 3.5);
 
     if (this.getIsNextToPlayer()) {
       this._setState(ZombieState.IDLE);
@@ -426,15 +443,15 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     };
 
     // NAIVE COLLISION SYSTEM
-    const futureGridPos = worldToGrid(futurePos);
-    if (
-      !areVectorsEqual(futureGridPos, this._getGridPosition()) &&
-      levelGrid?.[futureGridPos.x]?.[futureGridPos.y]?.state === GridTileState.BLOCKED
-    ) {
-      this._timers.movementRestart.reset(settings.movementRestartSec);
-      this._setState(ZombieState.IDLE);
-      return;
-    }
+    // const futureGridPos = worldToGrid(futurePos);
+    // if (
+    //   !areVectorsEqual(futureGridPos, this._getGridPosition()) &&
+    //   levelGrid?.[futureGridPos.x]?.[futureGridPos.y]?.state === GridTileState.BLOCKED
+    // ) {
+    //   this._timers.movementRestart.reset(settings.movementRestartSec);
+    //   this._setState(ZombieState.IDLE);
+    //   return;
+    // }
 
     this.changeFacingPosition(futurePos.x < x);
     this._setWorldPosition(futurePos);

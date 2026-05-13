@@ -400,6 +400,9 @@ export default class LevelManager extends AManager {
   // ==================================================
 
   private startSpawningZombies(): void {
+    const { SettingsManager } = this.gameInstance.MANAGERS;
+    if (!SettingsManager.getSettings().rules.autospawn) return;
+
     this.isSpawningZombies = true;
     this.zombieSpawnsLeft = 100;
   }

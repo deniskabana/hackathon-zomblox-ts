@@ -20,6 +20,7 @@ export interface GameSettingsSpec {
     startingCurrency: number;
     incomeScale: number;
     endNightReward: number;
+    autospawn: boolean;
 
     difficultyIncreaseCoef: number;
     nightDurationSec: number;
@@ -43,6 +44,7 @@ export const DEFAULT_SETTINGS: Readonly<GameSettingsSpec> = {
   },
   rules: {
     startingCurrency: 10,
+    autospawn: true,
     incomeScale: 1,
     endNightReward: 10,
     difficultyIncreaseCoef: 1.2385,
@@ -109,6 +111,7 @@ export const SettingsDebugControlSchema: SettingsDebugSchema = {
     volumeMusic: { type: "number", min: 0, max: 1, step: 0.05 },
   },
   rules: {
+    autospawn: { type: "boolean" },
     startingCurrency: { type: "number", min: 0, max: 1000, step: 5 },
     incomeScale: { type: "number", min: 0, max: 10, step: 0.1 },
     endNightReward: { type: "number", min: 0, max: 1000, step: 5 },

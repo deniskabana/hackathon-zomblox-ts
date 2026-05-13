@@ -124,13 +124,19 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     drawDebug: () => {
       const { SettingsManager, DrawManager } = _game.MANAGERS;
       const settings = SettingsManager.getSettings().player;
-      const { x: gx, y: gy } = this._getGridPosition();
       const { x, y } = this._getWorldPosition();
       const { TILE_SIZE } = GRID_CONFIG;
       const debugSize = TILE_SIZE;
 
       if (settings.debugDrawWireframe) {
-        DrawManager.drawRectOutline(gx, gy, TILE_SIZE, TILE_SIZE, "#ca6", 3);
+        DrawManager.drawRectOutline(
+          gridToWorld(this._getGridPosition()).x,
+          gridToWorld(this._getGridPosition()).y,
+          TILE_SIZE,
+          TILE_SIZE,
+          "#ca6",
+          3,
+        );
       }
 
       if (settings.debugDrawPosition) {
@@ -139,7 +145,8 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       }
 
       if (settings.debugDrawState) {
-        DrawManager.drawText(this._getState(), x, y - TILE_SIZE / 2, "#ca6", 10, "Arial", "center");
+        DrawManager.drawText(this._getState(), x + 1, y + 1 - TILE_SIZE, "#000", 11, "Arial", "center");
+        DrawManager.drawText(this._getState(), x, y - TILE_SIZE, "#ca6", 11, "Arial", "center");
       }
     },
 

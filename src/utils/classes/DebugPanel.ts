@@ -70,7 +70,7 @@ export class DebugPanel {
 
     const gameplayFolder = folder.addFolder("Game Controls / Gameplay");
     this._speedProxy = { speedScale: this._gameInstance.MANAGERS.SettingsManager.getSettings().gameplay.speedScale };
-    const speedScales = { "0.5x": 0.5, "1x": 1, "2x": 2, "4x": 4 };
+    const speedScales = { "0x": 0, "0.5x": 0.5, "1x": 1, "2x": 2, "4x": 4 };
 
     for (const [label, value] of Object.entries(speedScales)) {
       gameplayFolder.add({ [label]: () => this._setSpeedScale(value) }, label);
