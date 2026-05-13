@@ -38,7 +38,7 @@ export class DebugPanel {
   constructor(gameInstance: GameInstance) {
     this._game = gameInstance;
     this._gui = new GUI({ title: "Zomblocks Debug Menu", width: 320, autoPlace: true });
-    this._gui.close();
+    this._gui.hide();
     this._build();
   }
 

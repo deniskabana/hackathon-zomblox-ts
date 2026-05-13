@@ -441,7 +441,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
   }
 
   private changeFacingPosition(isFacingLeft: boolean): void {
-    if (this._timers.facingDirection.getIsDone()) {
+    if (this._timers.facingDirection.getIsDone() || !this._timers.facingDirection.getIsActive()) {
       this._instance.isFacingLeft = isFacingLeft;
       this._timers.facingDirection.reset();
     }

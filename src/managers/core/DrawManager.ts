@@ -107,7 +107,7 @@ export default class DrawManager extends AManager {
     if (!this.isRunning) return;
     const { BuildModeManager, UIManager, VFXManager, LevelManager, SettingsManager } = this.gameInstance.MANAGERS;
 
-    const deltaTime = (currentTime - this.lastFrameTime) / 1000;
+    const deltaTime = Math.min((currentTime - this.lastFrameTime) / 1000, 1 / 10);
     const speedScale = SettingsManager.getSettings().gameplay.speedScale;
     this.lastFrameTime = currentTime;
     this.fps = Math.round(1 / deltaTime);
