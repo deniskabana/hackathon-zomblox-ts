@@ -1,4 +1,4 @@
-import type { SpriteFrame } from "../utils/classes/SpriteSheet";
+import type { SpriteFrame } from "../../utils/classes/SpriteSheet";
 
 export interface DrawCommand {
   image: HTMLImageElement | HTMLCanvasElement;

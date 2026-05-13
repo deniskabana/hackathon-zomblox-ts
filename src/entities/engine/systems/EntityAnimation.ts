@@ -1,7 +1,7 @@
 import { type WorldPosition, GRID_CONFIG } from "../../../config/core/grid.config";
 import type DrawManager from "../../../managers/core/DrawManager";
-import type { AssetImage } from "../../../types/Asset";
-import { ZIndex } from "../../../types/ZIndex";
+import type { AssetImage } from "../../../types/engine/Asset";
+import { ZIndex } from "../../../types/lib/ZIndex";
 import { AnimatedSpriteSheet } from "../../../utils/classes/AnimatedSpriteSheet";
 
 export type AnimationID = string;

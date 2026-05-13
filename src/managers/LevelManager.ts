@@ -16,16 +16,16 @@ import MapTilesetManager from "../map/MapTilesetManager";
 import type { GameMap } from "../map/parseJsonMap";
 import parseJsonMap from "../map/parseJsonMap";
 import type { AudioControl } from "../types/AudioControl";
-import { EntityType } from "../types/EntityType";
-import { GridTileState, type GridTileRef, type LevelGrid } from "../types/Grid";
+import { type LevelGrid, GridTileState, type GridTileRef } from "../types/engine/Grid";
 import type { LevelState } from "../types/LevelState";
-import { ZIndex } from "../types/ZIndex";
+import { ZIndex } from "../types/lib/ZIndex";
 import assertNever from "../utils/assertNever";
 import generateEmptyLevelGrid from "../utils/grid/generateEmptyLevelGrid";
 import generateFlowField, { type FlowField } from "../utils/grid/generateFlowFieldMap";
 import raycast2D from "../utils/grid/raycast2D";
 import { AManager } from "./abstract/AManager";
 import { BlockTypes } from "./BuildModeManager";
+import { EntityType } from "./engine/EntityManager";
 
 export default class LevelManager extends AManager {
   public worldWidth: number = WORLD_SIZE.WIDTH;

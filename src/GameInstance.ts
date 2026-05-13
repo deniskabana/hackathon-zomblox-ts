@@ -12,8 +12,8 @@ import UIManager from "./managers/UIManager";
 import VFXManager from "./managers/VFXManager";
 import csTranslation from "./translation/cs";
 import enTranslation from "./translation/en";
-import { GameState } from "./types/GameState";
-import type { Translation } from "./types/Translation";
+import { GameState } from "./types/engine/GameState";
+import type { Translation } from "./types/engine/Translation";
 
 export default class GameInstance {
   public readonly isDev: boolean;

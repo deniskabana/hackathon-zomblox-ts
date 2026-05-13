@@ -1,7 +1,7 @@
 import { gridToWorld, GRID_CONFIG } from "../../../config/core/grid.config";
 import type GameInstance from "../../../GameInstance";
-import { EntityType } from "../../../types/EntityType";
-import { ZIndex } from "../../../types/ZIndex";
+import { EntityType } from "../../../managers/engine/EntityManager";
+import { ZIndex } from "../../../types/lib/ZIndex";
 import AEntity, { type AEntityEngine, type EntityConstructorProps } from "../../engine/AEntity";
 
 /** `this.gameInstance` */ let _game: GameInstance;

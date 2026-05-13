@@ -1,6 +1,6 @@
 import type GameInstance from "../../GameInstance";
-import type { DrawCommand } from "../../types/DrawCommand";
-import { ZIndex } from "../../types/ZIndex";
+import type { DrawCommand } from "../../types/engine/DrawCommand";
+import { ZIndex } from "../../types/lib/ZIndex";
 import type SpriteSheet from "../../utils/classes/SpriteSheet";
 import { AManager } from "../abstract/AManager";
 

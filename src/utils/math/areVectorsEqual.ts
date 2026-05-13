@@ -1,4 +1,4 @@
-import type { Vector } from "../../types/Vector";
+import type { Vector } from "../../types/lib/Vector";
 
 export default function areVectorsEqual(firstVector: Vector, ...vectors: (Vector | undefined)[]): boolean {
   if (!vectors.length) return false;

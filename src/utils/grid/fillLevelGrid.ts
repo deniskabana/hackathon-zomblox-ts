@@ -1,6 +1,6 @@
 import type AEntity from "../../entities/engine/AEntity";
 import type LevelManager from "../../managers/LevelManager";
-import { GridTileState, type LevelGrid } from "../../types/Grid";
+import { type LevelGrid, GridTileState } from "../../types/engine/Grid";
 import { mergeDeep } from "../mergeDeep";
 import isInsideGrid from "./isInsideGrid";
 

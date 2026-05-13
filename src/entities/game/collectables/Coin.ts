@@ -1,6 +1,6 @@
 import { GRID_CONFIG, gridToWorld } from "../../../config/core/grid.config";
 import type GameInstance from "../../../GameInstance";
-import { ZIndex } from "../../../types/ZIndex";
+import { ZIndex } from "../../../types/lib/ZIndex";
 import getVectorDistance from "../../../utils/math/getVectorDistance";
 import AEntity, { type EntityConstructorProps, type AEntityEngine } from "../../engine/AEntity";
 import type { EntityAnimationsSpecs } from "../../engine/systems/EntityAnimation";

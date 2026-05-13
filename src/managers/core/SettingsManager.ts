@@ -1,6 +1,6 @@
 import { DEFAULT_SETTINGS, KEY_SETTINGS, type GameSettingsSpec } from "../../config/game/settings.config";
 import type GameInstance from "../../GameInstance";
-import type { DeepPartial } from "../../types/DeepPartial";
+import type { DeepPartial } from "../../types/lib/DeepPartial";
 import { mergeDeep } from "../../utils/mergeDeep";
 import { AManager } from "../abstract/AManager";
 

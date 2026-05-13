@@ -1,5 +1,5 @@
 import type GameInstance from "../../GameInstance";
-import { GameState } from "../../types/GameState";
+import { GameState } from "../../types/engine/GameState";
 import { AManager } from "../abstract/AManager";
 
 export default class GameManager extends AManager {

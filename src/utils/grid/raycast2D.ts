@@ -1,6 +1,6 @@
 import { type WorldPosition, worldToGrid, GRID_CONFIG } from "../../config/core/grid.config";
 import type { AnyEntity } from "../../entities/engine/AEntity";
-import { GridTileState, type GridTileRef, type LevelGrid } from "../../types/Grid";
+import { type LevelGrid, type GridTileRef, GridTileState } from "../../types/engine/Grid";
 import getVectorDistance from "../math/getVectorDistance";
 import radiansToVector from "../math/radiansToVector";
 import isInsideGrid from "./isInsideGrid";

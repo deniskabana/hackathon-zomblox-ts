@@ -1,7 +1,7 @@
 import { type GridPosition, GRID_CONFIG } from "../../config/core/grid.config";
 import type Zombie from "../../entities/game/enemies/Zombie";
-import { GridTileState, type LevelGrid } from "../../types/Grid";
-import type { Vector } from "../../types/Vector";
+import { type LevelGrid, GridTileState } from "../../types/engine/Grid";
+import type { Vector } from "../../types/lib/Vector";
 import { clamp } from "../math/clamp";
 
 export interface FlowFieldCell {

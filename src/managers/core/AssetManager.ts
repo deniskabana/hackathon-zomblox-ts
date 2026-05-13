@@ -3,13 +3,13 @@ import viteConfig from "../../../vite.config";
 import type GameInstance from "../../GameInstance";
 import { AManager } from "../abstract/AManager";
 import type { AudioControl } from "../../types/AudioControl";
-import type { AssetAudio, AssetImage } from "../../types/Asset";
 import {
   DEF_ASSETS_AUDIO,
   type AssetAudioName,
   type AssetImageName,
   DEF_ASSETS_IMAGE,
 } from "../../config/game/assets.config";
+import type { AssetAudio, AssetImage } from "../../types/engine/Asset";
 
 export default class AssetManager extends AManager {
   private assetsAudioMap: Map<AssetAudioName, AssetAudio> = new Map();

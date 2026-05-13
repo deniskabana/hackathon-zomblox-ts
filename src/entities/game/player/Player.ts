@@ -9,9 +9,9 @@ import {
 import type { AssetAudioName } from "../../../config/game/assets.config";
 import { type Weapon, DEF_WEAPONS } from "../../../config/game/weapons.config";
 import type GameInstance from "../../../GameInstance";
+import { GridTileState } from "../../../types/engine/Grid";
 import { GameControls } from "../../../types/GameControls";
-import { GridTileState } from "../../../types/Grid";
-import { ZIndex } from "../../../types/ZIndex";
+import { ZIndex } from "../../../types/lib/ZIndex";
 import assertNever from "../../../utils/assertNever";
 import SpriteSheet from "../../../utils/classes/SpriteSheet";
 import { Direction } from "../../../utils/getCardinalDirection";

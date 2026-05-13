@@ -1,4 +1,4 @@
-import type { Vector } from "../../types/Vector";
+import type { Vector } from "../../types/lib/Vector";
 
 export default function combineVectors<T extends Vector>(...vectors: T[]): T {
   return vectors.reduce((acc, val) => {

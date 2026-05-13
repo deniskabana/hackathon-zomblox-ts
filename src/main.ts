@@ -2,8 +2,8 @@ import "./style.css";
 import csTranslation from "./translation/cs";
 import enTranslation from "./translation/en";
 import GameInstance from "./GameInstance";
-import type { Translation } from "./types/Translation";
 import { version } from "../package.json";
+import type { Translation } from "./types/engine/Translation";
 
 (function () {
   const game = new GameInstance();

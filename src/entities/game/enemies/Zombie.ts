@@ -1,8 +1,8 @@
 import { GRID_CONFIG, gridToWorld, worldToGrid, type WorldPosition } from "../../../config/core/grid.config";
 import type GameInstance from "../../../GameInstance";
-import { GridTileState } from "../../../types/Grid";
-import type { Vector } from "../../../types/Vector";
-import { ZIndex } from "../../../types/ZIndex";
+import { GridTileState } from "../../../types/engine/Grid";
+import type { Vector } from "../../../types/lib/Vector";
+import { ZIndex } from "../../../types/lib/ZIndex";
 import assertNever from "../../../utils/assertNever";
 import isInsideGrid from "../../../utils/grid/isInsideGrid";
 import areVectorsEqual from "../../../utils/math/areVectorsEqual";

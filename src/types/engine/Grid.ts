@@ -1,5 +1,5 @@
-import type { AnyEntity } from "../entities/engine/AEntity";
-import type { Vector } from "./Vector";
+import type { AnyEntity } from "../../entities/engine/AEntity";
+import type { Vector } from "../lib/Vector";
 
 export enum GridTileState {
   AVAILABLE,

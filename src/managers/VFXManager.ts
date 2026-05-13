@@ -1,7 +1,7 @@
 import { type WorldPosition, GRID_CONFIG } from "../config/core/grid.config";
 import type GameInstance from "../GameInstance";
 import type { Effect } from "../types/Effects";
-import { ZIndex } from "../types/ZIndex";
+import { ZIndex } from "../types/lib/ZIndex";
 import SpriteSheet from "../utils/classes/SpriteSheet";
 import radiansToVector from "../utils/math/radiansToVector";
 import { AManager } from "./abstract/AManager";

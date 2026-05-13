@@ -1,4 +1,4 @@
-import type { TranslationDictionary } from "../translation/en";
+import type { TranslationDictionary } from "../../translation/en";
 
 export interface Translation {
   flag: string;

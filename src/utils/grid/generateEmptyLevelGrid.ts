@@ -1,5 +1,5 @@
 import type { GridConfig, GridPosition } from "../../config/core/grid.config";
-import { GridTileState, type LevelGrid } from "../../types/Grid";
+import { type LevelGrid, GridTileState } from "../../types/engine/Grid";
 
 export default function generateEmptyLevelGrid(gridConfig: GridConfig, blocks: GridPosition[]): LevelGrid {
   const levelGrid: LevelGrid = [];
