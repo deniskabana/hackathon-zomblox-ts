@@ -59,17 +59,17 @@ import { version } from "../package.json";
   // Volume sliders
   // ==================================================
 
-  const volumeSliders = document.querySelectorAll<HTMLInputElement>("input.pregame-menu__volume-slider");
-  for (const slider of volumeSliders) {
-    const max = parseInt(slider.max);
-    const type = (slider.dataset["volume"] || "master") as "master" | "music" | "effects";
-    slider.value = String((game.MANAGERS.GameManager.getSettings().volume[type] ?? 1) * max);
-    slider.addEventListener("change", () => {
-      const inputValue = parseInt(slider.value);
-      const value = inputValue / max;
-      game.MANAGERS.GameManager.setSettings({ volume: { [type]: value } });
-    });
-  }
+  // const volumeSliders = document.querySelectorAll<HTMLInputElement>("input.pregame-menu__volume-slider");
+  // for (const slider of volumeSliders) {
+  //   const max = parseInt(slider.max);
+  //   const type = (slider.dataset["volume"] || "master") as "master" | "music" | "effects";
+  //   slider.value = String((game.MANAGERS.SettingsManager.getSettings().volume[`volume${type}`] ?? 1) * max);
+  //   slider.addEventListener("change", () => {
+  //     const inputValue = parseInt(slider.value);
+  //     const value = inputValue / max;
+  //     game.MANAGERS.SettingsManager.setSettings({ gameplay: { volume: { [type]: value } } });
+  //   });
+  // }
 
   // Fullscreen button
   // ==================================================

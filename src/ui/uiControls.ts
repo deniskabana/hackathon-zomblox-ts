@@ -50,16 +50,16 @@ function _getMasterVolumeToggleButton(gameInstance: GameInstance): UiControls[st
   buttonEl.className = cx(styles.uiControl, styles.masterVolumeToggleButton);
 
   const handleClick = () => {
-    gameInstance.MANAGERS.AssetManager.playAudioAsset("AFXUiClick", "sound");
-    const volumeSettings = gameInstance.MANAGERS.GameManager.getSettings().volume;
-
-    if (volumeSettings.master === 1) {
-      gameInstance.MANAGERS.GameManager.setSettings({ volume: { master: 0 } });
-      gameInstance.MANAGERS.AssetManager.pauseAllMusic();
-    } else {
-      gameInstance.MANAGERS.GameManager.setSettings({ volume: { master: 1 } });
-      gameInstance.MANAGERS.AssetManager.resumeAllMusic();
-    }
+    // gameInstance.MANAGERS.AssetManager.playAudioAsset("AFXUiClick", "sound");
+    // const volumeSettings = gameInstance.MANAGERS.GameManager.getSettings().volume;
+    //
+    // if (volumeSettings.master === 1) {
+    //   gameInstance.MANAGERS.GameManager.setSettings({ volume: { master: 0 } });
+    //   gameInstance.MANAGERS.AssetManager.pauseAllMusic();
+    // } else {
+    //   gameInstance.MANAGERS.GameManager.setSettings({ volume: { master: 1 } });
+    //   gameInstance.MANAGERS.AssetManager.resumeAllMusic();
+    // }
   };
 
   buttonEl.addEventListener("click", handleClick);
@@ -67,9 +67,9 @@ function _getMasterVolumeToggleButton(gameInstance: GameInstance): UiControls[st
 
   return {
     draw: () => {
-      const volumeSettings = gameInstance.MANAGERS.GameManager.getSettings().volume;
-      const label = volumeSettings.master === 0 ? "🔇" : "🔊";
-      if (buttonEl.innerText !== label) buttonEl.innerText = label;
+      // const volumeSettings = gameInstance.MANAGERS.GameManager.getSettings().volume;
+      // const label = volumeSettings.master === 0 ? "🔇" : "🔊";
+      // if (buttonEl.innerText !== label) buttonEl.innerText = label;
     },
     destroy: () => {
       buttonEl.removeEventListener("click", handleClick);

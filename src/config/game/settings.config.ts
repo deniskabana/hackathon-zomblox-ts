@@ -10,7 +10,7 @@ export interface GameSettingsSpec {
   gameplay: {
     speedScale: number;
 
-    volumeAll: number;
+    volumeMaster: number;
     volumeEffects: number;
     volumeMusic: number;
   };
@@ -22,6 +22,9 @@ export interface GameSettingsSpec {
 
     difficultyIncreaseCoef: number;
     nightDurationSec: number;
+
+    debugSeeThroughNight: boolean;
+    debugDrawFlowFieldGrid: boolean;
   };
 
   zombie: GameSettingsZombie;
@@ -33,7 +36,7 @@ export interface GameSettingsSpec {
 export const DEFAULT_SETTINGS: GameSettingsSpec = {
   gameplay: {
     speedScale: 1,
-    volumeAll: 1,
+    volumeMaster: 1,
     volumeEffects: 1,
     volumeMusic: 1,
   },
@@ -43,6 +46,8 @@ export const DEFAULT_SETTINGS: GameSettingsSpec = {
     endNightReward: 10,
     difficultyIncreaseCoef: 1.2385,
     nightDurationSec: 60,
+    debugDrawFlowFieldGrid: false,
+    debugSeeThroughNight: false,
   },
   zombie: {
     worldSize: GRID_CONFIG.TILE_SIZE * 1,

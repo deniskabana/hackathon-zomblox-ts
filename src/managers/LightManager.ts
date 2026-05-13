@@ -61,8 +61,8 @@ export default class LightManager extends AManager {
    * Draws a lightning radius around the player
    */
   public drawNightLighting(players: WorldPosition[], facingAngle: number): void {
-    const { CameraManager, DrawManager, GameManager } = this.gameInstance.MANAGERS;
-    this.playerLightRadius = GameManager.getSettings().rules.game.playerLightRadius;
+    const { CameraManager, DrawManager, SettingsManager } = this.gameInstance.MANAGERS;
+    this.playerLightRadius = SettingsManager.getSettings().player.lightRadius;
     const zoom = CameraManager.zoom;
     if (!this.ctx || !this.lightMaskCanvas) return;
 
@@ -89,7 +89,9 @@ export default class LightManager extends AManager {
     const gameCanvasCtx = DrawManager.getContext();
     if (!gameCanvasCtx) return;
     gameCanvasCtx.save();
-    gameCanvasCtx.globalAlpha = GameManager.getSettings().debug.seeThroughNight ? 0.25 : this.nightOverlayAlpha;
+    gameCanvasCtx.globalAlpha = SettingsManager.getSettings().rules.debugSeeThroughNight
+      ? 0.25
+      : this.nightOverlayAlpha;
     gameCanvasCtx.drawImage(this.lightMaskCanvas, 0, 0, this.lightMaskCanvas.width, this.lightMaskCanvas.height);
     gameCanvasCtx.restore();
   }

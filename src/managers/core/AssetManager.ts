@@ -97,17 +97,17 @@ export default class AssetManager extends AManager {
     const audio = type === "music" ? asset : new Audio(asset?.src);
     if (!asset || !audio) return;
 
-    const volumeSettings = this.gameInstance.MANAGERS.GameManager.getSettings().volume;
+    const settings = this.gameInstance.MANAGERS.SettingsManager.getSettings().gameplay;
 
     switch (type) {
       case "music":
         if (this.playingAudioTracks.includes(assetName)) return;
-        audio.volume = volumeSettings.music * volumeSettings.master * volume;
+        audio.volume = settings.volumeMusic * settings.volumeMaster * volume;
         audio.loop = true;
         break;
 
       case "sound":
-        audio.volume = volumeSettings.effects * volumeSettings.master * volume;
+        audio.volume = settings.volumeEffects * settings.volumeMaster * volume;
         audio.loop = false;
         audio.playbackRate = 1 + (Math.random() - 0.25) * 2 * 0.2;
         break;
@@ -172,9 +172,9 @@ export default class AssetManager extends AManager {
   }
 
   public updateMusicVolume(): void {
-    const volumeSettings = this.gameInstance.MANAGERS.GameManager.getSettings().volume;
+    const settings = this.gameInstance.MANAGERS.SettingsManager.getSettings().gameplay;
     for (const [track, volume] of this.playingMusic)
-      track.volume = volumeSettings.music * volumeSettings.master * volume;
+      track.volume = settings.volumeMusic * settings.volumeMaster * volume;
   }
 
   public getIsReady(): boolean {

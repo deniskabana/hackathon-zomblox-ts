@@ -494,7 +494,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers, Setti
 
     if (this._timers.stepSound.getIsDone()) {
       AssetManager.playAudioAsset("APlayerStep", "sound");
-      this._timers.stepSound.reset(stepSoundCooldownSec);
+      this._timers.stepSound.reset(settings.stepSoundCooldownSec);
     }
   }
 

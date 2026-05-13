@@ -72,6 +72,9 @@ export default class LevelManager extends AManager {
   }
 
   public _init(): void {
+    const { SettingsManager } = this.gameInstance.MANAGERS;
+    const settings = SettingsManager.getSettings();
+
     // TODO: Only dev
     document.addEventListener("keydown", (e) => {
       if (e.key === "p") this.spawnZombie();
@@ -94,17 +97,13 @@ export default class LevelManager extends AManager {
     );
     // this.lastPlayerGridPos = this.player._getGridPosition();
 
-    const gameSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
-    this.zombieSpawnInterval = Math.min(
-      gameSettings.zombieSpawnIntervalMs,
-      (gameSettings.nightDurationSec * 1000) / this.zombieSpawnsLeft,
-    );
+    this.zombieSpawnInterval = 1000;
     this.levelState = {
       phase: "day",
       daysCounter: 0,
       currencyTotalCounter: 0,
       zombiesKillCounter: 0,
-      currency: gameSettings.startCurrency,
+      currency: settings.rules.startingCurrency,
       totalTimeCounter: 0,
     };
     this.mapLayerBelowPlayer.width = GRID_CONFIG.GRID_WIDTH * GRID_CONFIG.TILE_SIZE;
@@ -175,13 +174,13 @@ export default class LevelManager extends AManager {
   }
 
   public drawEntities(): void {
-    const { DrawManager, CameraManager, GameManager, EntityManager } = this.gameInstance.MANAGERS;
+    const { DrawManager, CameraManager, SettingsManager, EntityManager } = this.gameInstance.MANAGERS;
 
     this.drawMapLayers("below");
     EntityManager.draw();
     this.drawMapLayers("above");
 
-    if (GameManager.getSettings().debug.enableFlowFieldRender) {
+    if (SettingsManager.getSettings().rules.debugDrawFlowFieldGrid) {
       const size = GRID_CONFIG.TILE_SIZE;
 
       for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
@@ -402,18 +401,9 @@ export default class LevelManager extends AManager {
   // ==================================================
 
   private startSpawningZombies(): void {
-    const settings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
     this.isSpawningZombies = true;
-    const dayCountCoef = (this.levelState?.daysCounter ?? 1) - 1;
-    this.zombieSpawnsLeft = Math.ceil(settings.zombieSpawnAmount * settings.zombieSpawnCoef ** dayCountCoef);
-    this.zombieSpawnInterval = Math.floor(
-      Math.min(settings.zombieSpawnIntervalMs, (settings.nightDurationSec * 1000) / this.zombieSpawnsLeft),
-    );
-
-    for (let i = 0; i < settings.startZombiesAmount; i++) {
-      if (this.zombieSpawnsLeft <= 0) return;
-      this.spawnZombie();
-    }
+    this.zombieSpawnsLeft = 100;
+    this.zombieSpawnInterval = 1000;
   }
 
   public stopSpawningZombies(): void {
@@ -464,7 +454,7 @@ export default class LevelManager extends AManager {
 
     for (const zombie of EntityManager.getEnemies()) zombie.startChasingPlayer();
 
-    const gameSettings = this.gameInstance.MANAGERS.GameManager.getSettings().rules.game;
+    const gameSettings = this.gameInstance.MANAGERS.SettingsManager.getSettings().rules;
     this.nightEndCounter = gameSettings.nightDurationSec;
     this.startSpawningZombies();
 
@@ -498,7 +488,7 @@ export default class LevelManager extends AManager {
     const { EntityManager } = this.gameInstance.MANAGERS;
     if (!this.levelState || !this.levelGrid) return;
 
-    this.addCurrency(this.gameInstance.MANAGERS.GameManager.getSettings().rules.game.endNightReward);
+    this.addCurrency(this.gameInstance.MANAGERS.SettingsManager.getSettings().rules.endNightReward);
 
     // this.retreatFlowFields = [];
     // const amount = Math.max(20, this.zombies.size);

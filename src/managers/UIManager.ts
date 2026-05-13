@@ -24,7 +24,6 @@ export default class UIManager extends AManager {
   private debugTextFps: HTMLDivElement;
   private debugTextZombies: HTMLDivElement;
   private debugTextHealth: HTMLDivElement;
-  private debugSettingsContainer: HTMLDivElement;
 
   private debugSettingsInitialized: boolean = false;
 
@@ -69,7 +68,6 @@ export default class UIManager extends AManager {
     this.debugTextFps = document.createElement("div");
     this.debugTextZombies = document.createElement("div");
     this.debugTextHealth = document.createElement("div");
-    this.debugSettingsContainer = document.createElement("div");
 
     this.debugContainer.appendChild(this.debugTextFps);
     this.debugContainer.appendChild(this.debugTextZombies);
@@ -142,49 +140,49 @@ export default class UIManager extends AManager {
   }
 
   private initDebugSettings(): void {
-    this.debugSettingsContainer.className = cx(
-      debugStyles.debugContainer,
-      debugStyles.debugSettings,
-      styles.contentContainer,
-    );
-    const debugSettings = this.gameInstance.MANAGERS.GameManager.getSettings().debug;
-
-    const wrapper = document.createElement("div");
-    wrapper.className = cx(styles.contentContainer);
-
-    let setting: keyof typeof debugSettings;
-    for (setting in debugSettings) {
-      const checkboxLabel = document.createElement("label");
-
-      const checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.checked = debugSettings[setting];
-      checkbox.name = setting;
-      checkbox.addEventListener("change", (event) => {
-        const target = event.target as HTMLInputElement;
-        this.gameInstance.MANAGERS.GameManager.setSettings({
-          debug: { [target.name]: target.checked },
-        });
-      });
-      checkbox.addEventListener("touchend", (event) => {
-        const target = event.target as HTMLInputElement;
-        target.checked = !target.checked;
-        this.gameInstance.MANAGERS.GameManager.setSettings({
-          debug: { [target.name]: target.checked },
-        });
-      });
-      checkboxLabel.appendChild(checkbox);
-
-      const checkboxText = document.createElement("span");
-      checkboxText.className = cx(styles.uiText);
-      checkboxText.innerText = setting;
-      checkboxLabel.appendChild(checkboxText);
-
-      wrapper.appendChild(checkboxLabel);
-    }
-
-    this.debugContainer.appendChild(wrapper);
-    this.debugSettingsInitialized = true;
+    //   this.debugSettingsContainer.className = cx(
+    //     debugStyles.debugContainer,
+    //     debugStyles.debugSettings,
+    //     styles.contentContainer,
+    //   );
+    //   const debugSettings = this.gameInstance.MANAGERS.GameManager.getSettings().debug;
+    //
+    //   const wrapper = document.createElement("div");
+    //   wrapper.className = cx(styles.contentContainer);
+    //
+    //   let setting: keyof typeof debugSettings;
+    //   for (setting in debugSettings) {
+    //     const checkboxLabel = document.createElement("label");
+    //
+    //     const checkbox = document.createElement("input");
+    //     checkbox.type = "checkbox";
+    //     checkbox.checked = debugSettings[setting];
+    //     checkbox.name = setting;
+    //     checkbox.addEventListener("change", (event) => {
+    //       const target = event.target as HTMLInputElement;
+    //       this.gameInstance.MANAGERS.GameManager.setSettings({
+    //         debug: { [target.name]: target.checked },
+    //       });
+    //     });
+    //     checkbox.addEventListener("touchend", (event) => {
+    //       const target = event.target as HTMLInputElement;
+    //       target.checked = !target.checked;
+    //       this.gameInstance.MANAGERS.GameManager.setSettings({
+    //         debug: { [target.name]: target.checked },
+    //       });
+    //     });
+    //     checkboxLabel.appendChild(checkbox);
+    //
+    //     const checkboxText = document.createElement("span");
+    //     checkboxText.className = cx(styles.uiText);
+    //     checkboxText.innerText = setting;
+    //     checkboxLabel.appendChild(checkboxText);
+    //
+    //     wrapper.appendChild(checkboxLabel);
+    //   }
+    //
+    //   this.debugContainer.appendChild(wrapper);
+    //   this.debugSettingsInitialized = true;
   }
 
   public drawDebug(fps: number): void {
