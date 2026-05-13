@@ -233,7 +233,6 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
           this.gatherMovementData();
           this._animations?.setActiveAnimations(["run"]);
           break;
-
         case ZombieState.RETREATING:
           this.gatherMovementData();
           this._animations?.setActiveAnimations(["run"]);
@@ -246,8 +245,8 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
 
         case ZombieState.KNOCKED:
           this._animations?.setActiveAnimations(["knocked"]);
+          if (this._timers.hitState.getIsDone()) this._setState(ZombieState.IDLE);
           break;
-
         case ZombieState.HIT:
           this._animations?.setActiveAnimations(["hit"]);
           if (this._timers.hitState.getIsDone()) this._setState(ZombieState.IDLE);
@@ -274,13 +273,19 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
       this.applyMovement(_deltaTime);
     },
 
-    onDamage: () => {
+    onDamage: (amount) => {
       const { SettingsManager } = _game.MANAGERS;
       const settings = SettingsManager.getSettings().zombie;
 
-      this._setState(ZombieState.HIT);
+      if (this._getHealth() - amount < this._getMaxHealth() * 0.25) {
+        this._setState(ZombieState.KNOCKED);
+        this._timers.hitState.reset(settings.knockedStateDurationSec);
+      } else {
+        this._setState(ZombieState.HIT);
+        this._timers.hitState.reset(settings.hitStateDurationSec);
+      }
+
       this._timers.movementRestart.reset(settings.movementRestartSec);
-      this._timers.hitState.reset(settings.hitStateDurationSec);
     },
 
     onDeath: () => {

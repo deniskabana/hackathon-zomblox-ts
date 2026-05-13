@@ -3,13 +3,12 @@ export interface GameSettingsZombie {
   attackDurationSec: number;
   attackCooldownSec: number;
   hitStateDurationSec: number;
+  knockedStateDurationSec: number;
   movementRestartSec: number;
   facingDirThrottleSec: number;
 
   maxSpeed: number;
   maxHealth: number;
-  /** Gets stunned if 0-1 maxHealth is damaged */
-  stunHealthPercentThreshold: number;
 
   minDistanceFromPlayerPx: number;
   isHurtBySunlight: boolean;
