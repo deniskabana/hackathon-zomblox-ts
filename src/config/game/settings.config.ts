@@ -45,6 +45,7 @@ export const DEFAULT_SETTINGS: GameSettingsSpec = {
     nightDurationSec: 60,
   },
   zombie: {
+    worldSize: GRID_CONFIG.TILE_SIZE * 1.5,
     attackDurationSec: 0.4,
     attackCooldownSec: 2,
     maxSpeed: 60,

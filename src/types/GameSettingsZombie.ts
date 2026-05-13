@@ -1,4 +1,5 @@
 export interface GameSettingsZombie {
+  worldSize: number;
   attackDurationSec: number;
   attackCooldownSec: number;
 
