@@ -18,6 +18,7 @@ export enum GameControls {
   GAME_PAUSE = "GAME_PAUSE",
 
   // Debug controls
+  DEBUG_MENU = "DEBUG_MENU",
   DEBUG_SPAWN_ZOMBIE = "DEBUG_SPAWN_ZOMBIE",
   DEBUG_KILL_ZOMBIE = "DEBUG_KILL_ZOMBIE",
 }

@@ -58,6 +58,7 @@ export const DEFAULT_KEY_BINDINGS: KeyBindings = {
   KeyB: [GameControls.PLAYER_BUILD_MENU],
 
   // Debug
+  Backquote: [GameControls.DEBUG_MENU],
   KeyP: [GameControls.DEBUG_SPAWN_ZOMBIE, "Shift"],
   KeyK: [GameControls.DEBUG_KILL_ZOMBIE, "Shift"],
 

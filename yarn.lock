@@ -1681,6 +1681,7 @@ __metadata:
     globals: "npm:^16.4.0"
     jiti: "npm:^2.6.1"
     lefthook: "npm:^1.13.6"
+    lil-gui: "npm:^0.21.0"
     prettier: "npm:3.6.2"
     typescript: "npm:~5.9.3"
     typescript-eslint: "npm:^8.45.0"
@@ -2088,6 +2089,13 @@ __metadata:
     prelude-ls: "npm:^1.2.1"
     type-check: "npm:~0.4.0"
   checksum: 10c0/effb03cad7c89dfa5bd4f6989364bfc79994c2042ec5966cb9b95990e2edee5cd8969ddf42616a0373ac49fac1403437deaf6e9050fbbaa3546093a59b9ac94e
+  languageName: node
+  linkType: hard
+
+"lil-gui@npm:^0.21.0":
+  version: 0.21.0
+  resolution: "lil-gui@npm:0.21.0"
+  checksum: 10c0/195fa247d0179b7a6099c9642ac818bd8090db348d372cb3790e6cb2b99b48e3ce6d7db3a6d429f8ef565c7262229bb86e5d32dfc05e785514a4b1b76d1f95f1
   languageName: node
   linkType: hard
 

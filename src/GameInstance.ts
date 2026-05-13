@@ -14,8 +14,12 @@ import csTranslation from "./translation/cs";
 import enTranslation from "./translation/en";
 import { GameState } from "./types/engine/GameState";
 import type { Translation } from "./types/engine/Translation";
+import { GameControls } from "./types/GameControls";
+import { DebugPanel } from "./utils/classes/DebugPanel";
 
 export default class GameInstance {
+  private _debugPanel: DebugPanel | undefined;
+
   public readonly isDev: boolean;
   public readonly canvas: HTMLCanvasElement;
   public readonly MANAGERS: {
@@ -89,6 +93,13 @@ export default class GameInstance {
     const { InputManager, LevelManager, GameManager, CameraManager, AssetManager, EntityManager } = this.MANAGERS;
     if (!GameManager.isPlaying() && !AssetManager.getIsReady()) return;
 
+    if (import.meta.env.DEV) {
+      if (InputManager.wasPressed(GameControls.DEBUG_MENU)) {
+        InputManager.consumeAction(GameControls.DEBUG_MENU);
+        this._debugPanel?.toggle();
+      }
+    }
+
     InputManager.updateBefore(_deltaTime);
     EntityManager.updateBefore(_deltaTime, _unscaledDeltaTime);
 
@@ -148,6 +159,11 @@ export default class GameInstance {
     GameManager.stateSetPlaying();
 
     LevelManager.startGame();
+
+    if (import.meta.env.DEV) {
+      this._debugPanel = new DebugPanel(this);
+      this._debugPanel.subscribeToSettings();
+    }
   };
 
   public stopAndQuitGame(): void {

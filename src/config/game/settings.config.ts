@@ -3,6 +3,7 @@ import type { GameSettingsBlocks } from "../../types/GameSettingsBlocks";
 import type { GameSettingsCollectables } from "../../types/GameSettingsCollectables";
 import type { GameSettingsPlayer } from "../../types/GameSettingsPlayer";
 import type { GameSettingsZombie } from "../../types/GameSettingsZombie";
+import type { SettingsDebugSchema } from "../../utils/classes/DebugPanel";
 
 export const KEY_SETTINGS = "game-manager-key-settings";
 
@@ -94,8 +95,80 @@ export const DEFAULT_SETTINGS: GameSettingsSpec = {
   collectables: {
     autoCollect: false,
     lifetimeCoin: 6,
-    emitLight: true,
+    emitLight: false,
     minDistanceFromPlayerPx: GRID_CONFIG.TILE_SIZE * 0.3,
     debugDrawWireframe: false,
+  },
+};
+
+export const SettingsDebugControlSchema: SettingsDebugSchema = {
+  gameplay: {
+    speedScale: { type: "number", min: 0, max: 10, step: 0.05 },
+    volumeMaster: { type: "number", min: 0, max: 1, step: 0.05 },
+    volumeEffects: { type: "number", min: 0, max: 1, step: 0.05 },
+    volumeMusic: { type: "number", min: 0, max: 1, step: 0.05 },
+  },
+  rules: {
+    startingCurrency: { type: "number", min: 0, max: 1000, step: 5 },
+    incomeScale: { type: "number", min: 0, max: 10, step: 0.1 },
+    endNightReward: { type: "number", min: 0, max: 1000, step: 5 },
+    difficultyIncreaseCoef: { type: "number", min: 0, max: 8, step: 0.1 },
+    nightDurationSec: { type: "number", min: 0, max: 1000, step: 5 },
+    debugSeeThroughNight: { type: "boolean" },
+    debugDrawFlowFieldGrid: { type: "boolean" },
+  },
+  zombie: {
+    worldSize: { type: "number", min: 0, max: GRID_CONFIG.TILE_SIZE * 10, step: GRID_CONFIG.TILE_SIZE / 10 },
+    attackDurationSec: { type: "number", min: 0, max: 10, step: 0.1 },
+    attackCooldownSec: { type: "number", min: 0, max: 10, step: 0.1 },
+    hitStateDurationSec: { type: "number", min: 0, max: 10, step: 0.1 },
+    knockedStateDurationSec: { type: "number", min: 0, max: 10, step: 0.1 },
+    movementRestartSec: { type: "number", min: 0, max: 10, step: 0.1 },
+    facingDirThrottleSec: { type: "number", min: 0, max: 10, step: 0.1 },
+    maxSpeed: { type: "number", min: 0, max: 1000, step: 5 },
+    maxHealth: { type: "number", min: 0, max: 1000, step: 5 },
+    minDistanceFromPlayerPx: {
+      type: "number",
+      min: 0,
+      max: GRID_CONFIG.TILE_SIZE * 10,
+      step: GRID_CONFIG.TILE_SIZE / 10,
+    },
+    isHurtBySunlight: { type: "boolean" },
+    sunlightDamageIntensity: { type: "number", min: 0, max: 40, step: 1 },
+    movementSeparationWeight: { type: "number", min: 0, max: 1, step: 0.05 },
+    movementDensityWeight: { type: "number", min: 0, max: 1, step: 0.05 },
+    debugDrawState: { type: "boolean" },
+    debugDrawSeparationVector: { type: "boolean" },
+    debugDrawFlowFieldVector: { type: "boolean" },
+    debugDrawPosition: { type: "boolean" },
+    debugDrawWireframe: { type: "boolean" },
+  },
+  blocks: {
+    enableDestruction: { type: "boolean" },
+    healthWood: { type: "number", min: 0, max: 1000, step: 5 },
+    healthFireBarrel: { type: "number", min: 0, max: 1000, step: 5 },
+    debugDrawHealth: { type: "boolean" },
+    debugDrawWireframe: { type: "boolean" },
+  },
+  player: {
+    worldSize: { type: "number", min: 0, max: GRID_CONFIG.TILE_SIZE * 10, step: GRID_CONFIG.TILE_SIZE / 10 },
+    startHealth: { type: "number", min: 0, max: 1000, step: 5 },
+    movementSpeed: { type: "number", min: 0, max: 1000, step: 5 },
+    defaultWeapon: undefined,
+    lightRadius: { type: "number", min: 0, max: 40, step: 0.25 },
+    stunCooldownSec: { type: "number", min: 0, max: 100, step: 0.1 },
+    stepSoundCooldownSec: { type: "number", min: 0, max: 5, step: 0.1 },
+    debugIsInvincible: { type: "boolean" },
+    debugDisablePhysics: { type: "boolean" },
+    debugDrawState: { type: "boolean" },
+    debugDrawPosition: { type: "boolean" },
+    debugDrawWireframe: { type: "boolean" },
+  },
+  collectables: {
+    autoCollect: { type: "boolean" },
+    lifetimeCoin: { type: "number", min: 0, max: 1000, step: 1 },
+    emitLight: { type: "boolean" },
+    minDistanceFromPlayerPx: { type: "boolean" },
+    debugDrawWireframe: { type: "boolean" },
   },
 };

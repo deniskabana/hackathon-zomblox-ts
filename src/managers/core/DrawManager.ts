@@ -105,9 +105,10 @@ export default class DrawManager extends AManager {
 
   private renderLoop(currentTime: number): void {
     if (!this.isRunning) return;
-    const { BuildModeManager, UIManager, VFXManager, LevelManager } = this.gameInstance.MANAGERS;
+    const { BuildModeManager, UIManager, VFXManager, LevelManager, SettingsManager } = this.gameInstance.MANAGERS;
 
     const deltaTime = (currentTime - this.lastFrameTime) / 1000;
+    const speedScale = SettingsManager.getSettings().gameplay.speedScale;
     this.lastFrameTime = currentTime;
     this.fps = Math.round(1 / deltaTime);
 
@@ -119,7 +120,7 @@ export default class DrawManager extends AManager {
     }
 
     this.clearCanvas();
-    this.gameInstance.update(deltaTime, deltaTime); // This could be decoupled in the future
+    this.gameInstance.update(deltaTime * speedScale, deltaTime); // This could be decoupled in the future
     this.renderDrawQueue();
     UIManager.draw(this.fps);
     VFXManager.draw(deltaTime);
