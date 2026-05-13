@@ -43,6 +43,7 @@ export class EntityAnimations {
   private active: AnimationID[];
   private animations: AnimationSliceSpec[];
   private fps: number;
+  private initialFps: number;
 
   private spriteSheets: Record<AnimationID, AnimatedSpriteSheet[]>;
 
@@ -53,6 +54,7 @@ export class EntityAnimations {
     this.active = props.active ?? [props.animations[0].id];
     this.animations = props.animations;
     this.fps = props.fps;
+    this.initialFps = this.fps;
 
     const spriteSheets: typeof this.spriteSheets = {};
 
@@ -64,6 +66,7 @@ export class EntityAnimations {
           animation.frameHeight ?? this.frameHeight,
           animation.frameCount,
           animation.fps ?? this.fps,
+          animation.loop,
         ),
       );
     }
@@ -111,6 +114,14 @@ export class EntityAnimations {
         overrides?.scaleY ?? currentAnimation.scale ?? 1,
       );
     }
+  }
+
+  public setFps(fps: number): void {
+    this.fps = fps;
+  }
+
+  public resetFps(): void {
+    this.fps = this.initialFps;
   }
 
   public setActiveAnimations(active: AnimationID[]): void {

@@ -41,6 +41,7 @@ export default abstract class AEntity<
   private _gridPos: GridPosition;
   private _size: number;
   private _health: number;
+  private _maxHealth: number;
   private _isDead: boolean = false;
   private _state: TState;
 
@@ -65,6 +66,7 @@ export default abstract class AEntity<
   }) {
     this._entityId = props.entityId;
     this._health = props.health ?? Infinity;
+    this._maxHealth = this._health;
     this._worldPos = props.worldPos;
     this._gridPos = worldToGrid(props.worldPos);
     this._size = props.size;
@@ -157,6 +159,9 @@ export default abstract class AEntity<
   }
   public _getHealth(): number {
     return this._health;
+  }
+  public _getMaxHealth(): number {
+    return this._maxHealth;
   }
   public _getIsDead(): boolean {
     return this._isDead;

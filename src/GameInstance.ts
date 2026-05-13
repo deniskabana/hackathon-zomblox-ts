@@ -3,7 +3,7 @@ import AssetManager from "./managers/core/AssetManager";
 import CameraManager from "./managers/core/CameraManager";
 import DrawManager from "./managers/core/DrawManager";
 import GameManager from "./managers/core/GameManager";
-import InputManager from "./managers/core/InputManager";
+import { InputManager } from "./managers/core/InputManager";
 import { SettingsManager } from "./managers/core/SettingsManager";
 import { EntityManager } from "./managers/engine/EntityManager";
 import LevelManager from "./managers/LevelManager";
@@ -86,9 +86,10 @@ export default class GameInstance {
   }
 
   public update(_deltaTime: number, _unscaledDeltaTime: number): void {
-    const { LevelManager, GameManager, CameraManager, AssetManager, EntityManager } = this.MANAGERS;
+    const { InputManager, LevelManager, GameManager, CameraManager, AssetManager, EntityManager } = this.MANAGERS;
     if (!GameManager.isPlaying() && !AssetManager.getIsReady()) return;
 
+    InputManager.updateBefore(_deltaTime);
     EntityManager.updateBefore(_deltaTime, _unscaledDeltaTime);
 
     const player = this.MANAGERS.LevelManager.player;

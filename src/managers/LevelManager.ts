@@ -61,7 +61,7 @@ export default class LevelManager extends AManager {
   // Timers
   private nightEndCounter: number = 0;
   private spawnTimer: number = 0;
-  private zombieSpawnInterval: number = 1200;
+  private zombieSpawnInterval: number = 0.4;
   private pathfindingStaleTimer: number = 0;
 
   constructor(gameInstance: GameInstance) {
@@ -97,7 +97,6 @@ export default class LevelManager extends AManager {
     );
     // this.lastPlayerGridPos = this.player._getGridPosition();
 
-    this.zombieSpawnInterval = 1000;
     this.levelState = {
       phase: "day",
       daysCounter: 0,
@@ -403,7 +402,6 @@ export default class LevelManager extends AManager {
   private startSpawningZombies(): void {
     this.isSpawningZombies = true;
     this.zombieSpawnsLeft = 100;
-    this.zombieSpawnInterval = 1000;
   }
 
   public stopSpawningZombies(): void {
@@ -413,7 +411,7 @@ export default class LevelManager extends AManager {
 
   public applyZombieSpawn(_deltaTime: number): void {
     if (this.isSpawningZombies) this.spawnTimer += _deltaTime;
-    if (this.spawnTimer > this.zombieSpawnInterval / 1000) {
+    if (this.spawnTimer > this.zombieSpawnInterval) {
       this.spawnTimer = 0;
 
       if (this.zombieSpawnsLeft <= 0) return;

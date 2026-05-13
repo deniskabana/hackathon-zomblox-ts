@@ -11,6 +11,7 @@ import { type Weapon, DEF_WEAPONS } from "../../../config/game/weapons.config";
 import type GameInstance from "../../../GameInstance";
 import { GridTileState } from "../../../types/engine/Grid";
 import { GameControls } from "../../../types/GameControls";
+import type { Vector } from "../../../types/lib/Vector";
 import { ZIndex } from "../../../types/lib/ZIndex";
 import assertNever from "../../../utils/assertNever";
 import SpriteSheet from "../../../utils/classes/SpriteSheet";
@@ -18,7 +19,6 @@ import { Direction } from "../../../utils/getCardinalDirection";
 import isInsideGrid from "../../../utils/grid/isInsideGrid";
 import areVectorsEqual from "../../../utils/math/areVectorsEqual";
 import getVectorDistance from "../../../utils/math/getVectorDistance";
-import normalizeVector from "../../../utils/math/normalizeVector";
 import radiansToVector from "../../../utils/math/radiansToVector";
 import AEntity, { type AEntityEngine, type EntityConstructorProps } from "../../engine/AEntity";
 import type { EntityAnimationsSpecs } from "../../engine/systems/EntityAnimation";
@@ -37,7 +37,6 @@ export enum PlayerState {
 interface Timers {
   attackCooldown: EntityTimer<"Cooldown between allowed attacks">;
   stun: EntityTimer<"Controls if the player is stunned">;
-  btnWeaponSwitch: EntityTimer<"Throttles weapon switching speed">;
   stepSound: EntityTimer<"Delay between steps">;
 }
 
@@ -59,9 +58,8 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       SettingsManager.getSettings().player;
 
     const timers: Timers = {
-      attackCooldown: new EntityTimer({ initialValue: 0, autoStart: false }), // Value filled by WEAPON_DEF['cooldown']
+      attackCooldown: new EntityTimer({ initialValue: DEF_WEAPONS[defaultWeapon].cooldown, autoStart: true }), // Value filled by WEAPON_DEF['cooldown']
       stepSound: new EntityTimer({ initialValue: stepSoundCooldownSec, autoStart: false }),
-      btnWeaponSwitch: new EntityTimer({ initialValue: 0.25, autoStart: false }),
       stun: new EntityTimer({ initialValue: stunCooldownSec, autoStart: false }),
     };
 
@@ -70,7 +68,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       frameHeight: 32,
       fps: 12,
       animations: [
-        { id: "idle", frameCount: 6, assetVariants: [AssetManager.getImageAsset("SPlayerIdle")!] },
+        { id: "idle", frameCount: 6, assetVariants: [AssetManager.getImageAsset("SPlayerIdle")!], fps: 8 },
         {
           id: "run",
           frameCount: 8,
@@ -282,40 +280,47 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     );
   }
 
-  private getMovementInputVector(): WorldPosition {
+  private getMovementInputVector(): Vector {
     const { InputManager } = _game.MANAGERS;
+    const { controls } = InputManager.getFrame();
+
+    const up = controls[GameControls.MOVE_UP].held;
+    const down = controls[GameControls.MOVE_DOWN].held;
+    const left = controls[GameControls.MOVE_LEFT].held;
+    const right = controls[GameControls.MOVE_RIGHT].held;
+
+    const horizontal = left || right;
+    const vertical = up || down;
+
     let x = 0;
     let y = 0;
 
-    // TODO: Convert to `getLatestMovementInput`
+    if (horizontal && !vertical) {
+      x = right ? 1 : -1;
+      this._instance.facingDirection = right ? Direction.RIGHT : Direction.LEFT;
+    } else if (vertical && !horizontal) {
+      y = down ? 1 : -1;
+      this._instance.facingDirection = down ? Direction.DOWN : Direction.UP;
+    } else if (horizontal && vertical) {
+      // Most recent
+      const hPressed = controls[GameControls.MOVE_LEFT].pressed || controls[GameControls.MOVE_RIGHT].pressed;
+      if (hPressed) {
+        x = right ? 1 : -1;
+        this._instance.facingDirection = right ? Direction.RIGHT : Direction.LEFT;
+      } else {
+        y = down ? 1 : -1;
+        this._instance.facingDirection = down ? Direction.DOWN : Direction.UP;
+      }
+    }
 
-    if (InputManager.isControlDown(GameControls.MOVE_UP)) {
-      y -= 1;
-      this._instance.facingDirection = Direction.UP;
-    }
-    if (InputManager.isControlDown(GameControls.MOVE_LEFT)) {
-      x -= 1;
-      this._instance.facingDirection = Direction.LEFT;
-    }
-    if (InputManager.isControlDown(GameControls.MOVE_DOWN)) {
-      y += 1;
-      this._instance.facingDirection = Direction.DOWN;
-    }
-    if (InputManager.isControlDown(GameControls.MOVE_RIGHT)) {
-      x += 1;
-      this._instance.facingDirection = Direction.RIGHT;
-    }
-
-    return normalizeVector({ x, y });
+    return { x, y };
   }
 
   private getBuildingModeInput(_deltaTime: number): void {
     const { InputManager, BuildModeManager } = _game.MANAGERS;
-    const isPressed = InputManager.isControlDown(GameControls.PLAYER_BUILD_MENU);
-
-    if (isPressed) {
-      BuildModeManager.setBuildMode(!BuildModeManager.isBuildModeActive);
-    }
+    if (!InputManager.wasReleased(GameControls.PLAYER_BUILD_MENU)) return;
+    InputManager.consumeAction(GameControls.PLAYER_BUILD_MENU);
+    BuildModeManager.setBuildMode(!BuildModeManager.isBuildModeActive);
   }
 
   private getShootingInput(): void {
@@ -330,7 +335,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     const playerCardinalDirection = this._instance.facingDirection;
     const { x, y } = this._getWorldPosition();
 
-    if (!InputManager.isControlDown(GameControls.ACTION_SHOOT)) return;
+    if (!InputManager.isHeld(GameControls.ACTION_SHOOT)) return;
     if (state === PlayerState.KNOCKED || state === PlayerState.DEAD) return;
     if (!this._timers.attackCooldown.getIsDone()) return;
 
@@ -429,16 +434,13 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
 
   private getWeaponCycleInput(): void {
     const { InputManager } = _game.MANAGERS;
-    const { currentWeapon } = this._instance;
     const allWeaponsDef = Object.keys(DEF_WEAPONS) as Weapon[];
-    const currentWeaponIndex = allWeaponsDef.findIndex((name) => name === currentWeapon);
-    const newIndex = (currentWeaponIndex + 1) % allWeaponsDef.length;
 
-    if (!InputManager.isControlDown(GameControls.PLAYER_CHANGE_WEAPON)) return;
-    if (!this._timers.btnWeaponSwitch.getIsDone()) return;
+    if (!InputManager.wasReleased(GameControls.PLAYER_CHANGE_WEAPON)) return;
+    InputManager.consumeAction(GameControls.PLAYER_CHANGE_WEAPON);
 
-    this._instance.currentWeapon = allWeaponsDef[newIndex];
-    this._timers.btnWeaponSwitch.reset();
+    const currentIndex = allWeaponsDef.findIndex((n) => n === this._instance.currentWeapon);
+    this._instance.currentWeapon = allWeaponsDef[(currentIndex + 1) % allWeaponsDef.length];
   }
 
   private applyMovement(_deltaTime: number): void {

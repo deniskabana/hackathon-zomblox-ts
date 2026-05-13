@@ -30,6 +30,7 @@ interface Timers {
   deathAnimation: EntityTimer<"Lets zombie finish death animation before destruction">;
   movementRestart: EntityTimer<"Throttle restarting movement after stopping">;
   facingDirection: EntityTimer<"Throttle facing direction changes">;
+  hitState: EntityTimer<"How long zombie stays in HIT state">;
 }
 
 interface Instance {
@@ -37,6 +38,7 @@ interface Instance {
   isFacingLeft: boolean;
   distanceFromPlayer: number;
 
+  maxSpeed: number;
   desiredVelocity: number;
   movementVector: Vector | undefined;
   movementDirection: number;
@@ -47,35 +49,31 @@ interface Instance {
   movementFlowFieldVector: Vector;
 }
 
-interface Settings {
-  attackDurationSec: number;
-  maxSpeed: number;
-}
-
-export default class Zombie extends AEntity<ZombieState, Instance, Timers, Settings> {
+export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
   constructor({ gameInstance, entityId, gridPos }: EntityConstructorProps) {
     _game = gameInstance;
     const { AssetManager, SettingsManager, LevelManager } = _game.MANAGERS;
-    const { maxSpeed, maxHealth, attackDurationSec, attackCooldownSec, worldSize } =
-      SettingsManager.getSettings().zombie;
+    const settings = SettingsManager.getSettings().zombie;
 
     const timers: Timers = {
-      attack: new EntityTimer({ initialValue: attackDurationSec, autoStart: false }),
-      attackCooldown: new EntityTimer({ initialValue: attackCooldownSec, autoStart: false }),
+      attack: new EntityTimer({ initialValue: settings.attackDurationSec, autoStart: false }),
+      attackCooldown: new EntityTimer({ initialValue: settings.attackCooldownSec, autoStart: false }),
       deathAnimation: new EntityTimer({ initialValue: 1, autoStart: false }),
-      movementRestart: new EntityTimer({ initialValue: 0.5, autoStart: false }),
-      facingDirection: new EntityTimer({ initialValue: 0.2, autoStart: false }),
+      movementRestart: new EntityTimer({ initialValue: settings.movementRestartSec, autoStart: false }),
+      facingDirection: new EntityTimer({ initialValue: settings.facingDirThrottleSec, autoStart: false }),
+      hitState: new EntityTimer({ initialValue: settings.hitStateDurationSec }),
     };
 
     const animations: EntityAnimationsSpecs = {
       frameWidth: 32,
       frameHeight: 32,
       activeVariant: Math.floor(Math.random() * 4),
-      fps: 9,
+      fps: 8,
       animations: [
         {
           id: "idle",
           frameCount: 6,
+          fps: 4,
           assetVariants: [
             AssetManager.getImageAsset("SZombie1Idle")!,
             AssetManager.getImageAsset("SZombie2Idle")!,
@@ -115,7 +113,9 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Setti
         },
         {
           id: "death",
+          loop: false,
           frameCount: 8,
+          fps: 10,
           assetVariants: [
             AssetManager.getImageAsset("SZombie1Death")!,
             AssetManager.getImageAsset("SZombie2Death")!,
@@ -127,10 +127,11 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Setti
     };
 
     const instance: Instance = {
+      maxSpeed: settings.maxSpeed,
       movementVector: undefined,
       movementDirection: 0,
       movementVelocity: 0,
-      desiredVelocity: maxSpeed,
+      desiredVelocity: 0,
       movementFlowFieldVector: { x: 0, y: 0 },
       movementGridDensity: 0,
       movementSeparationVector: { x: 0, y: 0 },
@@ -139,21 +140,15 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Setti
       distanceFromPlayer: Infinity,
     };
 
-    const settings: Settings = {
-      attackDurationSec,
-      maxSpeed,
-    };
-
     super({
       worldPos: gridToWorld(gridPos),
-      size: worldSize,
+      size: settings.worldSize,
       entityId,
       animations,
       initialState: ZombieState.CHASING,
       timers,
-      health: maxHealth,
+      health: settings.maxHealth,
       instance,
-      settings,
     });
 
     // Starting behavior based on gameplay loop - day / night
@@ -255,6 +250,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Setti
 
         case ZombieState.HIT:
           this._animations?.setActiveAnimations(["hit"]);
+          if (this._timers.hitState.getIsDone()) this._setState(ZombieState.IDLE);
           break;
 
         case ZombieState.DEAD:
@@ -273,9 +269,18 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Setti
       const settings = SettingsManager.getSettings().zombie;
 
       if (settings.isHurtBySunlight && isInsideGrid(this._getGridPosition()) && LevelManager.getIsDay())
-        this._handleDamage(_deltaTime * 10);
+        this._handleDamage(_deltaTime * settings.sunlightDamageIntensity);
 
       this.applyMovement(_deltaTime);
+    },
+
+    onDamage: () => {
+      const { SettingsManager } = _game.MANAGERS;
+      const settings = SettingsManager.getSettings().zombie;
+
+      this._setState(ZombieState.HIT);
+      this._timers.movementRestart.reset(settings.movementRestartSec);
+      this._timers.hitState.reset(settings.hitStateDurationSec);
     },
 
     onDeath: () => {
@@ -300,12 +305,12 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Setti
 
   public startChasingPlayer(): void {
     this._setState(ZombieState.CHASING);
-    this._instance.desiredVelocity = this._settings.maxSpeed;
+    this._instance.desiredVelocity = this._instance.maxSpeed;
   }
 
   public startRetreating(): void {
     this._setState(ZombieState.RETREATING);
-    this._instance.desiredVelocity = this._settings.maxSpeed * 3.25;
+    this._instance.desiredVelocity = this._instance.maxSpeed * 3.25;
   }
 
   // TODO: Unused
@@ -381,7 +386,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Setti
     const { LevelManager, SettingsManager } = _game.MANAGERS;
     const { levelGrid } = LevelManager;
     const { x, y } = this._getWorldPosition();
-    const { movementSeparationWeight, movementDensityWeight } = SettingsManager.getSettings().zombie;
+    const settings = SettingsManager.getSettings().zombie;
     const {
       movementFlowFieldVector,
       movementSeparationVector,
@@ -392,13 +397,13 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Setti
     } = this._instance;
 
     const combined = {
-      x: lerp(movementFlowFieldVector.x, movementSeparationVector.x, movementSeparationWeight),
-      y: lerp(movementFlowFieldVector.y, movementSeparationVector.y, movementSeparationWeight),
+      x: lerp(movementFlowFieldVector.x, movementSeparationVector.x, settings.movementSeparationWeight),
+      y: lerp(movementFlowFieldVector.y, movementSeparationVector.y, settings.movementSeparationWeight),
     };
     const mag = Math.hypot(combined.x, combined.y);
     const normalizedVector = mag > 0 ? { x: combined.x / mag, y: combined.y / mag } : { x: 0, y: 0 };
 
-    const targetSpeed = desiredVelocity * lerp(1, 1 - movementDensityWeight, movementGridDensity);
+    const targetSpeed = desiredVelocity * lerp(1, 1 - settings.movementDensityWeight, movementGridDensity);
     this._instance.movementVelocity = lerp(movementVelocity, targetSpeed, _deltaTime * 4);
 
     const targetDirection = Math.atan2(normalizedVector.y, normalizedVector.x);
@@ -406,7 +411,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Setti
 
     if (this.getIsNextToPlayer()) {
       this._setState(ZombieState.IDLE);
-      this._timers.movementRestart.reset();
+      this._timers.movementRestart.reset(settings.movementRestartSec);
       return;
     }
 
@@ -417,15 +422,12 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers, Setti
 
     // NAIVE COLLISION SYSTEM
     const futureGridPos = worldToGrid(futurePos);
-    const enemyGrid = LevelManager.getEnemyGrid();
     if (
       !areVectorsEqual(futureGridPos, this._getGridPosition()) &&
-      ((levelGrid?.[futureGridPos.x]?.[futureGridPos.y]?.state === GridTileState.BLOCKED ||
-        enemyGrid?.[futureGridPos.x]?.[futureGridPos.y]?.length) ??
-        0 > 2)
+      levelGrid?.[futureGridPos.x]?.[futureGridPos.y]?.state === GridTileState.BLOCKED
     ) {
+      this._timers.movementRestart.reset(settings.movementRestartSec);
       this._setState(ZombieState.IDLE);
-      this._timers.movementRestart.reset();
       return;
     }
 

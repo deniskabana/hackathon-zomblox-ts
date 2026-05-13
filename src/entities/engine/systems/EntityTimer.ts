@@ -5,8 +5,8 @@ export class EntityTimer<_OptionalDescription extends string | undefined = undef
   private _initialValue: number;
 
   constructor({ initialValue, autoStart = true }: { initialValue: number; autoStart?: boolean }) {
-    this._initialValue = initialValue * -1;
-    this._value = this._initialValue;
+    this._initialValue = initialValue;
+    this._value = this._initialValue * -1;
     this._active = autoStart;
   }
 
@@ -15,7 +15,7 @@ export class EntityTimer<_OptionalDescription extends string | undefined = undef
   }
 
   public reset(value: number = this._initialValue): void {
-    this._value = value;
+    this._value = value * -1;
     this._active = true;
   }
 
