@@ -57,8 +57,16 @@ export class DebugPanel {
     const zombiesFolder = folder.addFolder("Game Controls / Zombies");
     const zombieActions = {
       "Spawn Random": () => LevelManager.spawnZombie(),
+      "Spawn 10x": () => {
+        for (let i = 0; i < 10; i++) LevelManager.spawnZombie();
+      },
+      "Spawn 100x": () => {
+        for (let i = 0; i < 100; i++) LevelManager.spawnZombie();
+      },
     };
     zombiesFolder.add(zombieActions, "Spawn Random");
+    zombiesFolder.add(zombieActions, "Spawn 10x");
+    zombiesFolder.add(zombieActions, "Spawn 100x");
 
     const gameplayFolder = folder.addFolder("Game Controls / Gameplay");
     this._speedProxy = { speedScale: this._gameInstance.MANAGERS.SettingsManager.getSettings().gameplay.speedScale };
