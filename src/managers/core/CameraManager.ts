@@ -1,9 +1,14 @@
-import type { WorldPosition } from "../../config/core/grid.config";
+import { GRID_CONFIG, type WorldPosition } from "../../config/core/grid.config";
 import type GameInstance from "../../GameInstance";
 import lerp from "../../utils/math/lerp";
 import { AManager } from "../abstract/AManager";
 
 export default class CameraManager extends AManager {
+  private _x: number = 0;
+  private _y: number = 0;
+  private _shakeOffsetX: number = 0;
+  private _shakeOffsetY: number = 0;
+
   public x: number = 0;
   public y: number = 0;
 
@@ -27,6 +32,11 @@ export default class CameraManager extends AManager {
 
   public update(_deltaTime: number): void {
     this.zoom = Math.floor(this.targetZoom * 10) / 10;
+    this._shakeOffsetX = lerp(this._shakeOffsetX, 0, _deltaTime * 12);
+    this._shakeOffsetY = lerp(this._shakeOffsetY, 0, _deltaTime * 12);
+
+    this.x = this._x + this._shakeOffsetX;
+    this.y = this._y + this._shakeOffsetY;
   }
 
   private onResize = (): void => {
@@ -41,32 +51,31 @@ export default class CameraManager extends AManager {
   public followPlayer(_deltaTime: number, playerPos: WorldPosition): void {
     const levelManager = this.gameInstance.MANAGERS.LevelManager;
 
-    if (Math.abs(this.x - playerPos.x) < 0.1) {
-      this.x = playerPos.x;
+    if (Math.abs(this._x - playerPos.x) < 0.1) {
+      this._x = playerPos.x;
     } else {
-      this.x = Math.round(lerp(this.x, playerPos.x, _deltaTime * this.followSpeed) * 10) / 10;
+      this._x = Math.round(lerp(this._x, playerPos.x, _deltaTime * this.followSpeed) * 10) / 10;
     }
 
-    if (Math.abs(this.y - playerPos.y) < 0.1) {
-      this.y = playerPos.y;
+    if (Math.abs(this._y - playerPos.y) < 0.1) {
+      this._y = playerPos.y;
     } else {
-      this.y = Math.round(lerp(this.y, playerPos.y, _deltaTime * this.followSpeed) * 10) / 10;
+      this._y = Math.round(lerp(this._y, playerPos.y, _deltaTime * this.followSpeed) * 10) / 10;
     }
 
     const halfViewWidth = this.viewportWidth / 2 / this.zoom;
     const halfViewHeight = this.viewportHeight / 2 / this.zoom;
+    const threshold = GRID_CONFIG.TILE_SIZE * -1;
 
-    if (this.x - halfViewWidth < 0) {
-      this.x = halfViewWidth;
-    } else if (this.x + halfViewWidth > levelManager.worldWidth) {
-      this.x = levelManager.worldWidth - halfViewWidth;
-    }
+    const minX = halfViewWidth - threshold;
+    const maxX = levelManager.worldWidth - halfViewWidth + threshold;
+    const minY = halfViewHeight - threshold;
+    const maxY = levelManager.worldHeight - halfViewHeight + threshold;
 
-    if (this.y - halfViewHeight < 0) {
-      this.y = halfViewHeight;
-    } else if (this.y + halfViewHeight > levelManager.worldHeight) {
-      this.y = levelManager.worldHeight - halfViewHeight;
-    }
+    if (this._x < minX) this._x = minX;
+    else if (this._x > maxX) this._x = maxX;
+    if (this._y < minY) this._y = minY;
+    else if (this._y > maxY) this._y = maxY;
   }
 
   public worldToScreen(worldPos: WorldPosition): WorldPosition {
@@ -94,14 +103,13 @@ export default class CameraManager extends AManager {
     );
   }
 
-  public effectZoom(_strength: number = 5) {
-    return;
-    // this.zoom -= (Math.abs(this.zoom - this.targetZoom) / 30) * strength;
+  public effectZoom(strength: number = 5) {
+    this.zoom -= (Math.abs(this.zoom - this.targetZoom) / 30) * strength;
   }
 
-  public effectShake(strength: number = 1) {
-    this.x += strength * -0.5 + Math.random() * strength;
-    this.y += strength * -0.5 + Math.random() * strength;
+  public effectShake(strength: number): void {
+    this._shakeOffsetX = (Math.random() - 0.5) * strength;
+    this._shakeOffsetY = (Math.random() - 0.5) * strength;
   }
 
   public setViewportSize(width?: number, height?: number): void {

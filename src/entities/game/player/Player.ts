@@ -412,8 +412,8 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       );
     }
 
-    CameraManager.effectZoom(3 + weaponDef.damage / 2 + weaponDef.shots * 4 - weaponDef.cooldown * 2);
-    CameraManager.effectShake(3 + weaponDef.damage / 2 + weaponDef.shots * 4 - weaponDef.cooldown * 2);
+    CameraManager.effectZoom(2 + (weaponDef.damage * weaponDef.shots) / 2);
+    CameraManager.effectShake(2 + (weaponDef.damage * (weaponDef.shots / 2)) / 2);
   }
 
   private getCurrentWeaponSound(): AssetAudioName | undefined {
