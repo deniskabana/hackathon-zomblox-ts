@@ -165,11 +165,13 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     },
 
     drawShadow: () => {
-      const { DrawManager, AssetManager } = _game.MANAGERS;
+      const { DrawManager, AssetManager, LevelManager } = _game.MANAGERS;
       const { x, y } = this._getWorldPosition();
       const size = this._getSize() * 0.75;
       const shadowSprite = AssetManager.getImageAsset("IFXEntityShadow");
-      if (!shadowSprite) return;
+
+      if (!shadowSprite || LevelManager.getIsDay()) return;
+
       DrawManager.queueDraw(x - size / 2, y - size * 0.55, shadowSprite, size, size, ZIndex.GROUND_EFFECTS);
     },
 
@@ -306,17 +308,20 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     },
 
     onDeath: () => {
-      const { LevelManager, AssetManager, VFXManager } = _game.MANAGERS;
+      const { LevelManager, AssetManager, VFXManager, SettingsManager } = _game.MANAGERS;
+      const settings = SettingsManager.getSettings().zombie;
       const { TILE_SIZE } = GRID_CONFIG;
       const { x, y } = this._getWorldPosition();
 
       this._setState(ZombieState.DEAD);
-      LevelManager.spawnCoin({ x: x / TILE_SIZE - 0.5, y: y / TILE_SIZE - 0.5 });
+
       AssetManager.playAudioAsset("AZombieDeath", "sound");
       VFXManager.drawBloodPool({
         x: x - TILE_SIZE / 2 + (-0.5 + Math.random()) * 4,
         y: y - TILE_SIZE / 2 + (-0.5 + Math.random()) * 4,
       });
+
+      if (settings.dropsItems) LevelManager.spawnCoin({ x: x / TILE_SIZE - 0.5, y: y / TILE_SIZE - 0.5 });
     },
   };
 

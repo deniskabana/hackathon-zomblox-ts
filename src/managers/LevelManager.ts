@@ -176,8 +176,6 @@ export default class LevelManager extends AManager {
     const { DrawManager, CameraManager, SettingsManager, EntityManager } = this.gameInstance.MANAGERS;
 
     this.drawMapLayers("below");
-    EntityManager.draw();
-    this.drawMapLayers("above");
 
     if (SettingsManager.getSettings().rules.debugDrawFlowFieldGrid) {
       const size = GRID_CONFIG.TILE_SIZE;
@@ -228,6 +226,9 @@ export default class LevelManager extends AManager {
         }
       }
     }
+
+    EntityManager.draw();
+    this.drawMapLayers("above");
 
     if (!this.getIsDay() && this.player) {
       this.gameInstance.MANAGERS.LightManager.drawNightLighting(
@@ -545,8 +546,7 @@ export default class LevelManager extends AManager {
   private updatePathFindingGrid(): void {
     // if (this.getIsDay()) return;
     if (!this.player || !this.levelGrid) return;
-    // this.lastPlayerGridPos = this.player._getGridPosition();
-    this.flowField = generateFlowField(this.levelGrid, this.enemyGrid, this.player._getGridPosition());
+    this.flowField = generateFlowField(this.levelGrid, this.player._getGridPosition());
   }
 
   // Utils

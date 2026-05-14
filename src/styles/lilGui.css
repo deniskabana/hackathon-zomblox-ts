@@ -1,0 +1,39 @@
+.lil-gui {
+  --font-family: "Syne Mono", monospace;
+  --font-family-mono: "Syne Mono", monospace;
+  --font-size: 12px;
+  --focus-color: #993535;
+  --hover-color: #6e2d2d;
+  --number-color: #ffffffa0;
+  --string-color: #ffffffa0;
+  --background-color: #251212;
+  --widget-color: #402c2c;
+  --slider-knob-width: 4px;
+  --widget-border-radius: 4px;
+  --title-background-color: var(--hover-color);
+}
+
+.lil-gui button {
+  font-weight: 700;
+}
+
+.lil-gui .lil-title {
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.lil-gui.lil-root > .lil-title {
+  text-align: center;
+  text-transform: uppercase;
+  background: var(--focus-color);
+  color: white;
+  font-size: 16px;
+}
+
+.lil-gui .lil-children .lil-children {
+  padding-left: 6px;
+}
+
+.lil-gui .lil-children .lil-children .lil-title {
+  background-color: #00000080;
+}

@@ -6,6 +6,7 @@ export interface GameSettingsZombie {
   knockedStateDurationSec: number;
   movementRestartSec: number;
   facingDirThrottleSec: number;
+  dropsItems: boolean;
 
   maxSpeed: number;
   maxHealth: number;

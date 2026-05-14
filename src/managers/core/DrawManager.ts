@@ -369,6 +369,7 @@ export default class DrawManager extends AManager {
     fontFamily: string = "Arial",
     align: CanvasTextAlign = "left",
     alpha: number = 1,
+    bold: boolean = false,
   ): void {
     if (!this.ctx) return;
     const { CameraManager } = this.gameInstance.MANAGERS;
@@ -376,7 +377,7 @@ export default class DrawManager extends AManager {
     this.ctx.save();
     this.ctx.globalAlpha = alpha;
     this.ctx.fillStyle = color;
-    this.ctx.font = `${fontSize * CameraManager.zoom}px ${fontFamily}`;
+    this.ctx.font = `${bold ? "bold " : ""}${fontSize * CameraManager.zoom}px ${fontFamily}`;
     this.ctx.textAlign = align;
     const screenPos = this.gameInstance.MANAGERS.CameraManager.worldToScreen({ x, y });
     this.ctx.fillText(text, screenPos.x, screenPos.y);

@@ -1,4 +1,5 @@
-import "./style.css";
+import "./styles/main.css";
+import "./styles/lilGui.css";
 import csTranslation from "./translation/cs";
 import enTranslation from "./translation/en";
 import GameInstance from "./GameInstance";

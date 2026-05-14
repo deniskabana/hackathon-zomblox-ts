@@ -1,5 +1,4 @@
 import { type GridPosition, GRID_CONFIG } from "../../config/core/grid.config";
-import type Zombie from "../../entities/game/enemies/Zombie";
 import { type LevelGrid, GridTileState } from "../../types/engine/Grid";
 import type { Vector } from "../../types/lib/Vector";
 import { clamp } from "../math/clamp";
@@ -11,11 +10,7 @@ export interface FlowFieldCell {
 
 export type FlowField = FlowFieldCell[][];
 
-export default function generateFlowField(
-  levelGrid: LevelGrid,
-  enemyGrid: (Zombie[] | null)[][] | undefined,
-  ...startPoints: GridPosition[]
-): FlowField {
+export default function generateFlowField(levelGrid: LevelGrid, ...startPoints: GridPosition[]): FlowField {
   const grid: FlowField = [];
   for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
     grid[x] = [];
@@ -43,7 +38,7 @@ export default function generateFlowField(
     for (let dx = -1; dx <= 1; dx++) {
       for (let dy = -1; dy <= 1; dy++) {
         if (dx === 0 && dy === 0) continue; // Ignore self
-        if (dx !== 0 && dy !== 0) continue; // Ignore diagonal neighbors
+        // if (dx !== 0 && dy !== 0) continue; // Ignore diagonal neighbors
 
         const nx = currentVector.x + dx;
         const ny = currentVector.y + dy;
@@ -51,7 +46,6 @@ export default function generateFlowField(
 
         if (!levelGrid?.[nx]?.[ny]) continue;
         if (levelGrid?.[nx]?.[ny]?.state !== GridTileState.AVAILABLE) continue;
-        // if (enemyGrid?.[nx]?.[ny]?.length) currentWeight++;
 
         if (grid[nx][ny].weight === Infinity) {
           grid[nx][ny].weight = currentWeight + 1;

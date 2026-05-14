@@ -66,13 +66,13 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     const animations: EntityAnimationsSpecs = {
       frameWidth: 32,
       frameHeight: 32,
-      fps: 12,
+      fps: 11,
       animations: [
         {
           id: "idle",
           frameCount: 6,
           assetVariants: [AssetManager.getImageAsset("SPlayerIdle")!],
-          fps: 8,
+          fps: 7,
         },
         {
           id: "run",
@@ -126,35 +126,38 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       const settings = SettingsManager.getSettings().player;
       const { x, y } = this._getWorldPosition();
       const { TILE_SIZE } = GRID_CONFIG;
-      const debugSize = TILE_SIZE;
+      const size = TILE_SIZE;
+      const color = "#ef9f4a";
 
       if (settings.debugDrawWireframe) {
         DrawManager.drawRectOutline(
           gridToWorld(this._getGridPosition()).x,
           gridToWorld(this._getGridPosition()).y,
-          TILE_SIZE,
-          TILE_SIZE,
-          "#ca6",
-          3,
+          size,
+          size,
+          color,
+          2,
         );
       }
 
       if (settings.debugDrawPosition) {
-        DrawManager.drawLine(x - debugSize / 2, y - debugSize / 2, x + debugSize / 2, y + debugSize / 2, "#ca6", 3);
-        DrawManager.drawLine(x + debugSize / 2, y - debugSize / 2, x - debugSize / 2, y + debugSize / 2, "#ca6", 3);
+        DrawManager.drawLine(x - size / 4, y - size / 4, x + size / 4, y + size / 4, color, 2);
+        DrawManager.drawLine(x + size / 4, y - size / 4, x - size / 4, y + size / 4, color, 2);
       }
 
       if (settings.debugDrawState) {
-        DrawManager.drawText(this._getState(), x + 1, y + 1 - TILE_SIZE, "#000", 11, "Arial", "center");
-        DrawManager.drawText(this._getState(), x, y - TILE_SIZE, "#ca6", 11, "Arial", "center");
+        DrawManager.drawRectFilled(x - TILE_SIZE / 2, y - TILE_SIZE * 1.1 - 11, TILE_SIZE, 15, "#000", 0.5);
+        DrawManager.drawText(this._getState(), x, y - TILE_SIZE * 1.1, color, 13, "Courier New", "center", 1, true);
       }
     },
 
     drawShadow: () => {
-      const { DrawManager, AssetManager } = _game.MANAGERS;
+      const { DrawManager, AssetManager, LevelManager } = _game.MANAGERS;
       const { x, y } = this._getWorldPosition();
       const shadowSprite = AssetManager.getImageAsset("IFXEntityShadow");
       const size = this._getSize() * 0.75;
+
+      if (LevelManager.getIsDay()) return;
 
       if (!shadowSprite) return;
       DrawManager.queueDraw(x - size / 2, y - size * 0.55, shadowSprite, size, size, ZIndex.GROUND_EFFECTS);
