@@ -25,6 +25,7 @@ export const DEF_ASSETS_AUDIO = {
   AZombieNoiseNormal2: "/audio/zombie-choking-44937.mp3", // https://pixabay.com/users/freesound_community-46691455/
   AZombieNoiseWandering: "/audio/growling-zombie-104988.mp3", // https://pixabay.com/users/freesound_community-46691455/
   AZombieNoiseAggressive: "/audio/monster_noise_2-105198.mp3", // https://pixabay.com/users/freesound_community-46691455/
+  AZombieSquish: "/audio/floraphonic-slime-splat-with-drips-2-219262.mp3", // https://pixabay.com/users/floraphonic-38928062/
   // FX
   AFXShopPurchase: "/audio/coin-donation-2-180438.mp3", // https://pixabay.com/users/floraphonic-38928062/
   AFXZombieAmbience: "/audio/zombie-sound-224167.mp3", // https://pixabay.com/users/alice_soundz-44907632/

@@ -116,8 +116,8 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
           frameCount: 8,
           fps: 10,
           assetVariants: [
-            AssetManager.getImageAsset("SZombie1Death")!,
-            AssetManager.getImageAsset("SZombie2Death")!,
+            AssetManager.getImageAsset("SZombie1DeathAlt")!,
+            AssetManager.getImageAsset("SZombie2DeathAlt")!,
             AssetManager.getImageAsset("SZombie3Death")!,
             AssetManager.getImageAsset("SZombie4Death")!,
           ],
@@ -315,7 +315,9 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
 
       this._setState(ZombieState.DEAD);
 
-      AssetManager.playAudioAsset("AZombieDeath", "sound");
+      AssetManager.playAudioAsset("AZombieDeath", "sound", 0.7);
+      AssetManager.playAudioAsset("AZombieSquish", "sound", 0.5);
+
       VFXManager.drawBloodPool({
         x: x - TILE_SIZE / 2 + (-0.5 + Math.random()) * 4,
         y: y - TILE_SIZE / 2 + (-0.5 + Math.random()) * 4,
