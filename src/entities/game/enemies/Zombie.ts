@@ -456,7 +456,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
       y: y + Math.sin(this._instance.movementDirection) * this._instance.movementVelocity * _deltaTime,
     };
 
-    // Collision handling with sliding
+    // Wall collision with sliding
     const futureGridPos = worldToGrid(futurePos);
     if (
       !areVectorsEqual(futureGridPos, this._getGridPosition()) &&
@@ -477,6 +477,22 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
         this._timers.movementRestart.reset(settings.movementRestartSec);
       }
       return;
+    }
+
+    // Zombie-zombie collision with sliding if current weight > 10
+    if (
+      this.hasCollisionAhead(futurePos) &&
+      (LevelManager.flowField?.[futureGridPos.x]?.[futureGridPos.y]?.distanceWeight ?? 0) < 8
+    ) {
+      const slideX: WorldPosition = { x: futurePos.x, y };
+      const slideY: WorldPosition = { x, y: futurePos.y };
+
+      if (!this.hasCollisionAhead(slideX)) {
+        this.changeFacingPosition(futurePos.x < x);
+        this._setWorldPosition(slideX);
+      } else if (!this.hasCollisionAhead(slideY)) {
+        this._setWorldPosition(slideY);
+      } else return;
     }
 
     this.changeFacingPosition(futurePos.x < x);
@@ -500,5 +516,60 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
 
     const isCloseToPlayer = pgx >= gx - 1 && pgx <= gx + 1 && pgy >= gy - 1 && pgy <= gy + 1;
     return isCloseToPlayer;
+  }
+
+  private hasCollisionAhead(futurePos: WorldPosition): boolean {
+    const { LevelManager } = _game.MANAGERS;
+    const enemyGrid = LevelManager.getEnemyGrid();
+    const { x: gx, y: gy } = this._getGridPosition();
+    const selfPos = this._getWorldPosition();
+    const { movementFlowFieldVector } = this._instance;
+    const hitboxHalf = (this._getSize() * 0.3) / 2;
+
+    if (!enemyGrid) return false;
+
+    const corners = [
+      { x: futurePos.x - hitboxHalf, y: futurePos.y - hitboxHalf },
+      { x: futurePos.x + hitboxHalf, y: futurePos.y - hitboxHalf },
+      { x: futurePos.x - hitboxHalf, y: futurePos.y + hitboxHalf },
+      { x: futurePos.x + hitboxHalf, y: futurePos.y + hitboxHalf },
+    ];
+
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        const cell = enemyGrid[gx + dx]?.[gy + dy];
+        if (!cell) continue;
+
+        for (const neighbor of cell) {
+          if (neighbor === this) continue;
+
+          const neighborPos = neighbor._getWorldPosition();
+          const dist = Math.hypot(selfPos.x - neighborPos.x, selfPos.y - neighborPos.y);
+          if (dist === 0) continue;
+
+          // Only block against zombies ahead in flow field direction
+          const toNeighbor = {
+            x: (neighborPos.x - selfPos.x) / dist,
+            y: (neighborPos.y - selfPos.y) / dist,
+          };
+          const isAhead = toNeighbor.x * movementFlowFieldVector.x + toNeighbor.y * movementFlowFieldVector.y > 0;
+          if (!isAhead) continue;
+
+          const neighborHalf = (neighbor._getSize() * 0.75) / 2;
+          for (const corner of corners) {
+            if (
+              corner.x >= neighborPos.x - neighborHalf &&
+              corner.x <= neighborPos.x + neighborHalf &&
+              corner.y >= neighborPos.y - neighborHalf &&
+              corner.y <= neighborPos.y + neighborHalf
+            ) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+
+    return false;
   }
 }

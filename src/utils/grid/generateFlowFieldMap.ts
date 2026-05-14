@@ -1,16 +1,22 @@
 import { type GridPosition, GRID_CONFIG } from "../../config/core/grid.config";
+import type Zombie from "../../entities/game/enemies/Zombie";
 import { type LevelGrid, GridTileState } from "../../types/engine/Grid";
 import type { Vector } from "../../types/lib/Vector";
 import { clamp } from "../math/clamp";
 
 export interface FlowFieldCell {
   weight: number;
+  distanceWeight: number;
   normalizedVector: Vector;
 }
 
 export type FlowField = FlowFieldCell[][];
 
-export default function generateFlowField(levelGrid: LevelGrid, ...startPoints: GridPosition[]): FlowField {
+export default function generateFlowField(
+  levelGrid: LevelGrid,
+  enemyGrid: (Zombie[] | null)[][] | undefined,
+  ...startPoints: GridPosition[]
+): FlowField {
   const grid: FlowField = [];
   for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
     grid[x] = [];
@@ -18,6 +24,7 @@ export default function generateFlowField(levelGrid: LevelGrid, ...startPoints: 
       grid[x][y] = {
         normalizedVector: { x: 0, y: 0 },
         weight: Infinity,
+        distanceWeight: Infinity,
       };
     }
   }
@@ -29,6 +36,7 @@ export default function generateFlowField(levelGrid: LevelGrid, ...startPoints: 
     queue.push(from);
     const cell = grid[clamp(0, from.x, GRID_CONFIG.GRID_WIDTH - 1)][clamp(0, from.y, GRID_CONFIG.GRID_HEIGHT - 1)];
     cell.weight = 0;
+    cell.distanceWeight = 0;
   }
 
   while (queue.length > 0) {
@@ -46,10 +54,15 @@ export default function generateFlowField(levelGrid: LevelGrid, ...startPoints: 
         if (!levelGrid?.[nx]?.[ny]) continue;
         if (levelGrid?.[nx]?.[ny]?.state !== GridTileState.AVAILABLE) continue;
 
+        // const isDiagonal = dx !== 0 && dy !== 0;
+        // if (isDiagonal) continue;
+
         if (grid[nx][ny].weight === Infinity) {
-          const isDiagonal = dx !== 0 && dy !== 0;
-          if (isDiagonal) continue;
-          grid[nx][ny].weight = cell.weight + 1;
+          grid[nx][ny].distanceWeight = cell.distanceWeight + 1;
+          grid[nx][ny].weight = cell.distanceWeight + 1 + (enemyGrid?.[nx]?.[ny]?.length ?? 0);
+
+          if (grid[nx][ny].distanceWeight - grid[nx][ny].weight > 3) grid[nx][ny].weight = Infinity;
+
           queue.push({ x: nx, y: ny });
         }
       }
@@ -65,16 +78,16 @@ export default function generateFlowField(levelGrid: LevelGrid, ...startPoints: 
       let directionVector = { x: 0, y: 0 };
 
       const sortedNeighborVectors: Vector[] = [
-        // Cardinals
-        { x: 0, y: -1 },
-        { x: 0, y: 1 },
-        { x: 1, y: 0 },
-        { x: -1, y: 0 },
         // Diagonals
         { x: -1, y: -1 },
         { x: -1, y: 1 },
         { x: 1, y: 1 },
         { x: 1, y: -1 },
+        // Cardinals
+        { x: 0, y: -1 },
+        { x: 0, y: 1 },
+        { x: 1, y: 0 },
+        { x: -1, y: 0 },
       ];
 
       for (const neighborVector of sortedNeighborVectors) {

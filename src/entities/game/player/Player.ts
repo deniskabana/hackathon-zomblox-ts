@@ -59,7 +59,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
 
     const timers: Timers = {
       attackCooldown: new EntityTimer({ initialValue: DEF_WEAPONS[defaultWeapon].cooldown, autoStart: true }), // Value filled by WEAPON_DEF['cooldown']
-      stepSound: new EntityTimer({ initialValue: stepSoundCooldownSec, autoStart: false }),
+      stepSound: new EntityTimer({ initialValue: stepSoundCooldownSec, autoStart: true }),
       stun: new EntityTimer({ initialValue: stunCooldownSec, autoStart: false }),
     };
 

@@ -49,7 +49,7 @@ export default class LevelManager extends AManager {
 
   // Entities
   public player?: Player;
-  private playerLastGridPos?: GridPosition;
+  // private playerLastGridPos?: GridPosition;
 
   // Gameplay
   private isSpawningZombies: boolean = false;
@@ -75,13 +75,6 @@ export default class LevelManager extends AManager {
     const { SettingsManager } = this.gameInstance.MANAGERS;
     const settings = SettingsManager.getSettings();
 
-    this.playerLastGridPos = undefined;
-
-    // TODO: Only dev
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "p") this.spawnZombie();
-    });
-
     const { map, config } = parseJsonMap();
     setGridConfig(config);
 
@@ -97,7 +90,6 @@ export default class LevelManager extends AManager {
       EntityType.PLAYER,
       (entityId) => new Player({ gridPos: map.spawn, entityId, gameInstance: this.gameInstance }),
     );
-    // this.lastPlayerGridPos = this.player._getGridPosition();
 
     this.levelState = {
       phase: "day",
@@ -160,10 +152,7 @@ export default class LevelManager extends AManager {
     this.applyZombieSpawn(_deltaTime);
     this.updateEnemyGrid();
 
-    if (!areVectorsEqual(this.player._getGridPosition(), this.playerLastGridPos) || !this.flowField)
-      this.updatePathFindingGrid();
-
-    this.playerLastGridPos = this.player._getGridPosition();
+    this.updatePathFindingGrid();
 
     if (!this.getIsDay() && !!this.player) {
       this.nightEndCounter -= _deltaTime;
@@ -174,7 +163,7 @@ export default class LevelManager extends AManager {
   public drawEntities(): void {
     const { DrawManager, CameraManager, SettingsManager, EntityManager } = this.gameInstance.MANAGERS;
 
-    if (!SettingsManager.getSettings().rules.debugDrawFlowFieldGrid) this.drawMapLayers("below");
+    this.drawMapLayers("below", SettingsManager.getSettings().rules.debugDrawFlowFieldGrid ? 0.75 : 1);
 
     if (SettingsManager.getSettings().rules.debugDrawFlowFieldGrid) {
       const size = GRID_CONFIG.TILE_SIZE;
@@ -244,7 +233,7 @@ export default class LevelManager extends AManager {
     }
 
     EntityManager.draw();
-    if (!SettingsManager.getSettings().rules.debugDrawFlowFieldGrid) this.drawMapLayers("above");
+    this.drawMapLayers("above", SettingsManager.getSettings().rules.debugDrawFlowFieldGrid ? 0.5 : 1);
 
     if (!this.getIsDay() && this.player) {
       this.gameInstance.MANAGERS.LightManager.drawNightLighting(
@@ -270,7 +259,7 @@ export default class LevelManager extends AManager {
     this.renderMapLayerToCanvas(this.tileLayers.overlayDecor, this.mapLayerAbovePlayer);
   }
 
-  private drawMapLayers(position: "above" | "below"): void {
+  private drawMapLayers(position: "above" | "below", alpha: number = 1): void {
     if (!this.tileLayers || !this.tileset) return;
 
     this.gameInstance.MANAGERS.DrawManager.queueDraw(
@@ -281,6 +270,7 @@ export default class LevelManager extends AManager {
       GRID_CONFIG.GRID_HEIGHT * GRID_CONFIG.TILE_SIZE,
       position === "above" ? ZIndex.MAP_OVERLAY : ZIndex.MAP_GROUND,
       0,
+      alpha,
     );
   }
 
@@ -562,24 +552,8 @@ export default class LevelManager extends AManager {
   private updatePathFindingGrid(): void {
     // if (this.getIsDay()) return;
     if (!this.player || !this.levelGrid) return;
-    this.flowField = generateFlowField(this.levelGrid, this.player._getGridPosition());
+    this.flowField = generateFlowField(this.levelGrid, this.enemyGrid, this.player._getGridPosition());
   }
-
-  // Utils
-  // ==================================================
-
-  // private getRandomEdgePositions(): GridPosition[] {
-  //   return [
-  //     // Top edge
-  //     { x: Math.floor(GRID_CONFIG.GRID_WIDTH * Math.random()), y: 0 },
-  //     // Bottom edge
-  //     { x: Math.floor(GRID_CONFIG.GRID_WIDTH * Math.random()), y: GRID_CONFIG.GRID_HEIGHT - 1 },
-  //     // Left edge
-  //     { x: 0, y: Math.floor(GRID_CONFIG.GRID_HEIGHT * Math.random()) },
-  //     // Right edge
-  //     { x: GRID_CONFIG.GRID_WIDTH - 1, y: Math.floor(GRID_CONFIG.GRID_HEIGHT * Math.random()) },
-  //   ];
-  // }
 
   public _destroy(): void {
     this.stopSpawningZombies();

@@ -65,13 +65,9 @@ export class DebugPanel {
     this._buildInspectorFolder();
 
     // Hide by default
-    // for (const gui of this._guis) gui.hide();
+    for (const gui of this._guis) gui.hide();
     this._visible = false;
   }
-
-  // ---------------------------------------------------------------------------
-  // Game controls
-  // ---------------------------------------------------------------------------
 
   private _buildControlsFolder(): void {
     const { LevelManager, EntityManager } = this._gameInstance.MANAGERS;
@@ -269,7 +265,7 @@ export class DebugPanel {
     };
     gui.add(proxy, "Sync all entities");
 
-    // gui.close();
+    gui.close();
   }
 
   public subscribeToSettings(): void {
