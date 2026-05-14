@@ -33,23 +33,24 @@ export default function generateFlowField(levelGrid: LevelGrid, ...startPoints: 
 
   while (queue.length > 0) {
     const currentVector = queue.shift()!;
-    const currentWeight = grid?.[currentVector.x]?.[currentVector.y]?.weight;
+    const cell = grid?.[currentVector.x]?.[currentVector.y];
+    if (!cell) continue;
 
     for (let dx = -1; dx <= 1; dx++) {
       for (let dy = -1; dy <= 1; dy++) {
         if (dx === 0 && dy === 0) continue; // Ignore self
-        // if (dx !== 0 && dy !== 0) continue; // Ignore diagonal neighbors
 
         const nx = currentVector.x + dx;
         const ny = currentVector.y + dy;
-        const next: Vector = { x: nx, y: ny };
 
         if (!levelGrid?.[nx]?.[ny]) continue;
         if (levelGrid?.[nx]?.[ny]?.state !== GridTileState.AVAILABLE) continue;
 
         if (grid[nx][ny].weight === Infinity) {
-          grid[nx][ny].weight = currentWeight + 1;
-          queue.push(next);
+          const isDiagonal = dx !== 0 && dy !== 0;
+          if (isDiagonal) continue;
+          grid[nx][ny].weight = cell.weight + 1;
+          queue.push({ x: nx, y: ny });
         }
       }
     }
@@ -64,16 +65,16 @@ export default function generateFlowField(levelGrid: LevelGrid, ...startPoints: 
       let directionVector = { x: 0, y: 0 };
 
       const sortedNeighborVectors: Vector[] = [
-        // Diagonals
-        { x: -1, y: -1 },
-        { x: -1, y: 1 },
-        { x: 1, y: 1 },
-        { x: 1, y: -1 },
         // Cardinals
         { x: 0, y: -1 },
         { x: 0, y: 1 },
         { x: 1, y: 0 },
         { x: -1, y: 0 },
+        // Diagonals
+        { x: -1, y: -1 },
+        { x: -1, y: 1 },
+        { x: 1, y: 1 },
+        { x: 1, y: -1 },
       ];
 
       for (const neighborVector of sortedNeighborVectors) {
@@ -82,8 +83,7 @@ export default function generateFlowField(levelGrid: LevelGrid, ...startPoints: 
         if (!neighbor) continue;
 
         const neighborWeight = neighbor.weight;
-        if (neighborWeight === Infinity) continue;
-        if (neighborWeight > lowestWeight) continue;
+        if (neighborWeight === Infinity || neighborWeight > lowestWeight) continue;
 
         // Disallows corner cutting around obstacles
         if (dx !== 0 && dy !== 0) {

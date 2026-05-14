@@ -23,6 +23,7 @@ import assertNever from "../utils/assertNever";
 import generateEmptyLevelGrid from "../utils/grid/generateEmptyLevelGrid";
 import generateFlowField, { type FlowField } from "../utils/grid/generateFlowFieldMap";
 import raycast2D from "../utils/grid/raycast2D";
+import areVectorsEqual from "../utils/math/areVectorsEqual";
 import { AManager } from "./abstract/AManager";
 import { BlockTypes } from "./BuildModeManager";
 import { EntityType } from "./engine/EntityManager";
@@ -48,11 +49,11 @@ export default class LevelManager extends AManager {
 
   // Entities
   public player?: Player;
+  private playerLastGridPos?: GridPosition;
 
   // Gameplay
   private isSpawningZombies: boolean = false;
   private zombieSpawnsLeft: number = 0;
-  private pathfindingStaleAmountSec = 1 / 10;
 
   // Music
   private musicDay: AudioControl[] = [];
@@ -62,7 +63,6 @@ export default class LevelManager extends AManager {
   private nightEndCounter: number = 0;
   private spawnTimer: number = 0;
   private zombieSpawnInterval: number = 0.4;
-  private pathfindingStaleTimer: number = 0;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
@@ -74,6 +74,8 @@ export default class LevelManager extends AManager {
   public _init(): void {
     const { SettingsManager } = this.gameInstance.MANAGERS;
     const settings = SettingsManager.getSettings();
+
+    this.playerLastGridPos = undefined;
 
     // TODO: Only dev
     document.addEventListener("keydown", (e) => {
@@ -158,13 +160,10 @@ export default class LevelManager extends AManager {
     this.applyZombieSpawn(_deltaTime);
     this.updateEnemyGrid();
 
-    // if (hasPlayerMoved || !this.flowField) this.updatePathFindingGrid();
-
-    if (this.pathfindingStaleTimer > 0) this.pathfindingStaleTimer -= _deltaTime;
-    else {
+    if (!areVectorsEqual(this.player._getGridPosition(), this.playerLastGridPos) || !this.flowField)
       this.updatePathFindingGrid();
-      this.pathfindingStaleTimer = this.pathfindingStaleAmountSec;
-    }
+
+    this.playerLastGridPos = this.player._getGridPosition();
 
     if (!this.getIsDay() && !!this.player) {
       this.nightEndCounter -= _deltaTime;
@@ -175,7 +174,7 @@ export default class LevelManager extends AManager {
   public drawEntities(): void {
     const { DrawManager, CameraManager, SettingsManager, EntityManager } = this.gameInstance.MANAGERS;
 
-    this.drawMapLayers("below");
+    if (!SettingsManager.getSettings().rules.debugDrawFlowFieldGrid) this.drawMapLayers("below");
 
     if (SettingsManager.getSettings().rules.debugDrawFlowFieldGrid) {
       const size = GRID_CONFIG.TILE_SIZE;
@@ -183,10 +182,11 @@ export default class LevelManager extends AManager {
       for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
         for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
           if (!CameraManager.isOnScreen({ x: x * size, y: y * size })) continue;
+          if (!this.player || areVectorsEqual(this.player._getGridPosition(), { x, y })) continue;
 
           if (this.levelGrid?.[x]?.[y]?.state !== GridTileState.AVAILABLE)
-            DrawManager.drawRectFilled(x * size, y * size, size, size, "#000", 0.4);
-          DrawManager.drawRectOutline(x * size, y * size, size, size, "#fff", 0.1);
+            DrawManager.drawRectFilled(x * size, y * size, size, size, "#800", 0.4);
+          else DrawManager.drawRectOutline(x * size, y * size, size, size, "#fff", 0.1);
 
           if (this.flowField?.[x]?.[y]) {
             const currentFieldCell = this.flowField[x][y];
@@ -205,7 +205,7 @@ export default class LevelManager extends AManager {
 
             // Shaft
             DrawManager.drawLine(x1, y1, x2, y2, "#00000040", 4);
-            DrawManager.drawLine(x1, y1, x2, y2, "#8fcffff0", 2);
+            DrawManager.drawLine(x1, y1, x2, y2, "#afcf8ff0", 2);
 
             // Arrow tip
             const tipLen = half * 0.5;
@@ -217,18 +217,34 @@ export default class LevelManager extends AManager {
               const wx = x2 + Math.cos(wingAngle) * tipLen;
               const wy = y2 + Math.sin(wingAngle) * tipLen;
               DrawManager.drawLine(x2, y2, wx, wy, "#00000040", 4);
-              DrawManager.drawLine(x2, y2, wx, wy, "#8fcffff0", 2);
+              DrawManager.drawLine(x2, y2, wx, wy, "#afcf8ff0", 2);
             }
 
-            DrawManager.drawText(`${weight}`, x * size + size / 2 + 1, y * size + size / 2 + 1, "#000000");
-            DrawManager.drawText(`${weight}`, x * size + size / 2, y * size + size / 2);
+            DrawManager.drawText(
+              `${weight}`,
+              x * size + size / 2 + 1,
+              y * size + size / 2 + 1,
+              "#000000",
+              12,
+              "Arial",
+              "center",
+            );
+            DrawManager.drawText(
+              `${weight}`,
+              x * size + size / 2,
+              y * size + size / 2,
+              "#ffffff",
+              12,
+              "Arial",
+              "center",
+            );
           }
         }
       }
     }
 
     EntityManager.draw();
-    this.drawMapLayers("above");
+    if (!SettingsManager.getSettings().rules.debugDrawFlowFieldGrid) this.drawMapLayers("above");
 
     if (!this.getIsDay() && this.player) {
       this.gameInstance.MANAGERS.LightManager.drawNightLighting(
