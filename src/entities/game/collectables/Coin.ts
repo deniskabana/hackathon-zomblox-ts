@@ -1,4 +1,4 @@
-import { GRID_CONFIG, gridToWorld } from "../../../config/core/grid.config";
+import { GRID_CONFIG, gridToWorld, type WorldPosition } from "../../../config/core/grid.config";
 import type GameInstance from "../../../GameInstance";
 import { ZIndex } from "../../../types/lib/ZIndex";
 import getVectorDistance from "../../../utils/math/getVectorDistance";
@@ -26,9 +26,14 @@ export default class Coin extends AEntity<undefined, Instance, Timers> {
     const timers: Timers = {
       coinLifetime: new EntityTimer({ initialValue: lifetimeCoin, autoStart: true }),
     };
+
+    const lightPos: WorldPosition = gridToWorld({
+      x: gridPos.x - 0.5,
+      y: gridPos.y - 0.5,
+    });
     const instance: Instance = {
       playerDistance: Infinity,
-      lightSourceId: LightManager.addLightSource(gridToWorld(gridPos)),
+      lightSourceId: LightManager.addLightSource(lightPos, 2.25, 0.4),
     };
 
     const animations: EntityAnimationsSpecs = {

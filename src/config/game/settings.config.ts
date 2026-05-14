@@ -97,7 +97,7 @@ export const DEFAULT_SETTINGS: Readonly<GameSettingsSpec> = {
   },
   collectables: {
     autoCollect: false,
-    lifetimeCoin: 6,
+    lifetimeCoin: 12,
     emitLight: false,
     minDistanceFromPlayerPx: GRID_CONFIG.TILE_SIZE * 0.3,
     debugDrawWireframe: false,

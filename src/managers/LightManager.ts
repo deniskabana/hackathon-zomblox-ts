@@ -12,8 +12,7 @@ export default class LightManager extends AManager {
   private readonly playerLightConeLen = GRID_CONFIG.TILE_SIZE * 14;
 
   private lightSourceIdCount: number = 0;
-  private lightSources: Map<number, WorldPosition> = new Map();
-  private readonly lightSourceRadius = 4.9;
+  private lightSources: Map<number, { pos: WorldPosition; strength: number; alpha: number }> = new Map();
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
@@ -36,9 +35,9 @@ export default class LightManager extends AManager {
   // Utils
   // ==================================================
 
-  public addLightSource(worldPos: WorldPosition): number {
+  public addLightSource(pos: WorldPosition, strength: number = 1, alpha: number = 1): number {
     const id = ++this.lightSourceIdCount;
-    this.lightSources.set(id, worldPos);
+    this.lightSources.set(id, { pos, strength, alpha });
     return id;
   }
 
@@ -80,10 +79,10 @@ export default class LightManager extends AManager {
 
     for (const lightSource of this.lightSources.values()) {
       const lightScreenPos = CameraManager.worldToScreen({
-        x: lightSource.x + GRID_CONFIG.TILE_SIZE / 2,
-        y: lightSource.y + GRID_CONFIG.TILE_SIZE / 2,
+        x: lightSource.pos.x + GRID_CONFIG.TILE_SIZE / 2,
+        y: lightSource.pos.y + GRID_CONFIG.TILE_SIZE / 2,
       });
-      this.drawRadialLight(lightScreenPos, this.lightSourceRadius);
+      this.drawRadialLight(lightScreenPos, lightSource.strength, lightSource.alpha);
     }
 
     const gameCanvasCtx = DrawManager.getContext();
@@ -96,11 +95,12 @@ export default class LightManager extends AManager {
     gameCanvasCtx.restore();
   }
 
-  private drawRadialLight(lightScreenPos: ScreenPosition, strength: number = 1): void {
+  private drawRadialLight(lightScreenPos: ScreenPosition, strength: number = 1, alpha: number = 1): void {
     if (!this.ctx) return;
     const zoom = this.gameInstance.MANAGERS.CameraManager.zoom;
 
     this.ctx.save();
+
     const lightRadius = GRID_CONFIG.TILE_SIZE * zoom * strength;
     const gradient = this.ctx.createRadialGradient(
       lightScreenPos.x,
@@ -110,8 +110,8 @@ export default class LightManager extends AManager {
       lightScreenPos.y,
       lightRadius,
     );
-    gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
-    gradient.addColorStop(0.5, `rgba(0, 0, 0, ${this.nightOverlayAlpha})`);
+    gradient.addColorStop(0, `rgba(0, 0, 0, ${alpha})`);
+    gradient.addColorStop(0.2, `rgba(0, 0, 0, ${alpha})`);
     gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
 
     this.ctx.globalCompositeOperation = "destination-out";
