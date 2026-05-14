@@ -7,9 +7,9 @@ export default class LightManager extends AManager {
   private lightMaskCanvas: HTMLCanvasElement | undefined;
   private ctx: CanvasRenderingContext2D | undefined;
 
-  private readonly nightOverlayAlpha = 0.8;
+  private readonly nightOverlayAlpha = 1;
   private playerLightRadius = 4;
-  private readonly playerLightConeLen = GRID_CONFIG.TILE_SIZE * 16;
+  private readonly playerLightConeLen = GRID_CONFIG.TILE_SIZE * 14;
 
   private lightSourceIdCount: number = 0;
   private lightSources: Map<number, WorldPosition> = new Map();
@@ -124,8 +124,8 @@ export default class LightManager extends AManager {
   private drawLightCone(lightScreenPos: ScreenPosition, facingAngle: number, zoom: number): void {
     if (!this.ctx) return;
     const coneLength = this.playerLightConeLen * zoom;
-    const startWidth = GRID_CONFIG.TILE_SIZE * 1.9 * zoom;
-    const endWidth = GRID_CONFIG.TILE_SIZE * 8 * zoom;
+    const startWidth = GRID_CONFIG.TILE_SIZE * 2 * zoom;
+    const endWidth = GRID_CONFIG.TILE_SIZE * 9 * zoom;
 
     this.ctx.save();
     this.ctx.translate(lightScreenPos.x, lightScreenPos.y);
@@ -133,8 +133,8 @@ export default class LightManager extends AManager {
 
     const gradient = this.ctx.createLinearGradient(0, 0, coneLength, 0);
     gradient.addColorStop(0, `rgba(0, 0, 0, ${this.nightOverlayAlpha})`);
-    gradient.addColorStop(0.35, `rgba(0, 0, 0, ${this.nightOverlayAlpha})`);
-    gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+    // gradient.addColorStop(0.35, `rgba(0, 0, 0, ${this.nightOverlayAlpha})`);
+    gradient.addColorStop(0.9, "rgba(0, 0, 0, 0)");
 
     this.ctx.globalCompositeOperation = "destination-out";
     this.ctx.fillStyle = gradient;

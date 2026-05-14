@@ -152,12 +152,10 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     },
 
     drawShadow: () => {
-      const { DrawManager, AssetManager, LevelManager } = _game.MANAGERS;
+      const { DrawManager, AssetManager } = _game.MANAGERS;
       const { x, y } = this._getWorldPosition();
       const shadowSprite = AssetManager.getImageAsset("IFXEntityShadow");
       const size = this._getSize() * 0.75;
-
-      if (LevelManager.getIsDay()) return;
 
       if (!shadowSprite) return;
       DrawManager.queueDraw(x - size / 2, y - size * 0.55, shadowSprite, size, size, ZIndex.GROUND_EFFECTS);

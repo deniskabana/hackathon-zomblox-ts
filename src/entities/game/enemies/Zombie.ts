@@ -484,7 +484,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     // Zombie-zombie collision with sliding if current weight > 10
     if (
       this.hasCollisionAhead(futurePos) &&
-      (LevelManager.flowField?.[futureGridPos.x]?.[futureGridPos.y]?.distanceWeight ?? 0) < 8
+      (LevelManager.flowField?.[futureGridPos.x]?.[futureGridPos.y]?.distanceWeight ?? 0) < 4
     ) {
       const slideX: WorldPosition = { x: futurePos.x, y };
       const slideY: WorldPosition = { x, y: futurePos.y };
@@ -526,7 +526,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     const { x: gx, y: gy } = this._getGridPosition();
     const selfPos = this._getWorldPosition();
     const { movementFlowFieldVector } = this._instance;
-    const hitboxHalf = (this._getSize() * 0.3) / 2;
+    const hitboxHalf = (this._getSize() * 0.4) / 2;
 
     if (!enemyGrid) return false;
 

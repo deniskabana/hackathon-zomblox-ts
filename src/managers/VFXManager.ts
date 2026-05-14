@@ -65,7 +65,6 @@ export default class VFXManager extends AManager {
   }
 
   public drawBloodPool(pos: WorldPosition, duration: number = 600): void {
-    const alpha = Math.random() * 0.25 + 0.75;
     const sizeDeviation = 1;
     const angles = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
     const angle = angles[Math.floor(Math.random() * angles.length)];
@@ -87,7 +86,7 @@ export default class VFXManager extends AManager {
           GRID_CONFIG.TILE_SIZE * 1.5 * sizeDeviation,
           ZIndex.GROUND_EFFECTS,
           angle,
-          alpha - alpha * _deltaTime,
+          0.9,
         );
       },
       startTime: Date.now(),

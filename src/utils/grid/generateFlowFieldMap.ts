@@ -7,6 +7,7 @@ import { clamp } from "../math/clamp";
 export interface FlowFieldCell {
   weight: number;
   distanceWeight: number;
+  enemyWeight: number;
   normalizedVector: Vector;
 }
 
@@ -25,6 +26,7 @@ export default function generateFlowField(
         normalizedVector: { x: 0, y: 0 },
         weight: Infinity,
         distanceWeight: Infinity,
+        enemyWeight: 0,
       };
     }
   }
@@ -37,6 +39,7 @@ export default function generateFlowField(
     const cell = grid[clamp(0, from.x, GRID_CONFIG.GRID_WIDTH - 1)][clamp(0, from.y, GRID_CONFIG.GRID_HEIGHT - 1)];
     cell.weight = 0;
     cell.distanceWeight = 0;
+    cell.enemyWeight = 0;
   }
 
   while (queue.length > 0) {
@@ -54,14 +57,11 @@ export default function generateFlowField(
         if (!levelGrid?.[nx]?.[ny]) continue;
         if (levelGrid?.[nx]?.[ny]?.state !== GridTileState.AVAILABLE) continue;
 
-        // const isDiagonal = dx !== 0 && dy !== 0;
-        // if (isDiagonal) continue;
-
         if (grid[nx][ny].weight === Infinity) {
           grid[nx][ny].distanceWeight = cell.distanceWeight + 1;
-          grid[nx][ny].weight = cell.distanceWeight + 1 + (enemyGrid?.[nx]?.[ny]?.length ?? 0);
+          grid[nx][ny].enemyWeight = enemyGrid?.[nx]?.[ny]?.length ?? 0;
 
-          if (grid[nx][ny].distanceWeight - grid[nx][ny].weight > 3) grid[nx][ny].weight = Infinity;
+          grid[nx][ny].weight = grid[nx][ny].distanceWeight + grid[nx][ny].enemyWeight;
 
           queue.push({ x: nx, y: ny });
         }
