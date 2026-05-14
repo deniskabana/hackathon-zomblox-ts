@@ -105,9 +105,11 @@ export default class Coin extends AEntity<undefined, Instance, Timers> {
   };
 
   private handleCollected(): void {
-    const { AssetManager, LevelManager, EntityManager } = _game.MANAGERS;
+    const { AssetManager, LevelManager, EntityManager, SettingsManager } = _game.MANAGERS;
+    const settings = SettingsManager.getSettings().rules;
+
     AssetManager.playAudioAsset("AFXCoinCollected", "sound", 0.3);
-    LevelManager.addCurrency(1);
+    LevelManager.addCurrency(1 * settings.incomeScale);
     EntityManager.destroyEntity(this._entityId);
   }
 }

@@ -19,6 +19,8 @@ import { Direction } from "../../../utils/getCardinalDirection";
 import isInsideGrid from "../../../utils/grid/isInsideGrid";
 import areVectorsEqual from "../../../utils/math/areVectorsEqual";
 import getVectorDistance from "../../../utils/math/getVectorDistance";
+import lerp from "../../../utils/math/lerp";
+import radialLerp from "../../../utils/math/radialLerp";
 import radiansToVector from "../../../utils/math/radiansToVector";
 import AEntity, { type AEntityEngine, type EntityConstructorProps } from "../../engine/AEntity";
 import type { EntityAnimationsSpecs } from "../../engine/systems/EntityAnimation";

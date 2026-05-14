@@ -106,7 +106,7 @@ export class DebugPanel {
     zombiesFolder.add(zombieActions, "☠️ Kill all").domElement.style = "display: inline-flex; width: 50%;";
     zombiesFolder.add(zombieActions, "❌ Despawn all").domElement.style = "display: inline-flex; width: 50%;";
 
-    const gameplayFolder = gui.addFolder("Gameplay");
+    const gameplayFolder = gui.addFolder("Engine");
     this._speedProxy = { speedScale: this._gameInstance.MANAGERS.SettingsManager.getSettings().gameplay.speedScale };
     const speedScales = { Pause: 0, "0.1x": 0.1, "0.25x": 0.25, "0.5x": 0.5, Normal: 1, "2x": 2, "4x": 4, "10x": 10 };
 

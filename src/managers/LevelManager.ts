@@ -62,7 +62,6 @@ export default class LevelManager extends AManager {
   // Timers
   private nightEndCounter: number = 0;
   private spawnTimer: number = 0;
-  private zombieSpawnInterval: number = 0.4;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
@@ -420,8 +419,11 @@ export default class LevelManager extends AManager {
   }
 
   public applyZombieSpawn(_deltaTime: number): void {
+    const { SettingsManager } = this.gameInstance.MANAGERS;
+    const settings = SettingsManager.getSettings().rules;
+
     if (this.isSpawningZombies) this.spawnTimer += _deltaTime;
-    if (this.spawnTimer > this.zombieSpawnInterval) {
+    if (this.spawnTimer >= settings.zombieSpawnIntervalSec) {
       this.spawnTimer = 0;
 
       if (this.zombieSpawnsLeft <= 0) return;

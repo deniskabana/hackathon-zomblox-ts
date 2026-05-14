@@ -1,13 +1,15 @@
 import { GRID_CONFIG, type WorldPosition } from "../config/core/grid.config";
 import type GameInstance from "../GameInstance";
 import type { ScreenPosition } from "../types/engine/ScreenPosition";
+import lerp from "../utils/math/lerp";
+import radialLerp from "../utils/math/radialLerp";
 import { AManager } from "./abstract/AManager";
 
 export default class LightManager extends AManager {
   private lightMaskCanvas: HTMLCanvasElement | undefined;
   private ctx: CanvasRenderingContext2D | undefined;
 
-  private readonly nightOverlayAlpha = 1;
+  private nightOverlayAlpha = 1;
   private playerLightRadius = 4;
   private readonly playerLightConeLen = GRID_CONFIG.TILE_SIZE * 14;
 
@@ -61,7 +63,10 @@ export default class LightManager extends AManager {
    */
   public drawNightLighting(players: WorldPosition[], facingAngle: number): void {
     const { CameraManager, DrawManager, SettingsManager } = this.gameInstance.MANAGERS;
-    this.playerLightRadius = SettingsManager.getSettings().player.lightRadius;
+    const allSettings = SettingsManager.getSettings();
+    this.playerLightRadius = allSettings.player.lightRadius;
+    this.nightOverlayAlpha = allSettings.rules.nightOverlayAlpha;
+
     const zoom = CameraManager.zoom;
     if (!this.ctx || !this.lightMaskCanvas) return;
 
@@ -121,6 +126,8 @@ export default class LightManager extends AManager {
     this.ctx.restore();
   }
 
+  private _facingAngle: number = -1;
+
   private drawLightCone(lightScreenPos: ScreenPosition, facingAngle: number, zoom: number): void {
     if (!this.ctx) return;
     const coneLength = this.playerLightConeLen * zoom;
@@ -129,12 +136,13 @@ export default class LightManager extends AManager {
 
     this.ctx.save();
     this.ctx.translate(lightScreenPos.x, lightScreenPos.y);
-    this.ctx.rotate(facingAngle);
+    this._facingAngle = radialLerp(this._facingAngle, facingAngle, 0.4);
+    this.ctx.rotate(this._facingAngle);
 
     const gradient = this.ctx.createLinearGradient(0, 0, coneLength, 0);
     gradient.addColorStop(0, `rgba(0, 0, 0, ${this.nightOverlayAlpha})`);
-    // gradient.addColorStop(0.35, `rgba(0, 0, 0, ${this.nightOverlayAlpha})`);
-    gradient.addColorStop(0.9, "rgba(0, 0, 0, 0)");
+    gradient.addColorStop(0.25, `rgba(0, 0, 0, ${this.nightOverlayAlpha})`);
+    gradient.addColorStop(0.85, "rgba(0, 0, 0, 0)");
 
     this.ctx.globalCompositeOperation = "destination-out";
     this.ctx.fillStyle = gradient;

@@ -17,10 +17,12 @@ export interface GameSettingsSpec {
   };
 
   rules: {
+    nightOverlayAlpha: number;
     startingCurrency: number;
     incomeScale: number;
     endNightReward: number;
     autospawn: boolean;
+    zombieSpawnIntervalSec: number;
 
     difficultyIncreaseCoef: number;
     nightDurationSec: number;
@@ -43,12 +45,14 @@ export const DEFAULT_SETTINGS: Readonly<GameSettingsSpec> = {
     volumeMusic: 1,
   },
   rules: {
+    nightOverlayAlpha: 1,
     startingCurrency: 10,
     autospawn: true,
     incomeScale: 1,
+    zombieSpawnIntervalSec: 3.5,
     endNightReward: 10,
     difficultyIncreaseCoef: 1.2385,
-    nightDurationSec: 60,
+    nightDurationSec: 45,
     debugDrawFlowFieldGrid: false,
     debugSeeThroughNight: false,
   },
@@ -60,12 +64,12 @@ export const DEFAULT_SETTINGS: Readonly<GameSettingsSpec> = {
     knockedStateDurationSec: 3,
     movementRestartSec: 0.5,
     dropsItems: true,
-    facingDirThrottleSec: 0.2,
-    maxSpeed: 60,
-    maxHealth: 50,
-    minDistanceFromPlayerPx: GRID_CONFIG.TILE_SIZE * 1.65,
+    facingDirThrottleSec: 0.15,
+    maxSpeed: 50,
+    maxHealth: 37,
+    minDistanceFromPlayerPx: GRID_CONFIG.TILE_SIZE * 1,
     isHurtBySunlight: true,
-    sunlightDamageIntensity: 5.5,
+    sunlightDamageIntensity: 4.5,
     movementSeparationWeight: 0.6,
     movementDensityWeight: 0.85,
     debugDrawState: false,
@@ -112,9 +116,11 @@ export const SettingsDebugControlSchema: SettingsDebugSchema = {
     volumeMusic: { type: "number", min: 0, max: 1, step: 0.05 },
   },
   rules: {
+    nightOverlayAlpha: { type: "number", min: 0, max: 1, step: 0.02 },
     autospawn: { type: "boolean" },
     startingCurrency: { type: "number", min: 0, max: 1000, step: 5 },
-    incomeScale: { type: "number", min: 0, max: 10, step: 0.1 },
+    zombieSpawnIntervalSec: { type: "number", min: 0, max: 10, step: 0.1 },
+    incomeScale: { type: "number", min: 0, max: 10, step: 1 },
     endNightReward: { type: "number", min: 0, max: 1000, step: 5 },
     difficultyIncreaseCoef: { type: "number", min: 0, max: 8, step: 0.1 },
     nightDurationSec: { type: "number", min: 0, max: 1000, step: 5 },

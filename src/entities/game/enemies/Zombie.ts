@@ -240,6 +240,8 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
       const state = this._getState();
       const { EntityManager } = _game.MANAGERS;
 
+      if (this._getIsDead()) this._setState(ZombieState.DEAD);
+
       switch (state) {
         case ZombieState.IDLE:
           this._animations?.setActiveAnimations(["idle"]);
@@ -315,8 +317,8 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
 
       this._setState(ZombieState.DEAD);
 
-      AssetManager.playAudioAsset("AZombieDeath", "sound", 0.7);
-      AssetManager.playAudioAsset("AZombieSquish", "sound", 0.5);
+      setTimeout(() => AssetManager.playAudioAsset("AZombieDeath", "sound", 0.7), Math.random() * 20);
+      setTimeout(() => AssetManager.playAudioAsset("AZombieSquish", "sound", 0.5), Math.random() * 20);
 
       VFXManager.drawBloodPool({
         x: x - TILE_SIZE / 2 + (-0.5 + Math.random()) * 4,
@@ -338,6 +340,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
   }
 
   public startRetreating(): void {
+    return;
     this._setState(ZombieState.RETREATING);
     this._instance.desiredVelocity = this._instance.maxSpeed * 3.25;
   }
