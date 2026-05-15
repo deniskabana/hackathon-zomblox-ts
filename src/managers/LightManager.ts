@@ -1,7 +1,6 @@
 import { GRID_CONFIG, type WorldPosition } from "../config/core/grid.config";
 import type GameInstance from "../GameInstance";
 import type { ScreenPosition } from "../types/engine/ScreenPosition";
-import lerp from "../utils/math/lerp";
 import radialLerp from "../utils/math/radialLerp";
 import { AManager } from "./abstract/AManager";
 

@@ -17,9 +17,9 @@ export default class CameraManager extends AManager {
 
   public zoom: number = 1;
   private targetZoom: number = 1;
-
-  private readonly targetWorldWidth: number = 1300;
-  private readonly followSpeed: number = 2;
+  private zoomScale: number = 1;
+  private targetWorldWidth: number = 1300;
+  private followSpeed: number = 2;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
@@ -31,7 +31,7 @@ export default class CameraManager extends AManager {
   }
 
   public update(_deltaTime: number): void {
-    this.zoom = Math.floor(this.targetZoom * 10) / 10;
+    this.calculateZoom();
     this._shakeOffsetX = lerp(this._shakeOffsetX, 0, _deltaTime * 12);
     this._shakeOffsetY = lerp(this._shakeOffsetY, 0, _deltaTime * 12);
 
@@ -45,7 +45,8 @@ export default class CameraManager extends AManager {
   };
 
   private calculateZoom(): void {
-    this.targetZoom = this.viewportWidth / this.targetWorldWidth;
+    this.targetZoom = (this.viewportWidth / this.targetWorldWidth) * this.zoomScale;
+    this.zoom = Math.floor(this.targetZoom * 10) / 10;
   }
 
   public followPlayer(_deltaTime: number, playerPos: WorldPosition): void {
@@ -120,5 +121,24 @@ export default class CameraManager extends AManager {
 
   public _destroy(): void {
     window.removeEventListener("resize", this.onResize);
+  }
+
+  public getZoomScale(): number {
+    return this.zoomScale;
+  }
+  public getFollowSpeed(): number {
+    return this.followSpeed;
+  }
+  public getTargetWorldWidth(): number {
+    return this.targetWorldWidth;
+  }
+  public setZoomScale(zoom: number = 1) {
+    this.zoomScale = zoom;
+  }
+  public setFollowSpeed(speed: number = 2) {
+    this.followSpeed = speed;
+  }
+  public setTargetWorldWidth(width: number = 1300) {
+    this.targetWorldWidth = width;
   }
 }

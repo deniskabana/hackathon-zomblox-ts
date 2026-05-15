@@ -121,6 +121,29 @@ export class DebugPanel {
         "display: inline-flex; width: 25%;";
     }
 
+    const cameraFolder = gui.addFolder("Camera");
+    const cameraProxy = {
+      "Zoom scale": this._gameInstance.MANAGERS.CameraManager.getZoomScale(),
+      "Follow speed": this._gameInstance.MANAGERS.CameraManager.getFollowSpeed(),
+      "Target width": this._gameInstance.MANAGERS.CameraManager.getTargetWorldWidth(),
+      Reset: () => {
+        this._gameInstance.MANAGERS.CameraManager.setZoomScale();
+        this._gameInstance.MANAGERS.CameraManager.setFollowSpeed();
+        this._gameInstance.MANAGERS.CameraManager.setTargetWorldWidth();
+      },
+    };
+    cameraFolder
+      .add(cameraProxy, "Zoom scale", 0.1, 4, 0.1)
+      .onChange(() => this._gameInstance.MANAGERS.CameraManager.setZoomScale(cameraProxy["Zoom scale"]));
+    cameraFolder
+      .add(cameraProxy, "Follow speed", 0, 20, 0.25)
+      .onChange(() => this._gameInstance.MANAGERS.CameraManager.setFollowSpeed(cameraProxy["Follow speed"]));
+    cameraFolder
+      .add(cameraProxy, "Target width", 200, 5400, 100)
+      .onChange(() => this._gameInstance.MANAGERS.CameraManager.setTargetWorldWidth(cameraProxy["Target width"]));
+    cameraFolder.add(cameraProxy, "Reset");
+
+    cameraFolder.close();
     zombiesFolder.open();
     gameplayFolder.open();
     // gui.close();
