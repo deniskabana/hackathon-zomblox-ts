@@ -2,8 +2,9 @@ import { GRID_CONFIG, gridToWorld } from "../../../config/core/grid.config";
 import type GameInstance from "../../../GameInstance";
 import { EntityType } from "../../../managers/engine/EntityManager";
 import { ZIndex } from "../../../types/lib/ZIndex";
-import AEntity, { type AEntityEngine, type EntityConstructorProps } from "../../engine/AEntity";
+import AEntity, { type AEntityEngineBody, type EntityConstructorProps } from "../../engine/AEntity";
 import type { EntityAnimationsSpecs } from "../../engine/systems/EntityAnimation";
+import { EntityCollisionShape } from "../../engine/systems/EntityCollisionPoints";
 
 /** `this.gameInstance` */ let _game: GameInstance;
 
@@ -30,6 +31,7 @@ export default class BlockBarrelFire extends AEntity<undefined, Instance> {
     super({
       worldPos: gridToWorld(gridPos),
       health: settings.healthFireBarrel,
+      collisionPoints: EntityCollisionShape.GetPoint(),
       entityId,
       animations,
       size,
@@ -41,7 +43,7 @@ export default class BlockBarrelFire extends AEntity<undefined, Instance> {
     this._instance.lightSourceId = LightManager.addLightSource(this._getWorldPosition());
   }
 
-  public _engine: AEntityEngine = {
+  public _engine: AEntityEngineBody = {
     draw: () => {
       const { LevelManager, DrawManager } = _game.MANAGERS;
       const { x, y } = this._getWorldPosition();

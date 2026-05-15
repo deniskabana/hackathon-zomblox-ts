@@ -8,8 +8,9 @@ import isInsideGrid from "../../../utils/grid/isInsideGrid";
 import areVectorsEqual from "../../../utils/math/areVectorsEqual";
 import lerp from "../../../utils/math/lerp";
 import { lerpAngle } from "../../../utils/math/radialLerp";
-import AEntity, { type AEntityEngine, type EntityConstructorProps } from "../../engine/AEntity";
+import AEntity, { type AEntityEngineBody, type EntityConstructorProps } from "../../engine/AEntity";
 import type { EntityAnimationsSpecs } from "../../engine/systems/EntityAnimation";
+import { EntityCollisionShape } from "../../engine/systems/EntityCollisionPoints";
 import { EntityTimer } from "../../engine/systems/EntityTimer";
 
 /** `this.gameInstance` */ let _game: GameInstance;
@@ -143,6 +144,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
       size: settings.worldSize,
       entityId,
       animations,
+      collisionPoints: EntityCollisionShape.GetSquare(settings.worldSize * 0.5),
       initialState: ZombieState.CHASING,
       timers,
       health: settings.maxHealth,
@@ -154,7 +156,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     else this.startChasingPlayer();
   }
 
-  public _engine: AEntityEngine = {
+  public _engine: AEntityEngineBody = {
     draw: () => {
       const { DrawManager } = _game.MANAGERS;
       const size = this._getSize();

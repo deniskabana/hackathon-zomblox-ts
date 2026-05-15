@@ -1,9 +1,11 @@
 import { type WorldPosition, type GridPosition, worldToGrid } from "../../config/core/grid.config";
 import type GameInstance from "../../GameInstance";
+import type { Vector } from "../../types/lib/Vector";
 import { EntityAnimations, type EntityAnimationsSpecs } from "./systems/EntityAnimation";
+import type { EntityCollisionPoints } from "./systems/EntityCollisionPoints";
 import { EntityTimer } from "./systems/EntityTimer";
 
-export interface AEntityEngine {
+export interface AEntityEngineBody {
   draw: () => void;
   drawDebug: () => void;
   drawShadow?: () => void;
@@ -40,9 +42,12 @@ export default abstract class AEntity<
   private _worldPos: WorldPosition;
   private _gridPos: GridPosition;
   private _size: number;
+
   private _health: number;
   private _maxHealth: number;
   private _isDead: boolean = false;
+  private _collisionPoints: EntityCollisionPoints;
+
   private _state: TState;
 
   protected _timers: TTimers;
@@ -51,7 +56,7 @@ export default abstract class AEntity<
   protected _settings: TSettings;
 
   /** Entity manifest — implement in every subclass as an object literal. */
-  public abstract _engine: AEntityEngine;
+  public abstract _engine: AEntityEngineBody;
 
   constructor(props: {
     health?: number;
@@ -62,6 +67,7 @@ export default abstract class AEntity<
     timers?: TTimers;
     animations?: EntityAnimationsSpecs;
     instance?: TInstance;
+    collisionPoints: Vector[];
     settings?: TSettings;
   }) {
     this._entityId = props.entityId;
@@ -74,6 +80,7 @@ export default abstract class AEntity<
     this._instance = props.instance ?? ({} as TInstance);
     this._timers = props.timers ?? ({} as TTimers);
     this._settings = Object.freeze({ ...props.settings }) as TSettings;
+    this._collisionPoints = props.collisionPoints ?? [];
     if (props.animations) this._animations = new EntityAnimations(props.animations);
   }
 
@@ -154,6 +161,14 @@ export default abstract class AEntity<
   // Getters
   // --------------------------------------------------
 
+  public _getCollisionPoints(): WorldPosition[] {
+    const worldPos = this._getWorldPosition();
+
+    return this._collisionPoints.map((vector) => ({
+      x: vector.x + worldPos.x,
+      y: vector.y + worldPos.y,
+    }));
+  }
   public _getSize(): number {
     return this._size;
   }

@@ -2,8 +2,9 @@ import { GRID_CONFIG, gridToWorld, type WorldPosition } from "../../../config/co
 import type GameInstance from "../../../GameInstance";
 import { ZIndex } from "../../../types/lib/ZIndex";
 import getVectorDistance from "../../../utils/math/getVectorDistance";
-import AEntity, { type EntityConstructorProps, type AEntityEngine } from "../../engine/AEntity";
+import AEntity, { type EntityConstructorProps, type AEntityEngineBody } from "../../engine/AEntity";
 import type { EntityAnimationsSpecs } from "../../engine/systems/EntityAnimation";
+import { EntityCollisionShape } from "../../engine/systems/EntityCollisionPoints";
 import { EntityTimer } from "../../engine/systems/EntityTimer";
 
 /** `this.gameInstance` */ let _game: GameInstance;
@@ -47,6 +48,7 @@ export default class Coin extends AEntity<undefined, Instance, Timers> {
       worldPos: gridToWorld(gridPos),
       health: Infinity,
       entityId,
+      collisionPoints: EntityCollisionShape.GetPoint(),
       size,
       animations,
       timers,
@@ -55,7 +57,7 @@ export default class Coin extends AEntity<undefined, Instance, Timers> {
     });
   }
 
-  public _engine: AEntityEngine = {
+  public _engine: AEntityEngineBody = {
     draw: () => {
       const { DrawManager } = _game.MANAGERS;
       this._animations?.drawActiveAnimations(this._getWorldPosition(), this._getSize(), DrawManager);

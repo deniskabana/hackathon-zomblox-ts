@@ -20,8 +20,9 @@ import isInsideGrid from "../../../utils/grid/isInsideGrid";
 import areVectorsEqual from "../../../utils/math/areVectorsEqual";
 import getVectorDistance from "../../../utils/math/getVectorDistance";
 import radiansToVector from "../../../utils/math/radiansToVector";
-import AEntity, { type AEntityEngine, type EntityConstructorProps } from "../../engine/AEntity";
+import AEntity, { type AEntityEngineBody, type EntityConstructorProps } from "../../engine/AEntity";
 import type { EntityAnimationsSpecs } from "../../engine/systems/EntityAnimation";
+import { EntityCollisionShape } from "../../engine/systems/EntityCollisionPoints";
 import { EntityTimer } from "../../engine/systems/EntityTimer";
 
 /** `this.gameInstance` */ let _game: GameInstance;
@@ -100,6 +101,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       size: worldSize,
       entityId,
       animations,
+      collisionPoints: EntityCollisionShape.GetSquare(worldSize * 0.5),
       initialState: PlayerState.IDLE,
       timers,
       health: startHealth,
@@ -107,7 +109,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     });
   }
 
-  public _engine: AEntityEngine = {
+  public _engine: AEntityEngineBody = {
     draw: () => {
       const { DrawManager } = _game.MANAGERS;
 
