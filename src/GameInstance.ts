@@ -96,7 +96,7 @@ export default class GameInstance {
     const { InputManager, LevelManager, GameManager, CameraManager, AssetManager, EntityManager } = this.MANAGERS;
     if (!GameManager.isPlaying() && !AssetManager.getIsReady()) return;
 
-    if (import.meta.env.DEV) {
+    if (this.isDev) {
       if (InputManager.wasPressed(GameControls.DEBUG_MENU)) {
         InputManager.consumeAction(GameControls.DEBUG_MENU);
         this._debugPanel?.toggle();
