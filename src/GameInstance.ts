@@ -163,7 +163,7 @@ export default class GameInstance {
 
     LevelManager.startGame();
 
-    if (import.meta.env.DEV) {
+    if (this.isDev) {
       this._debugPanel = new DebugPanel(this);
       this._debugPanel.subscribeToSettings();
     }
