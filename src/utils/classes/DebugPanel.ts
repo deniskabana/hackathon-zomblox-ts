@@ -90,7 +90,7 @@ export class DebugPanel {
 
     const gameplayFolder = gui.addFolder("Engine");
     this._speedProxy = { speedScale: this._gameInstance.MANAGERS.SettingsManager.getSettings().gameplay.speedScale };
-    const speedScales = { Pause: 0, "0.1x": 0.1, "0.25x": 0.25, "0.5x": 0.5, Normal: 1, "2x": 2, "4x": 4, "10x": 10 };
+    const speedScales = { "0x": 0, "0.1x": 0.1, "0.25x": 0.25, "0.5x": 0.5, "1x": 1, "2x": 2, "4x": 4, "10x": 10 };
 
     gameplayFolder
       .add(this._speedProxy, "speedScale", 0, 10, 0.05)

@@ -139,12 +139,21 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
       distanceFromPlayer: Infinity,
     };
 
+    const colliderWidth = settings.worldSize * 0.25;
+    const colliderHeight = settings.worldSize * 0.6;
+    const colliderOffsetY = -GRID_CONFIG.TILE_SIZE * 0.4;
+
     super({
       worldPos: gridToWorld(gridPos),
       size: settings.worldSize,
       entityId,
       animations,
-      collisionPoints: EntityCollisionShape.GetSquare(settings.worldSize * 0.5),
+      collisionPoints: EntityCollisionShape.GetRectangle(
+        { x: -colliderWidth / 2, y: -colliderHeight / 2 + colliderOffsetY },
+        { x: colliderWidth / 2, y: -colliderHeight / 2 + colliderOffsetY },
+        { x: colliderWidth / 2, y: colliderHeight / 2 + colliderOffsetY },
+        { x: -colliderWidth / 2, y: colliderHeight / 2 + colliderOffsetY },
+      ),
       initialState: ZombieState.CHASING,
       timers,
       health: settings.maxHealth,
@@ -227,14 +236,13 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
       }
 
       if (settings.debugDrawWireframe) {
-        DrawManager.drawRectOutline(
-          gridToWorld(this._getGridPosition()).x,
-          gridToWorld(this._getGridPosition()).y,
-          GRID_CONFIG.TILE_SIZE,
-          GRID_CONFIG.TILE_SIZE,
-          "#f89",
-          1.5,
-        );
+        const color = "#ff8fba";
+        const wfX = this._getCollisionPoints()[0].x;
+        const wfY = this._getCollisionPoints()[0].y;
+        const wfW = this._getCollisionPoints()[2].x - wfX;
+        const wfH = this._getCollisionPoints()[2].y - wfY;
+
+        DrawManager.drawRectOutline(wfX, wfY, wfW, wfH, color, 1);
       }
     },
 

@@ -96,12 +96,21 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       weaponSprites: SpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerWeapons")!, 32, 32, 12),
     };
 
+    const colliderWidth = worldSize * 0.25;
+    const colliderHeight = worldSize * 0.6;
+    const colliderOffsetY = -GRID_CONFIG.TILE_SIZE * 0.4;
+
     super({
       worldPos: gridToWorld(gridPos),
       size: worldSize,
       entityId,
       animations,
-      collisionPoints: EntityCollisionShape.GetSquare(worldSize * 0.5),
+      collisionPoints: EntityCollisionShape.GetRectangle(
+        { x: -colliderWidth / 2, y: -colliderHeight / 2 + colliderOffsetY },
+        { x: colliderWidth / 2, y: -colliderHeight / 2 + colliderOffsetY },
+        { x: colliderWidth / 2, y: colliderHeight / 2 + colliderOffsetY },
+        { x: -colliderWidth / 2, y: colliderHeight / 2 + colliderOffsetY },
+      ),
       initialState: PlayerState.IDLE,
       timers,
       health: startHealth,
@@ -132,14 +141,13 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       const color = "#ef9f4a";
 
       if (settings.debugDrawWireframe) {
-        DrawManager.drawRectOutline(
-          gridToWorld(this._getGridPosition()).x,
-          gridToWorld(this._getGridPosition()).y,
-          size,
-          size,
-          color,
-          2,
-        );
+        const color = "#ef9ffa";
+        const wfX = this._getCollisionPoints()[0].x;
+        const wfY = this._getCollisionPoints()[0].y;
+        const wfW = this._getCollisionPoints()[2].x - wfX;
+        const wfH = this._getCollisionPoints()[2].y - wfY;
+
+        DrawManager.drawRectOutline(wfX, wfY, wfW, wfH, color, 1);
       }
 
       if (settings.debugDrawPosition) {
