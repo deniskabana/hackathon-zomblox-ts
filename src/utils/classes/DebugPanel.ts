@@ -38,23 +38,6 @@ export class DebugPanel {
   private _unsubscribeSettings: VoidFunction | null = null;
   private _proxies: Record<string, Record<string, unknown>> = {};
   private _speedProxy: { speedScale: number } = { speedScale: 1 };
-  private _entityProxies:
-    | Record<
-        "players" | "zombies" | "collectables" | "blocks",
-        Record<
-          number,
-          {
-            entityId: number;
-            state: string;
-            health: number;
-            isDead: boolean;
-            x: number;
-            y: number;
-            [key: string]: unknown;
-          }
-        >
-      >
-    | undefined;
 
   constructor(gameInstance: GameInstance) {
     this._gameInstance = gameInstance;
@@ -62,7 +45,6 @@ export class DebugPanel {
 
     this._buildControlsFolder();
     this._buildSettingsFolder();
-    this._buildInspectorFolder();
 
     // Hide by default
     for (const gui of this._guis) gui.hide();
@@ -210,84 +192,6 @@ export class DebugPanel {
     }
 
     gui.add({ "Reset Defaults": () => SettingsManager.restoreDefaults() }, "Reset Defaults");
-    gui.close();
-  }
-
-  private _buildInspectorFolder(): void {
-    const gui = new GUI({ title: MENU_TITLE + "Zombie Inspector", autoPlace: true, injectStyles: true });
-    gui.root.domElement.style = 'width: 300px; right: 680px; font-family: "Syne Mono", monospace;';
-    this._guis.push(gui);
-
-    this._entityProxies = {
-      players: [],
-      zombies: [],
-      collectables: [],
-      blocks: [],
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const runtimeDebug = (window as any)._DEBUG_gameInstance as GameInstance;
-
-    // const playersFolder = gui.addFolder("Players");
-    const zombiesFolder = gui.addFolder("Zombies");
-
-    const syncEntities = () => {
-      if (!this._entityProxies) return;
-
-      const enemySet = new Set(Object.keys(this._entityProxies.zombies).map((z) => z));
-      const enemies = runtimeDebug.MANAGERS.EntityManager.getEnemies();
-
-      for (const zombie of enemies) {
-        const id = zombie._getEntityId();
-        enemySet.delete(String(id));
-
-        const snapshot = zombie._toDebugSnapshot();
-
-        // Updates values
-        if (!this._entityProxies.zombies[id]) this._entityProxies.zombies[id] = {} as never;
-        for (const key in snapshot) this._entityProxies.zombies[id][key] = snapshot[key];
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        this._entityProxies.zombies[id].x = (snapshot as any).worldPos.x;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        this._entityProxies.zombies[id].y = (snapshot as any).worldPos.y;
-
-        let folder = zombiesFolder.folders.find((f) => f._title === String(id));
-        if (folder) continue;
-        folder = zombiesFolder.addFolder(String(id));
-
-        folder.add(this._entityProxies.zombies[id], "state").listen();
-        folder.add(this._entityProxies.zombies[id], "health").listen();
-        folder.add(this._entityProxies.zombies[id], "x").listen().domElement.style =
-          "display: inline-flex; width: 50%;";
-        folder.add(this._entityProxies.zombies[id], "y").listen().domElement.style =
-          "display: inline-flex; width: 50%;";
-
-        const actions = {
-          Kill: () => zombie._handleDamage(Infinity),
-          Despawn: () => runtimeDebug.MANAGERS.EntityManager.destroyEntity(id),
-        };
-        folder.add(actions, "Kill").domElement.style = "display: inline-flex; width: 50%;";
-        folder.add(actions, "Despawn").domElement.style = "display: inline-flex; width: 50%;";
-      }
-
-      for (const enemyId of enemySet) {
-        zombiesFolder
-          .foldersRecursive()
-          .find((z) => z._title === enemyId)
-          ?.destroy();
-        delete this._entityProxies.zombies[Number(enemyId)];
-      }
-    };
-
-    syncEntities();
-    setInterval(syncEntities, 1000 / 10);
-
-    const proxy = {
-      "Sync all entities": syncEntities,
-    };
-    gui.add(proxy, "Sync all entities");
-
     gui.close();
   }
 
