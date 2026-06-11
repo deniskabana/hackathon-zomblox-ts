@@ -1,7 +1,7 @@
 import { GRID_CONFIG, worldToGrid, type GridPosition, gridToWorld } from "../config/core/grid.config";
 import type GameInstance from "../GameInstance";
-import { GridTileState } from "../types/engine/Grid";
 import { ZIndex } from "../types/lib/ZIndex";
+import { GridTileState } from "../utils/grid/generateMapBlockGrid";
 import isInsideGrid from "../utils/grid/isInsideGrid";
 import areVectorsEqual from "../utils/math/areVectorsEqual";
 import { AManager } from "./abstract/AManager";
@@ -138,7 +138,7 @@ export default class BuildModeManager extends AManager {
         if (isOnCorner || isPlayerPos) continue;
 
         const levelGrid = this.gameInstance.MANAGERS.LevelManager.levelGrid;
-        const isUnavailable = levelGrid?.[currentPos.x]?.[currentPos.y]?.state === GridTileState.BLOCKED;
+        const isUnavailable = levelGrid?.[currentPos.x]?.[currentPos.y] === GridTileState.BLOCKED;
 
         if (isInsideGrid(currentPos, GRID_CONFIG, 2) && !isUnavailable) {
           reachableBlocks.push(currentPos);
@@ -171,7 +171,7 @@ export default class BuildModeManager extends AManager {
 
     this.updateReachableBlocks();
     if (!gridPos || !isInsideGrid(gridPos) || !this.reachableBlocks) return hasBuilt;
-    if (!levelGrid || levelGrid[gridPos.x][gridPos.y].state !== GridTileState.AVAILABLE) return hasBuilt;
+    if (!levelGrid || levelGrid[gridPos.x][gridPos.y] !== GridTileState.AVAILABLE) return hasBuilt;
 
     const isAvailable = this.reachableBlocks.reduce<boolean>(
       (acc, val) => (areVectorsEqual(gridPos, val) ? true : acc),

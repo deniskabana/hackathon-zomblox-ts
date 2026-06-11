@@ -16,12 +16,12 @@ import MapTilesetManager from "../map/MapTilesetManager";
 import type { GameMap } from "../map/parseJsonMap";
 import parseJsonMap from "../map/parseJsonMap";
 import type { AudioControl } from "../types/AudioControl";
-import { type LevelGrid, GridTileState, type GridTileRef } from "../types/engine/Grid";
 import type { LevelState } from "../types/LevelState";
 import { ZIndex } from "../types/lib/ZIndex";
 import assertNever from "../utils/assertNever";
-import generateEmptyLevelGrid from "../utils/grid/generateEmptyLevelGrid";
 import generateFlowField, { type FlowField } from "../utils/grid/generateFlowFieldMap";
+import { GridTileState } from "../utils/grid/generateMapBlockGrid";
+import getMapBlockGrid from "../utils/grid/generateMapBlockGrid";
 import raycast2D from "../utils/grid/raycast2D";
 import areVectorsEqual from "../utils/math/areVectorsEqual";
 import { AManager } from "./abstract/AManager";
@@ -34,11 +34,12 @@ export default class LevelManager extends AManager {
   public levelState?: LevelState;
 
   // Grids
-  public levelGrid?: LevelGrid;
+  public levelGrid?: GridTileState[][];
   public flowField?: FlowField;
   public weightedFlowField?: FlowField;
   public retreatFlowFields?: FlowField[];
-  public enemyGrid?: (Zombie[] | null)[][];
+  public enemyGrid?: (AnyEntity[] | null)[][];
+  public blockGrid?: (AnyEntity[] | null)[][];
 
   // Map data
   private tileLayers?: GameMap["tileLayers"];
@@ -104,7 +105,7 @@ export default class LevelManager extends AManager {
     this.mapLayerAbovePlayer.height = GRID_CONFIG.GRID_HEIGHT * GRID_CONFIG.TILE_SIZE;
     this.createMapTileImages();
 
-    this.levelGrid = generateEmptyLevelGrid(config, map.objects);
+    this.levelGrid = getMapBlockGrid(config, map.objects);
     this.updatePathFindingGrid();
 
     // Filter out spawn points that have BLOCKED neighboring cell
@@ -115,13 +116,13 @@ export default class LevelManager extends AManager {
 
     for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
       if (
-        this.levelGrid?.[x]?.[yTop + 1]?.state === GridTileState.AVAILABLE &&
+        this.levelGrid?.[x]?.[yTop + 1] === GridTileState.AVAILABLE &&
         this.flowField?.[x]?.[yTop + 1]?.weight !== Infinity
       ) {
         this.mapSpawnPoints.push({ x, y: yTop });
       }
       if (
-        this.levelGrid?.[x]?.[yBottom - 1]?.state === GridTileState.AVAILABLE &&
+        this.levelGrid?.[x]?.[yBottom - 1] === GridTileState.AVAILABLE &&
         this.flowField?.[x]?.[yBottom - 2]?.weight !== Infinity
       ) {
         this.mapSpawnPoints.push({ x, y: yBottom });
@@ -130,13 +131,13 @@ export default class LevelManager extends AManager {
 
     for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
       if (
-        this.levelGrid?.[xLeft + 1]?.[y]?.state === GridTileState.AVAILABLE &&
+        this.levelGrid?.[xLeft + 1]?.[y] === GridTileState.AVAILABLE &&
         this.flowField?.[xLeft + 1]?.[y]?.weight !== Infinity
       ) {
         this.mapSpawnPoints.push({ x: xLeft, y });
       }
       if (
-        this.levelGrid?.[xRight - 1]?.[y]?.state === GridTileState.AVAILABLE &&
+        this.levelGrid?.[xRight - 1]?.[y] === GridTileState.AVAILABLE &&
         this.flowField?.[xRight - 1]?.[y]?.weight !== Infinity
       ) {
         this.mapSpawnPoints.push({ x: xRight, y });
@@ -172,7 +173,7 @@ export default class LevelManager extends AManager {
           if (!CameraManager.isOnScreen({ x: x * size, y: y * size })) continue;
           if (!this.player || areVectorsEqual(this.player._getGridPosition(), { x, y })) continue;
 
-          if (this.levelGrid?.[x]?.[y]?.state !== GridTileState.AVAILABLE)
+          if (this.levelGrid?.[x]?.[y] !== GridTileState.AVAILABLE)
             DrawManager.drawRectFilled(x * size, y * size, size, size, "#800", 0.4);
           else DrawManager.drawRectOutline(x * size, y * size, size, size, "#fff", 0.1);
 
@@ -359,15 +360,10 @@ export default class LevelManager extends AManager {
 
       if (!entity) throw new Error("Failed to create an entity");
 
-      if (this.levelGrid) {
-        const { x, y } = pos;
-        this.levelGrid[x][y] = { ...this.levelGrid[x][y], state: GridTileState.BLOCKED, ref: entity };
-      }
-
       return entity;
     });
 
-    this.updatePathFindingGrid();
+    this.updateBlockGrid();
   }
 
   private destroyBlock(entityId: number): void {
@@ -380,8 +376,8 @@ export default class LevelManager extends AManager {
 
     if (!this.levelGrid) return;
 
-    this.levelGrid[x][y] = { ...this.levelGrid[x][y], state: GridTileState.AVAILABLE, ref: null };
-    this.updatePathFindingGrid();
+    this.levelGrid[x][y] = GridTileState.AVAILABLE;
+    this.updateBlockGrid();
   }
 
   public spawnCoin(gridPos: GridPosition): void {
@@ -490,8 +486,6 @@ export default class LevelManager extends AManager {
 
     for (const track of this.musicDay) track.pause();
     for (const track of this.musicNight) track.resume();
-
-    this.updatePathFindingGrid();
   }
 
   public startDay(): void {
@@ -545,14 +539,13 @@ export default class LevelManager extends AManager {
   // Grid
   // ==================================================
 
-  public raycastShot(from: WorldPosition, angleRad: number, maxDistance: number): null | GridTileRef {
+  public raycastShot(from: WorldPosition, angleRad: number, maxDistance: number): null | unknown {
     const { EntityManager } = this.gameInstance.MANAGERS;
     if (!this.levelGrid) return null;
     return raycast2D(from, angleRad, maxDistance, this.levelGrid, EntityManager.getEnemies());
   }
 
   private updatePathFindingGrid(): void {
-    // if (this.getIsDay()) return;
     if (!this.player || !this.levelGrid) return;
     this.flowField = generateFlowField(this.levelGrid, this.enemyGrid, this.player._getGridPosition());
   }
@@ -572,6 +565,30 @@ export default class LevelManager extends AManager {
 
   public getTileset(): MapTilesetManager | undefined {
     return this.tileset;
+  }
+
+  private updateBlockGrid(): void {
+    const { EntityManager } = this.gameInstance.MANAGERS;
+    const grid: typeof this.blockGrid = [];
+
+    for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
+      grid[x] = [];
+
+      for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
+        grid[x][y] = [];
+      }
+    }
+
+    for (const block of EntityManager.getBlocks()) {
+      const { x: zx, y: zy } = block._getGridPosition();
+      grid?.[zx]?.[zy]?.push(block);
+    }
+
+    this.blockGrid = grid;
+  }
+
+  public getBlockGrid(): typeof this.blockGrid {
+    return this.blockGrid;
   }
 
   private updateEnemyGrid(): void {

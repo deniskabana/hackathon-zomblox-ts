@@ -1,9 +1,9 @@
 import { GRID_CONFIG, gridToWorld, worldToGrid, type WorldPosition } from "../../../config/core/grid.config";
 import type GameInstance from "../../../GameInstance";
-import { GridTileState } from "../../../types/engine/Grid";
 import type { Vector } from "../../../types/lib/Vector";
 import { ZIndex } from "../../../types/lib/ZIndex";
 import assertNever from "../../../utils/assertNever";
+import { GridTileState } from "../../../utils/grid/generateMapBlockGrid";
 import isInsideGrid from "../../../utils/grid/isInsideGrid";
 import areVectorsEqual from "../../../utils/math/areVectorsEqual";
 import lerp from "../../../utils/math/lerp";
@@ -150,9 +150,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
       animations,
       collisionPoints: EntityCollisionShape.GetRectangle(
         { x: -colliderWidth / 2, y: -colliderHeight / 2 + colliderOffsetY },
-        { x: colliderWidth / 2, y: -colliderHeight / 2 + colliderOffsetY },
         { x: colliderWidth / 2, y: colliderHeight / 2 + colliderOffsetY },
-        { x: -colliderWidth / 2, y: colliderHeight / 2 + colliderOffsetY },
       ),
       initialState: ZombieState.CHASING,
       timers,
@@ -239,8 +237,8 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
         const color = "#ff8fba";
         const wfX = this._getCollisionPoints()[0].x;
         const wfY = this._getCollisionPoints()[0].y;
-        const wfW = this._getCollisionPoints()[2].x - wfX;
-        const wfH = this._getCollisionPoints()[2].y - wfY;
+        const wfW = this._getCollisionPoints()[1].x - wfX;
+        const wfH = this._getCollisionPoints()[1].y - wfY;
 
         DrawManager.drawRectOutline(wfX, wfY, wfW, wfH, color, 1);
       }
@@ -475,12 +473,12 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     const futureGridPos = worldToGrid(futurePos);
     if (
       !areVectorsEqual(futureGridPos, this._getGridPosition()) &&
-      levelGrid?.[futureGridPos.x]?.[futureGridPos.y]?.state === GridTileState.BLOCKED
+      levelGrid?.[futureGridPos.x]?.[futureGridPos.y] === GridTileState.BLOCKED
     ) {
       const slideX = worldToGrid({ x: futurePos.x, y });
       const slideY = worldToGrid({ x, y: futurePos.y });
-      const canSlideX = levelGrid?.[slideX.x]?.[slideX.y]?.state !== GridTileState.BLOCKED;
-      const canSlideY = levelGrid?.[slideY.x]?.[slideY.y]?.state !== GridTileState.BLOCKED;
+      const canSlideX = levelGrid?.[slideX.x]?.[slideX.y] !== GridTileState.BLOCKED;
+      const canSlideY = levelGrid?.[slideY.x]?.[slideY.y] !== GridTileState.BLOCKED;
 
       if (canSlideX) {
         this.changeFacingPosition(futurePos.x < x);
@@ -539,16 +537,9 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     const { x: gx, y: gy } = this._getGridPosition();
     const selfPos = this._getWorldPosition();
     const { movementFlowFieldVector } = this._instance;
-    const hitboxHalf = (this._getSize() * 0.4) / 2;
 
     if (!enemyGrid) return false;
-
-    const corners = [
-      { x: futurePos.x - hitboxHalf, y: futurePos.y - hitboxHalf },
-      { x: futurePos.x + hitboxHalf, y: futurePos.y - hitboxHalf },
-      { x: futurePos.x - hitboxHalf, y: futurePos.y + hitboxHalf },
-      { x: futurePos.x + hitboxHalf, y: futurePos.y + hitboxHalf },
-    ];
+    const corners = this._getCollisionPoints(futurePos);
 
     for (let dx = -1; dx <= 1; dx++) {
       for (let dy = -1; dy <= 1; dy++) {

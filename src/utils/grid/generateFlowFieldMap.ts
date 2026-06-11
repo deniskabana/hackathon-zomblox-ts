@@ -1,8 +1,8 @@
 import { type GridPosition, GRID_CONFIG } from "../../config/core/grid.config";
-import type Zombie from "../../entities/game/enemies/Zombie";
-import { type LevelGrid, GridTileState } from "../../types/engine/Grid";
+import type { AnyEntity } from "../../entities/engine/AEntity";
 import type { Vector } from "../../types/lib/Vector";
 import { clamp } from "../math/clamp";
+import { GridTileState } from "./generateMapBlockGrid";
 
 export interface FlowFieldCell {
   weight: number;
@@ -14,8 +14,8 @@ export interface FlowFieldCell {
 export type FlowField = FlowFieldCell[][];
 
 export default function generateFlowField(
-  levelGrid: LevelGrid,
-  enemyGrid: (Zombie[] | null)[][] | undefined,
+  levelGrid: GridTileState[][],
+  enemyGrid: (AnyEntity[] | null)[][] | undefined,
   ...startPoints: GridPosition[]
 ): FlowField {
   const grid: FlowField = [];
@@ -55,7 +55,7 @@ export default function generateFlowField(
         const ny = currentVector.y + dy;
 
         if (!levelGrid?.[nx]?.[ny]) continue;
-        if (levelGrid?.[nx]?.[ny]?.state !== GridTileState.AVAILABLE) continue;
+        if (levelGrid?.[nx]?.[ny] !== GridTileState.AVAILABLE) continue;
 
         if (grid[nx][ny].weight === Infinity) {
           grid[nx][ny].distanceWeight = cell.distanceWeight + 1;

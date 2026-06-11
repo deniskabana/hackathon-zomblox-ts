@@ -1,6 +1,7 @@
 import { type WorldPosition, type GridPosition, worldToGrid } from "../../config/core/grid.config";
 import type GameInstance from "../../GameInstance";
 import type { Vector } from "../../types/lib/Vector";
+import areVectorsEqual from "../../utils/math/areVectorsEqual";
 import { EntityAnimations, type EntityAnimationsSpecs } from "./systems/EntityAnimation";
 import type { EntityCollisionPoints } from "./systems/EntityCollisionPoints";
 import { EntityTimer } from "./systems/EntityTimer";
@@ -47,6 +48,7 @@ export default abstract class AEntity<
   private _maxHealth: number;
   private _isDead: boolean = false;
   private _collisionPoints: EntityCollisionPoints;
+  private _spanningGridTiles: GridPosition[];
 
   private _state: TState;
 
@@ -82,6 +84,9 @@ export default abstract class AEntity<
     this._settings = Object.freeze({ ...props.settings }) as TSettings;
     this._collisionPoints = props.collisionPoints ?? [];
     if (props.animations) this._animations = new EntityAnimations(props.animations);
+
+    this._spanningGridTiles = [];
+    this._setWorldPosition(props.worldPos);
   }
 
   public _updateBefore(_deltaTime: number, _unscaledDeltaTime: number): void {
@@ -153,6 +158,14 @@ export default abstract class AEntity<
   public _setWorldPosition(worldPos: WorldPosition): void {
     this._worldPos = worldPos;
     this._gridPos = worldToGrid(worldPos);
+
+    const spanningGridTiles: GridPosition[] = [];
+    for (const hitboxVector of this._getCollisionPoints()) {
+      const gridVector = worldToGrid(hitboxVector);
+      if (!spanningGridTiles.some(({ x, y }) => x === gridVector.x && y === gridVector.y))
+        spanningGridTiles.push(gridVector);
+    }
+    this._spanningGridTiles = spanningGridTiles;
   }
   public _setHealth(health: number): void {
     this._health = health;
@@ -161,14 +174,25 @@ export default abstract class AEntity<
   // Getters
   // --------------------------------------------------
 
-  public _getCollisionPoints(): WorldPosition[] {
-    const worldPos = this._getWorldPosition();
-
-    return this._collisionPoints.map((vector) => ({
-      x: vector.x + worldPos.x,
-      y: vector.y + worldPos.y,
-    }));
+  public _getCollisionPoints(worldPos?: WorldPosition): WorldPosition[] {
+    const { x, y } = worldPos || this._getWorldPosition();
+    return this._collisionPoints.map((vector) => ({ x: vector.x + x, y: vector.y + y }));
   }
+
+  public _getIsVectorInsideHitbox(worldPos: WorldPosition): boolean {
+    const collisionPoints = this._getCollisionPoints();
+    if (collisionPoints.length === 1) {
+      return areVectorsEqual(worldPos, collisionPoints[0]);
+    } else if (collisionPoints.length === 2) {
+      const { x, y } = this._getWorldPosition();
+      return (
+        x >= collisionPoints[0].x && x <= collisionPoints[1].x && y >= collisionPoints[0].y && y <= collisionPoints[1].y
+      );
+    } else {
+      return false; // not supported, assume not
+    }
+  }
+
   public _getSize(): number {
     return this._size;
   }
@@ -192,5 +216,8 @@ export default abstract class AEntity<
   }
   public _getEntityId(): number {
     return this._entityId;
+  }
+  public _getSpanningGridTiles(): GridPosition[] {
+    return this._spanningGridTiles;
   }
 }

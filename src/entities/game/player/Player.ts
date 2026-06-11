@@ -9,16 +9,14 @@ import {
 import type { AssetAudioName } from "../../../config/game/assets.config";
 import { type Weapon, DEF_WEAPONS } from "../../../config/game/weapons.config";
 import type GameInstance from "../../../GameInstance";
-import { GridTileState } from "../../../types/engine/Grid";
 import { GameControls } from "../../../types/GameControls";
 import type { Vector } from "../../../types/lib/Vector";
 import { ZIndex } from "../../../types/lib/ZIndex";
 import assertNever from "../../../utils/assertNever";
 import SpriteSheet from "../../../utils/classes/SpriteSheet";
 import { Direction } from "../../../utils/getCardinalDirection";
-import isInsideGrid from "../../../utils/grid/isInsideGrid";
+import { GridTileState } from "../../../utils/grid/generateMapBlockGrid";
 import areVectorsEqual from "../../../utils/math/areVectorsEqual";
-import getVectorDistance from "../../../utils/math/getVectorDistance";
 import radiansToVector from "../../../utils/math/radiansToVector";
 import AEntity, { type AEntityEngineBody, type EntityConstructorProps } from "../../engine/AEntity";
 import type { EntityAnimationsSpecs } from "../../engine/systems/EntityAnimation";
@@ -97,8 +95,8 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     };
 
     const colliderWidth = worldSize * 0.25;
-    const colliderHeight = worldSize * 0.6;
-    const colliderOffsetY = -GRID_CONFIG.TILE_SIZE * 0.4;
+    const colliderHeight = worldSize * 0.45;
+    const colliderOffsetY = -GRID_CONFIG.TILE_SIZE * 0.25;
 
     super({
       worldPos: gridToWorld(gridPos),
@@ -107,9 +105,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       animations,
       collisionPoints: EntityCollisionShape.GetRectangle(
         { x: -colliderWidth / 2, y: -colliderHeight / 2 + colliderOffsetY },
-        { x: colliderWidth / 2, y: -colliderHeight / 2 + colliderOffsetY },
         { x: colliderWidth / 2, y: colliderHeight / 2 + colliderOffsetY },
-        { x: -colliderWidth / 2, y: colliderHeight / 2 + colliderOffsetY },
       ),
       initialState: PlayerState.IDLE,
       timers,
@@ -348,13 +344,13 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
   }
 
   private getShootingInput(): void {
-    const { InputManager, AssetManager, CameraManager, LevelManager, VFXManager } = _game.MANAGERS;
+    const { InputManager, AssetManager, CameraManager, VFXManager } = _game.MANAGERS;
     const state = this._getState();
     const weaponSound = this.getCurrentWeaponSound();
     const { currentWeapon, isFacingLeft } = this._instance;
     const weaponDef = DEF_WEAPONS[currentWeapon];
     const gunSpread = weaponDef.spread;
-    const maxDistance = weaponDef.maxDistance * GRID_CONFIG.TILE_SIZE;
+    // const maxDistance = weaponDef.maxDistance * GRID_CONFIG.TILE_SIZE;
     const size = this._getSize();
     const playerCardinalDirection = this._instance.facingDirection;
     const { x, y } = this._getWorldPosition();
@@ -384,9 +380,9 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
           break;
       }
       angle += spread;
-      const raycastHit = LevelManager.raycastShot(this._getWorldPosition(), angle, maxDistance);
+      // const raycastHit = LevelManager.raycastShot(this._getWorldPosition(), angle, maxDistance);
 
-      if (raycastHit) raycastHit._handleDamage(weaponDef.damage);
+      // if (raycastHit) raycastHit._handleDamage(weaponDef.damage);
 
       let originOffsetX: number = 0;
       let originOffsetY: number = 0;
@@ -418,7 +414,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       VFXManager.drawShootLine(
         { x: x + originOffsetX, y: y + originOffsetY },
         angle,
-        raycastHit ? getVectorDistance(this._getWorldPosition(), raycastHit._getWorldPosition()) : maxDistance,
+        // raycastHit ? getVectorDistance(this._getWorldPosition(), raycastHit._getWorldPosition()) : maxDistance,
       );
     }
 
@@ -468,9 +464,8 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
   }
 
   private applyMovement(_deltaTime: number): void {
-    const { AssetManager, LevelManager, SettingsManager } = _game.MANAGERS;
+    const { AssetManager, SettingsManager } = _game.MANAGERS;
     const settings = SettingsManager.getSettings().player;
-    const { levelGrid } = LevelManager;
     const vector = this.getMovementInputVector();
     const state = this._getState();
     const { x, y } = this._getWorldPosition();
@@ -486,18 +481,18 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       y: y + vector.y * _deltaTime * speed,
     };
 
-    if (!settings.debugDisablePhysics) {
-      const futureGridPos = worldToGrid(futurePos);
-      if (
-        !areVectorsEqual(futureGridPos, this._getGridPosition()) &&
-        levelGrid?.[futureGridPos.x]?.[futureGridPos.y]?.state === GridTileState.BLOCKED
-      ) {
-        this._setState(PlayerState.IDLE);
-        return;
-      }
-    }
+    // if (!settings.debugDisablePhysics) {
+    //   const futureGridPos = worldToGrid(futurePos);
+    //   if (
+    //     !areVectorsEqual(futureGridPos, this._getGridPosition()) &&
+    //     levelGrid?.[futureGridPos.x]?.[futureGridPos.y] === GridTileState.BLOCKED
+    //   ) {
+    //     this._setState(PlayerState.IDLE);
+    //     return;
+    //   }
+    // }
 
-    const adjustedFuturePos = futurePos;
+    const adjustedFuturePos = this.adjustMovementForCollisions(futurePos);
 
     if (areVectorsEqual(adjustedFuturePos, this._getWorldPosition())) return;
 
@@ -518,106 +513,59 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     const { x, y } = this._getWorldPosition();
     const futurePos = { x: x + movementVector.x * strength, y: y + movementVector.y * strength };
 
-    this._setWorldPosition(this.adjustMovementForCollisions(futurePos, GRID_CONFIG, true, GRID_CONFIG.TILE_SIZE / 4));
+    this._setWorldPosition(this.adjustMovementForCollisions(futurePos, GRID_CONFIG, true));
   }
 
-  /**
-   * A complex function that handles collision and applying counter-movements to negate them.
-   */
   private adjustMovementForCollisions(
     futurePos: WorldPosition,
-    gridConfig: GridConfig,
+    gridConfig: GridConfig = GRID_CONFIG,
     includeWorldBoundaries: boolean = true,
-    customRadius?: number,
   ): WorldPosition {
-    const flowField = _game.MANAGERS.LevelManager.flowField;
-    const radius = customRadius ?? gridConfig.TILE_SIZE / 3;
+    const { LevelManager } = _game.MANAGERS;
+    const { x, y } = this._getWorldPosition();
     const resultPos: WorldPosition = { ...futurePos };
-    const worldWidth = gridConfig.TILE_SIZE * gridConfig.GRID_WIDTH;
-    const worldHeight = gridConfig.TILE_SIZE * gridConfig.GRID_HEIGHT;
 
     if (includeWorldBoundaries) {
-      if (futurePos.x - radius < 0) resultPos.x = 0 + radius;
-      if (futurePos.x + radius >= worldWidth) resultPos.x = worldWidth - radius;
-      if (futurePos.y - radius < 0) resultPos.y = 0 + radius;
-      if (futurePos.y + radius >= worldHeight) resultPos.y = worldHeight - radius;
+      const { TILE_SIZE, GRID_WIDTH, GRID_HEIGHT } = gridConfig;
+      const futureHitboxes = this._getCollisionPoints(futurePos);
+      if (futureHitboxes[0].x < 0 || futureHitboxes[1].x > TILE_SIZE * GRID_WIDTH) resultPos.x = x;
+      if (futureHitboxes[0].y < 0 || futureHitboxes[1].y > TILE_SIZE * GRID_HEIGHT) resultPos.y = y;
+      if (areVectorsEqual(resultPos, this._getWorldPosition())) return resultPos;
     }
 
-    if (!flowField) return resultPos;
+    const enemyGrid = LevelManager.getEnemyGrid();
+    const blockGrid = LevelManager.getBlockGrid();
 
-    const edgeChecks = [
-      { pos: worldToGrid({ x: futurePos.x - radius, y: futurePos.y }), axis: "x" as const, dir: -1 },
-      { pos: worldToGrid({ x: futurePos.x + radius, y: futurePos.y }), axis: "x" as const, dir: 1 },
-      { pos: worldToGrid({ x: futurePos.x, y: futurePos.y - radius }), axis: "y" as const, dir: -1 },
-      { pos: worldToGrid({ x: futurePos.x, y: futurePos.y + radius }), axis: "y" as const, dir: 1 },
-    ];
+    // Re-derive hitboxes from resultPos (may have been clamped by boundary check)
+    const hitboxPoints = this._getCollisionPoints(resultPos);
 
-    let hasEdgeCollision = false;
+    for (const corner of hitboxPoints) {
+      const hitboxGrid = worldToGrid(corner);
+      const enemies = enemyGrid?.[hitboxGrid.x]?.[hitboxGrid.y] || [];
+      const blocks = blockGrid?.[hitboxGrid.x]?.[hitboxGrid.y] || [];
 
-    for (const check of edgeChecks) {
-      if (!isInsideGrid(check.pos)) continue;
-      if (flowField?.[check.pos.x]?.[check.pos.y]?.weight !== Infinity) continue;
+      const cornerGridPos = worldToGrid({ x: Math.ceil(corner.x), y: Math.ceil(corner.y) + 1 });
 
-      hasEdgeCollision = true;
+      if (LevelManager.levelGrid?.[cornerGridPos.x]?.[cornerGridPos.y] === GridTileState.BLOCKED) {
+        resultPos.x = x;
+        resultPos.y = y;
+      }
+      if (areVectorsEqual(resultPos, this._getWorldPosition())) break;
 
-      const blockRect = {
-        left: check.pos.x * gridConfig.TILE_SIZE,
-        top: check.pos.y * gridConfig.TILE_SIZE,
-        right: (check.pos.x + 1) * gridConfig.TILE_SIZE,
-        bottom: (check.pos.y + 1) * gridConfig.TILE_SIZE,
-      };
+      for (const entity of [...enemies, ...blocks]) {
+        if (entity === this) continue;
 
-      if (check.axis === "x") {
-        if (check.dir < 0) {
-          resultPos.x = Math.max(resultPos.x, blockRect.right + radius);
-        } else {
-          resultPos.x = Math.min(resultPos.x, blockRect.left - radius);
-        }
-      } else {
-        if (check.dir < 0) {
-          resultPos.y = Math.max(resultPos.y, blockRect.bottom + radius);
-        } else {
-          resultPos.y = Math.min(resultPos.y, blockRect.top - radius);
-        }
+        const slideX: WorldPosition = { x: futurePos.x, y };
+        const slideY: WorldPosition = { x, y: futurePos.y };
+
+        if (entity._getIsVectorInsideHitbox(slideX)) resultPos.x = x;
+        if (entity._getIsVectorInsideHitbox(slideY)) resultPos.y = y;
+
+        if (areVectorsEqual(resultPos, this._getWorldPosition())) break;
       }
     }
 
-    if (!hasEdgeCollision) {
-      const cornerChecks = [
-        { pos: worldToGrid({ x: futurePos.x - radius, y: futurePos.y - radius }), offsetX: -1, offsetY: -1 },
-        { pos: worldToGrid({ x: futurePos.x + radius, y: futurePos.y - radius }), offsetX: 1, offsetY: -1 },
-        { pos: worldToGrid({ x: futurePos.x - radius, y: futurePos.y + radius }), offsetX: -1, offsetY: 1 },
-        { pos: worldToGrid({ x: futurePos.x + radius, y: futurePos.y + radius }), offsetX: 1, offsetY: 1 },
-      ];
-
-      for (const check of cornerChecks) {
-        if (!isInsideGrid(check.pos)) continue;
-        if (flowField?.[check.pos.x]?.[check.pos.y]?.weight !== Infinity) continue;
-
-        const blockRect = {
-          left: check.pos.x * gridConfig.TILE_SIZE,
-          top: check.pos.y * gridConfig.TILE_SIZE,
-          right: (check.pos.x + 1) * gridConfig.TILE_SIZE,
-          bottom: (check.pos.y + 1) * gridConfig.TILE_SIZE,
-        };
-
-        const pushX = check.offsetX < 0 ? blockRect.right + radius : blockRect.left - radius;
-        const pushY = check.offsetY < 0 ? blockRect.bottom + radius : blockRect.top - radius;
-
-        const distX = Math.abs(resultPos.x - pushX);
-        const distY = Math.abs(resultPos.y - pushY);
-
-        if (distX < distY) {
-          resultPos.x = pushX;
-        } else {
-          resultPos.y = pushY;
-        }
-
-        break;
-      }
-    }
-
-    return { x: Math.floor(resultPos.x), y: Math.floor(resultPos.y) };
+    return resultPos;
   }
 
   public getFacingDirection(): number {

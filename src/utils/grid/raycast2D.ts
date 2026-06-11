@@ -1,19 +1,20 @@
 import { type WorldPosition, worldToGrid, GRID_CONFIG } from "../../config/core/grid.config";
 import type { AnyEntity } from "../../entities/engine/AEntity";
-import { type LevelGrid, type GridTileRef, GridTileState } from "../../types/engine/Grid";
 import getVectorDistance from "../math/getVectorDistance";
 import radiansToVector from "../math/radiansToVector";
+import { GridTileState } from "./generateMapBlockGrid";
 import isInsideGrid from "./isInsideGrid";
 
 const MAX_RANGE = 100;
 
+/** TODO: Replace by simply simulating the same directional movement as in physics */
 export default function raycast2D(
   from: WorldPosition,
   angleRad: number,
   maxDistance: number,
-  levelGrid: LevelGrid,
+  levelGrid: GridTileState[][],
   enemies: AnyEntity[],
-): null | GridTileRef {
+): null | AnyEntity {
   // DDA Algorithm (put together from a few articles and reddit posts)
   const direction = radiansToVector(angleRad);
   const startGrid = worldToGrid({ x: from.x, y: from.y });
@@ -29,7 +30,7 @@ export default function raycast2D(
   let tMaxY = Math.abs((startGrid.y + (stepY > 0 ? 1 : 0) - from.y / GRID_CONFIG.TILE_SIZE) / direction.y);
   let currentX = startGrid.x;
   let currentY = startGrid.y;
-  let raycastHit: null | GridTileRef = null;
+  let raycastHit: null | AnyEntity = null;
 
   for (let i = 0; i < MAX_RANGE; i++) {
     if (!isInsideGrid({ x: currentX, y: currentY })) break;
@@ -40,9 +41,9 @@ export default function raycast2D(
       break;
     }
 
-    const { ref, state } = levelGrid?.[currentX]?.[currentY] ?? { ref: null, state: GridTileState.AVAILABLE };
+    const state = levelGrid?.[currentX]?.[currentY] ?? GridTileState.AVAILABLE;
     if (state === GridTileState.BLOCKED) {
-      raycastHit = ref;
+      // TODO: raycastHit = ref;
       break;
     }
 

@@ -1,8 +1,13 @@
 import type { GridConfig, GridPosition } from "../../config/core/grid.config";
-import { type LevelGrid, GridTileState } from "../../types/engine/Grid";
 
-export default function generateEmptyLevelGrid(gridConfig: GridConfig, blocks: GridPosition[]): LevelGrid {
-  const levelGrid: LevelGrid = [];
+export enum GridTileState {
+  AVAILABLE,
+  BLOCKED,
+  PLAYER,
+}
+
+export default function getMapBlockGrid(gridConfig: GridConfig, blocks: GridPosition[]): GridTileState[][] {
+  const levelGrid: GridTileState[][] = [];
 
   const stringifiedBlocksVectors: Set<string> = new Set();
   for (const pos of blocks) stringifiedBlocksVectors.add(gridPosToString(pos));
@@ -11,10 +16,10 @@ export default function generateEmptyLevelGrid(gridConfig: GridConfig, blocks: G
     levelGrid[x] = [];
 
     for (let y = 0; y < gridConfig.GRID_HEIGHT; y++) {
-      levelGrid[x][y] = { state: GridTileState.AVAILABLE, ref: null, pos: { x, y } };
+      levelGrid[x][y] = GridTileState.AVAILABLE;
 
       if (stringifiedBlocksVectors.has(gridPosToString({ x, y }))) {
-        levelGrid[x][y].state = GridTileState.BLOCKED;
+        levelGrid[x][y] = GridTileState.BLOCKED;
       }
     }
   }
