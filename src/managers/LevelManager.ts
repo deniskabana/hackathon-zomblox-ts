@@ -143,6 +143,10 @@ export default class LevelManager extends AManager {
         this.mapSpawnPoints.push({ x: xRight, y });
       }
     }
+
+    this.spawnBlock({ x: 6, y: 2 }, BlockTypes.Wood);
+    this.spawnBlock({ x: 6, y: 3 }, BlockTypes.Wood);
+    this.spawnBlock({ x: 6, y: 4 }, BlockTypes.Wood);
   }
 
   public update(_deltaTime: number) {

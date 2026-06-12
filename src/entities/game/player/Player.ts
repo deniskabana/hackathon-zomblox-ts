@@ -94,9 +94,9 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       weaponSprites: SpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerWeapons")!, 32, 32, 12),
     };
 
-    const colliderWidth = worldSize * 0.25;
-    const colliderHeight = worldSize * 0.45;
-    const colliderOffsetY = -GRID_CONFIG.TILE_SIZE * 0.25;
+    const colliderWidth = worldSize * 0.22;
+    const colliderHeight = worldSize * 0.4;
+    const colliderOffsetY = -GRID_CONFIG.TILE_SIZE * 0.2;
 
     super({
       worldPos: gridToWorld(gridPos),
@@ -550,16 +550,18 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
         resultPos.x = x;
         resultPos.y = y;
       }
+
       if (areVectorsEqual(resultPos, this._getWorldPosition())) break;
+
+      // const slideX: WorldPosition = { x: futurePos.x, y };
+      // const slideY: WorldPosition = { x, y: futurePos.y };
 
       for (const entity of [...enemies, ...blocks]) {
         if (entity === this) continue;
-
-        const slideX: WorldPosition = { x: futurePos.x, y };
-        const slideY: WorldPosition = { x, y: futurePos.y };
-
-        if (entity._getIsVectorInsideHitbox(slideX)) resultPos.x = x;
-        if (entity._getIsVectorInsideHitbox(slideY)) resultPos.y = y;
+        if (entity._getIsVectorInsideHitbox(corner)) {
+          resultPos.x = x;
+          resultPos.y = y;
+        }
 
         if (areVectorsEqual(resultPos, this._getWorldPosition())) break;
       }

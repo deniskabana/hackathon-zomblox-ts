@@ -12,14 +12,15 @@ export default class BlockWood extends AEntity {
     _game = gameInstance;
     const { SettingsManager } = _game.MANAGERS;
     const settings = SettingsManager.getSettings().blocks;
+    const worldSize = GRID_CONFIG.TILE_SIZE;
 
     super({
       worldPos: gridToWorld(gridPos),
       health: settings.healthWood,
-      collisionPoints: EntityCollisionShape.GetPoint(),
+      collisionPoints: EntityCollisionShape.GetSquare(worldSize),
       entityId,
       animations: undefined,
-      size: GRID_CONFIG.TILE_SIZE,
+      size: worldSize,
       initialState: undefined,
       timers: undefined,
       instance: undefined,

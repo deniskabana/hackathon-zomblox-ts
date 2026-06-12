@@ -181,13 +181,17 @@ export default abstract class AEntity<
 
   public _getIsVectorInsideHitbox(worldPos: WorldPosition): boolean {
     const collisionPoints = this._getCollisionPoints();
+
     if (collisionPoints.length === 1) {
       return areVectorsEqual(worldPos, collisionPoints[0]);
-    } else if (collisionPoints.length === 2) {
+    } else if (collisionPoints.length >= 2) {
       const { x, y } = this._getWorldPosition();
-      return (
-        x >= collisionPoints[0].x && x <= collisionPoints[1].x && y >= collisionPoints[0].y && y <= collisionPoints[1].y
-      );
+      const minX = collisionPoints.reduce((acc, val) => (val.x < acc ? val.x : acc), Infinity);
+      const minY = collisionPoints.reduce((acc, val) => (val.y < acc ? val.y : acc), Infinity);
+      const maxX = collisionPoints.reduce((acc, val) => (val.x > acc ? val.x : acc), -Infinity);
+      const maxY = collisionPoints.reduce((acc, val) => (val.y > acc ? val.y : acc), -Infinity);
+
+      return x >= minX && x <= maxX && y >= minY && y <= maxY;
     } else {
       return false; // not supported, assume not
     }

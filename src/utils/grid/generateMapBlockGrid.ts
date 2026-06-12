@@ -1,9 +1,9 @@
 import type { GridConfig, GridPosition } from "../../config/core/grid.config";
 
 export enum GridTileState {
-  AVAILABLE,
-  BLOCKED,
-  PLAYER,
+  AVAILABLE = "AVAILABLE",
+  BLOCKED = "BLOCKED",
+  PLAYER = "PLAYER",
 }
 
 export default function getMapBlockGrid(gridConfig: GridConfig, blocks: GridPosition[]): GridTileState[][] {
