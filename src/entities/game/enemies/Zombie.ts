@@ -140,8 +140,8 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     };
 
     const colliderWidth = settings.worldSize * 0.25;
-    const colliderHeight = settings.worldSize * 0.6;
-    const colliderOffsetY = -GRID_CONFIG.TILE_SIZE * 0.4;
+    const colliderHeight = settings.worldSize * 0.5;
+    const colliderOffsetY = -GRID_CONFIG.TILE_SIZE * 0.25;
 
     super({
       worldPos: gridToWorld(gridPos),
@@ -237,8 +237,8 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
         const color = "#ff8fba";
         const wfX = this._getCollisionPoints()[0].x;
         const wfY = this._getCollisionPoints()[0].y;
-        const wfW = this._getCollisionPoints()[1].x - wfX;
-        const wfH = this._getCollisionPoints()[1].y - wfY;
+        const wfW = this._getCollisionPoints()[2].x - wfX;
+        const wfH = this._getCollisionPoints()[2].y - wfY;
 
         DrawManager.drawRectOutline(wfX, wfY, wfW, wfH, color, 1);
       }
@@ -493,21 +493,21 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     }
 
     // Zombie-zombie collision with sliding if current weight > 10
-    if (
-      this.hasCollisionAhead(futurePos) &&
-      (LevelManager.flowField?.[futureGridPos.x]?.[futureGridPos.y]?.distanceWeight ?? 0) < 4
-    ) {
-      const slideX: WorldPosition = { x: futurePos.x, y };
-      const slideY: WorldPosition = { x, y: futurePos.y };
-
-      if (!this.hasCollisionAhead(slideX)) {
-        this.changeFacingPosition(futurePos.x < x);
-        this._setWorldPosition(slideX);
-      } else if (!this.hasCollisionAhead(slideY)) {
-        this._setWorldPosition(slideY);
-      } else return;
-    }
-
+    //   if (
+    //     this.hasCollisionAhead(futurePos) &&
+    //     (LevelManager.flowField?.[futureGridPos.x]?.[futureGridPos.y]?.distanceWeight ?? 0) < 4
+    //   ) {
+    //     const slideX: WorldPosition = { x: futurePos.x, y };
+    //     const slideY: WorldPosition = { x, y: futurePos.y };
+    //
+    //     if (!this.hasCollisionAhead(slideX)) {
+    //       this.changeFacingPosition(futurePos.x < x);
+    //       this._setWorldPosition(slideX);
+    //     } else if (!this.hasCollisionAhead(slideY)) {
+    //       this._setWorldPosition(slideY);
+    //     } else return;
+    //   }
+    //
     this.changeFacingPosition(futurePos.x < x);
     this._setWorldPosition(futurePos);
   }
