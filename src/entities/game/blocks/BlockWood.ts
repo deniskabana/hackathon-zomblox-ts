@@ -17,7 +17,7 @@ export default class BlockWood extends AEntity {
     super({
       worldPos: gridToWorld(gridPos),
       health: settings.healthWood,
-      collisionPoints: EntityCollisionShape.GetSquare(worldSize),
+      collisionPoints: EntityCollisionShape.GetSquare(0, 0, worldSize),
       entityId,
       animations: undefined,
       size: worldSize,
@@ -70,7 +70,20 @@ export default class BlockWood extends AEntity {
       }
     },
 
-    drawDebug: () => {},
+    drawDebug: () => {
+      const { SettingsManager, DrawManager } = _game.MANAGERS;
+      const settings = SettingsManager.getSettings().rules;
+      const color = "#0f5f9a";
+
+      if (settings.debugDrawFlowFieldGrid) {
+        const wfX = this._getCollisionPoints()[0].x + 1;
+        const wfY = this._getCollisionPoints()[0].y + 1;
+        const wfW = this._getCollisionPoints()[2].x - wfX - 1;
+        const wfH = this._getCollisionPoints()[2].y - wfY - 1;
+
+        DrawManager.drawRectOutline(wfX, wfY, wfW, wfH, color, 1.5);
+      }
+    },
 
     onDeath: () => {
       const { AssetManager, LevelManager } = _game.MANAGERS;

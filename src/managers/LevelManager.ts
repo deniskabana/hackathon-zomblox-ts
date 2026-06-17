@@ -146,6 +146,8 @@ export default class LevelManager extends AManager {
 
     this.spawnBlock({ x: 6, y: 2 }, BlockTypes.Wood);
     this.spawnBlock({ x: 6, y: 3 }, BlockTypes.Wood);
+    this.spawnBlock({ x: 5, y: 3 }, BlockTypes.Wood);
+    this.spawnBlock({ x: 7, y: 3 }, BlockTypes.Wood);
     this.spawnBlock({ x: 6, y: 4 }, BlockTypes.Wood);
   }
 
