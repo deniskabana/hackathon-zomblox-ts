@@ -625,7 +625,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
         continue;
       }
 
-      if (dirY > 0) resultPos.y = entityAABB.top - this._collisionPoints[2].y + 1;
+      if (dirY > 0) resultPos.y = entityAABB.top - this._collisionPoints[2].y - 1;
       if (dirY < 0) resultPos.y = entityAABB.bottom - this._collisionPoints[1].y + 1;
     }
 
