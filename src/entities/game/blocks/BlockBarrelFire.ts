@@ -17,7 +17,7 @@ export default class BlockBarrelFire extends AEntity<undefined, Instance> {
     _game = gameInstance;
     const { SettingsManager, LightManager, AssetManager } = _game.MANAGERS;
     const settings = SettingsManager.getSettings().blocks;
-    const size = GRID_CONFIG.TILE_SIZE;
+    const worldSize = GRID_CONFIG.TILE_SIZE;
 
     const instance: Instance = { lightSourceId: undefined };
 
@@ -31,10 +31,10 @@ export default class BlockBarrelFire extends AEntity<undefined, Instance> {
     super({
       worldPos: gridToWorld(gridPos),
       health: settings.healthFireBarrel,
-      collisionPoints: EntityCollisionShape.GetPoint(),
+      collisionPoints: EntityCollisionShape.GetSquare(0, 0, worldSize * 0.9),
       entityId,
       animations,
-      size,
+      size: worldSize,
       initialState: undefined,
       timers: undefined,
       instance,

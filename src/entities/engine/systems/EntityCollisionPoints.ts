@@ -3,7 +3,6 @@ import type { Vector } from "../../../types/lib/Vector";
 export type EntityCollisionPoints = Vector[];
 
 export const EntityCollisionShape = {
-  GetPoint: (offset: Vector = { x: 0, y: 0 }) => [{ x: offset.x, y: offset.y }],
   GetSquare: (offsetX: number, offsetY: number, size: number) => [
     { x: offsetX, y: offsetY }, // top left
     { x: offsetX + size, y: offsetY }, // top right

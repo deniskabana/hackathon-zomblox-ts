@@ -4,7 +4,6 @@ import {
   gridToWorld,
   type WorldPosition,
   worldToGrid,
-  type GridConfig,
 } from "../../../config/core/grid.config";
 import type { AssetAudioName } from "../../../config/game/assets.config";
 import { type Weapon, DEF_WEAPONS } from "../../../config/game/weapons.config";
@@ -17,8 +16,6 @@ import SpriteSheet from "../../../utils/classes/SpriteSheet";
 import { Direction } from "../../../utils/getCardinalDirection";
 import { GridTileState } from "../../../utils/grid/generateMapBlockGrid";
 import areVectorsEqual from "../../../utils/math/areVectorsEqual";
-import { clamp } from "../../../utils/math/clamp";
-import radiansToVector from "../../../utils/math/radiansToVector";
 import AEntity, { type AEntityEngineBody, type AnyEntity, type EntityConstructorProps } from "../../engine/AEntity";
 import type { EntityAnimationsSpecs } from "../../engine/systems/EntityAnimation";
 import { EntityCollisionShape } from "../../engine/systems/EntityCollisionPoints";
@@ -488,7 +485,12 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       return;
     }
 
+    futurePos.x = Math.round(futurePos.x * 100) / 100;
+    futurePos.y = Math.round(futurePos.y * 100) / 100;
+
     const adjustedFuturePos = this.adjustMovementForCollisions(futurePos);
+
+    console.log({ y, adjustedY: adjustedFuturePos.y });
 
     if (areVectorsEqual(adjustedFuturePos, this._getWorldPosition())) {
       this._setState(PlayerState.IDLE);
@@ -502,113 +504,152 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     this._setState(PlayerState.WALK);
 
     if (this._timers.stepSound.getIsDone()) {
-      AssetManager.playAudioAsset("APlayerStep", "sound");
       this._timers.stepSound.reset(settings.stepSoundCooldownSec);
+      AssetManager.playAudioAsset("APlayerStep", "sound");
     }
   }
 
-  public handlePhysicsPushback(direction: number, strength: number = 1): void {
-    const movementVector = radiansToVector(direction);
-    const { x, y } = this._getWorldPosition();
-    const futurePos = { x: x + movementVector.x * strength, y: y + movementVector.y * strength };
-
-    this._setWorldPosition(this.adjustMovementForCollisions(futurePos, GRID_CONFIG, true));
-  }
-
-  private adjustMovementForCollisions(
-    futurePos: WorldPosition,
-    gridConfig: GridConfig = GRID_CONFIG,
-    includeWorldBoundaries: boolean = true,
-  ): WorldPosition {
+  private adjustMovementForCollisions(futurePos: WorldPosition): WorldPosition {
     const { LevelManager } = _game.MANAGERS;
     const { x, y } = this._getWorldPosition();
     const { x: gx, y: gy } = this._getGridPosition();
     const resultPos: WorldPosition = { ...futurePos };
 
-    if (includeWorldBoundaries) {
-      const { TILE_SIZE, GRID_WIDTH, GRID_HEIGHT } = gridConfig;
-      const threshold = TILE_SIZE;
-      const futureHitboxes = this._getCollisionPoints(futurePos);
-      if (futureHitboxes[0].x < 0 + threshold || futureHitboxes[2].x > TILE_SIZE * GRID_WIDTH - threshold)
-        resultPos.x = clamp(0 + threshold, resultPos.x, TILE_SIZE * GRID_HEIGHT - threshold);
-      if (futureHitboxes[0].y < 0 + threshold || futureHitboxes[2].y > TILE_SIZE * GRID_HEIGHT - threshold)
-        resultPos.y = clamp(0 + threshold, resultPos.y, TILE_SIZE * GRID_HEIGHT - threshold);
-      if (areVectorsEqual(resultPos, this._getWorldPosition())) return resultPos;
-    }
+    const dirX = Math.sign(resultPos.x - x);
+    const dirY = Math.sign(resultPos.y - y);
 
+    // World boudaries
+    const { TILE_SIZE, GRID_WIDTH, GRID_HEIGHT } = GRID_CONFIG;
+    const threshold = TILE_SIZE;
+    const worldRight = TILE_SIZE * GRID_WIDTH - threshold;
+    const worldBottom = TILE_SIZE * GRID_HEIGHT - threshold;
+    const playerHitboxPoints = this._getCollisionPoints(resultPos);
+    let hits = 0;
+    if (playerHitboxPoints[0].x < threshold) {
+      resultPos.x = futurePos.x + (threshold - playerHitboxPoints[0].x) + 1;
+      hits += 1;
+    } else if (playerHitboxPoints[2].x > worldRight) {
+      resultPos.x = futurePos.x - (playerHitboxPoints[2].x - worldRight) - 1;
+      hits += 1;
+    }
+    if (playerHitboxPoints[0].y < threshold) {
+      resultPos.y = futurePos.y + (threshold - playerHitboxPoints[0].y) + 1;
+      hits += 1;
+    } else if (playerHitboxPoints[2].y > worldBottom) {
+      resultPos.y = futurePos.y - (playerHitboxPoints[2].y - worldBottom) - 1;
+      hits += 1;
+    }
+    if (hits === 2) return resultPos;
+
+    // Utils
+    const clampToTileBoundaryX = (blockedGridX: number, hitboxDeltaX: number): number => {
+      if (dirX > 0) return blockedGridX * TILE_SIZE - hitboxDeltaX - 1;
+      if (dirX < 0) return (blockedGridX + 1) * TILE_SIZE - hitboxDeltaX + 1;
+      return x;
+    };
+    const clampToTileBoundaryY = (blockedGridY: number, hitboxDeltaY: number): number => {
+      if (dirY > 0) return blockedGridY * TILE_SIZE - hitboxDeltaY - 1;
+      if (dirY < 0) return (blockedGridY + 1) * TILE_SIZE - hitboxDeltaY + 1;
+      return y;
+    };
+
+    // Permanent map blocks (always 1x1 grid)
     const hitboxPoints = this._getCollisionPoints(resultPos);
-    // const enemyGrid = LevelManager.getEnemyGrid();
-    const blockGrid = LevelManager.getBlockGrid();
+    let hasChangedX = false;
+    let hasChangedY = false;
 
-    const deltaX = x - futurePos.x;
-    const deltaY = y - futurePos.y;
-
-    for (const corner of hitboxPoints) {
-      const checkX = corner.x;
-      const checkY = corner.y;
+    for (const { x: checkX, y: checkY } of hitboxPoints) {
+      const deltaX = checkX - futurePos.x;
+      const deltaY = checkY - futurePos.y;
       const checkGridPos = worldToGrid({ x: checkX, y: checkY });
-      const entities = blockGrid?.[checkGridPos.x]?.[checkGridPos.y];
 
-      if (LevelManager.levelGrid?.[checkGridPos.x]?.[checkGridPos.y] === GridTileState.BLOCKED) {
-        resultPos.x = x;
-        resultPos.y = y;
-        return resultPos;
-      }
-      if (LevelManager.levelGrid?.[checkGridPos.x]?.[gy] === GridTileState.BLOCKED) resultPos.x = x;
-      if (LevelManager.levelGrid?.[gx]?.[checkGridPos.y] === GridTileState.BLOCKED) resultPos.y = y;
-
-      if (!entities) continue;
-      for (const entity of entities) {
-        if (entity._getIsVectorInsideHitbox({ x: checkX + deltaX, y: checkY + deltaY })) {
-          resultPos.x = x;
-          resultPos.y = y;
-          return resultPos;
-        }
-
-        if (entity._getIsVectorInsideHitbox({ x: checkX + deltaX, y: checkY })) resultPos.x = x;
-        if (entity._getIsVectorInsideHitbox({ x: checkX, y: checkY + deltaY })) resultPos.y = y;
-        if (areVectorsEqual(resultPos, this._getWorldPosition())) break;
+      if (LevelManager.levelGrid?.[checkGridPos.x]?.[gy] === GridTileState.BLOCKED) {
+        resultPos.x = clampToTileBoundaryX(checkGridPos.x, deltaX);
+        hasChangedX = true;
+      } else if (LevelManager.levelGrid?.[gx]?.[checkGridPos.y] === GridTileState.BLOCKED) {
+        resultPos.y = clampToTileBoundaryY(checkGridPos.y, deltaY);
+        hasChangedY = true;
+      } else if (LevelManager.levelGrid?.[checkGridPos.x]?.[checkGridPos.y] === GridTileState.BLOCKED) {
+        resultPos.x = clampToTileBoundaryX(checkGridPos.x, deltaX);
+        resultPos.y = clampToTileBoundaryY(checkGridPos.y, deltaY);
+        hasChangedX = true;
+        hasChangedY = true;
       }
     }
 
-    // Re-derive hitboxes from resultPos (may have been clamped by boundary check)
-    //
-    // for (const corner of hitboxPoints) {
-    //   const hitboxGrid = worldToGrid(corner);
-    //   const enemies = enemyGrid?.[hitboxGrid.x]?.[hitboxGrid.y] || [];
-    //   const blocks = blockGrid?.[hitboxGrid.x]?.[hitboxGrid.y] || [];
-    //
-    //   const cornerGridPos = worldToGrid({ x: Math.ceil(corner.x), y: Math.ceil(corner.y) });
-    //
-    //   if (LevelManager.levelGrid?.[cornerGridPos.x]?.[cornerGridPos.y] === GridTileState.BLOCKED) {
-    //     resultPos.x = x;
-    //     resultPos.y = y;
-    //   }
-    //
-    //   if (areVectorsEqual(resultPos, this._getWorldPosition())) break;
-    //
-    //   // const slideX: WorldPosition = { x: futurePos.x, y };
-    //   // const slideY: WorldPosition = { x, y: futurePos.y };
-    //
-    //   for (const entity of [...enemies, ...blocks]) {
-    //     if (entity === this) continue;
-    //     if (entity._getIsVectorInsideHitbox(corner)) {
-    //       // TODO: Apply pushback instead of this
-    //       resultPos.x = x
-    //       resultPos.y = y
-    //     }
-    //     if (entity._getIsVectorInsideHitbox({ x, y })) {
-    //       const entityPos = entity._getWorldPosition()
-    //       resultPos.x += entityPos.x - x;
-    //       resultPos.y += entityPos.y - y;
-    //       break;
-    //     }
-    //
-    //     if (areVectorsEqual(resultPos, this._getWorldPosition())) break;
-    //   }
-    // }
+    if (hasChangedX && hasChangedY) return resultPos;
+
+    // Entities
+    const xTestPoints = this._getCollisionPoints({ x: futurePos.x, y });
+    const xTestAABB = {
+      left: Math.min(...xTestPoints.map((p) => p.x)),
+      right: Math.max(...xTestPoints.map((p) => p.x)),
+      top: Math.min(...xTestPoints.map((p) => p.y)),
+      bottom: Math.max(...xTestPoints.map((p) => p.y)),
+    };
+    const xNearbyEntities = this._getNearbyEntities(xTestAABB);
+
+    for (const entity of xNearbyEntities) {
+      const entityAABB = entity._getAABB();
+      if (
+        xTestAABB.left > entityAABB.right ||
+        xTestAABB.right < entityAABB.left ||
+        xTestAABB.top > entityAABB.bottom ||
+        xTestAABB.bottom < entityAABB.top
+      ) {
+        continue;
+      }
+
+      if (dirX > 0) resultPos.x = entityAABB.left + this._collisionPoints[0].x - 1;
+      if (dirX < 0) resultPos.x = entityAABB.right + this._collisionPoints[1].x + 1;
+      break;
+    }
+
+    const yTestPoints = this._getCollisionPoints({ x, y: futurePos.y });
+    const yTestAABB = {
+      left: Math.min(...yTestPoints.map((p) => p.x)),
+      right: Math.max(...yTestPoints.map((p) => p.x)),
+      top: Math.min(...yTestPoints.map((p) => p.y)),
+      bottom: Math.max(...yTestPoints.map((p) => p.y)),
+    };
+    const yNearbyEntities = this._getNearbyEntities(yTestAABB);
+
+    for (const entity of yNearbyEntities) {
+      const entityAABB = entity._getAABB();
+      if (
+        yTestAABB.left > entityAABB.right ||
+        yTestAABB.right < entityAABB.left ||
+        yTestAABB.top > entityAABB.bottom ||
+        yTestAABB.bottom < entityAABB.top
+      ) {
+        continue;
+      }
+
+      if (dirY > 0) resultPos.y = entityAABB.top - this._collisionPoints[2].y + 1;
+      if (dirY < 0) resultPos.y = entityAABB.bottom - this._collisionPoints[1].y + 1;
+    }
 
     return resultPos;
+  }
+
+  private _getNearbyEntities(aabb: { left: number; right: number; top: number; bottom: number }) {
+    const { LevelManager } = _game.MANAGERS;
+    const enemyGrid = LevelManager.getEnemyGrid();
+    const blockGrid = LevelManager.getBlockGrid();
+
+    const entities = new Set<AnyEntity>();
+
+    const minGrid = worldToGrid({ x: aabb.left, y: aabb.top });
+    const maxGrid = worldToGrid({ x: aabb.right, y: aabb.bottom });
+
+    for (let gx = minGrid.x; gx <= maxGrid.x; gx++) {
+      for (let gy = minGrid.y; gy <= maxGrid.y; gy++) {
+        enemyGrid?.[gx]?.[gy]?.forEach((e) => entities.add(e));
+        blockGrid?.[gx]?.[gy]?.forEach((e) => entities.add(e));
+      }
+    }
+
+    return entities;
   }
 
   public getFacingDirection(): number {

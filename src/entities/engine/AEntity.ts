@@ -1,5 +1,6 @@
 import { type WorldPosition, type GridPosition, worldToGrid } from "../../config/core/grid.config";
 import type GameInstance from "../../GameInstance";
+import type { AABB } from "../../types/lib/AABB";
 import type { Vector } from "../../types/lib/Vector";
 import areVectorsEqual from "../../utils/math/areVectorsEqual";
 import { EntityAnimations, type EntityAnimationsSpecs } from "./systems/EntityAnimation";
@@ -47,7 +48,7 @@ export default abstract class AEntity<
   private _health: number;
   private _maxHealth: number;
   private _isDead: boolean = false;
-  private _collisionPoints: EntityCollisionPoints;
+  public _collisionPoints: EntityCollisionPoints;
   private _spanningGridTiles: GridPosition[];
 
   private _state: TState;
@@ -156,8 +157,8 @@ export default abstract class AEntity<
     this._state = state;
   }
   public _setWorldPosition(worldPos: WorldPosition): void {
-    this._worldPos = worldPos;
-    this._gridPos = worldToGrid(worldPos);
+    this._worldPos = { x: Math.round(worldPos.x * 100) / 100, y: Math.round(worldPos.y * 100) / 100 };
+    this._gridPos = worldToGrid(this._worldPos);
 
     const spanningGridTiles: GridPosition[] = [];
     for (const hitboxVector of this._getCollisionPoints()) {
@@ -176,7 +177,21 @@ export default abstract class AEntity<
 
   public _getCollisionPoints(worldPos?: WorldPosition): WorldPosition[] {
     const { x, y } = worldPos || this._getWorldPosition();
-    return this._collisionPoints.map((vector) => ({ x: vector.x + x, y: vector.y + y }));
+    return this._collisionPoints.map((vector) => ({
+      x: Math.round((vector.x + x) * 100) / 100,
+      y: Math.round((vector.y + y) * 100) / 100,
+    }));
+  }
+
+  public _getAABB(worldPos?: WorldPosition): AABB {
+    const points = this._getCollisionPoints(worldPos);
+
+    return {
+      left: Math.min(...points.map((p) => Math.round(p.x * 100) / 100)),
+      right: Math.max(...points.map((p) => Math.round(p.x * 100) / 100)),
+      top: Math.min(...points.map((p) => Math.round(p.y * 100) / 100)),
+      bottom: Math.max(...points.map((p) => Math.round(p.y * 100) / 100)),
+    };
   }
 
   public _getIsVectorInsideHitbox(worldPos: WorldPosition): boolean {

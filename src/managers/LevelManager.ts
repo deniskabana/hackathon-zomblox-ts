@@ -144,11 +144,11 @@ export default class LevelManager extends AManager {
       }
     }
 
-    this.spawnBlock({ x: 6, y: 2 }, BlockTypes.Wood);
-    this.spawnBlock({ x: 6, y: 3 }, BlockTypes.Wood);
-    this.spawnBlock({ x: 5, y: 3 }, BlockTypes.Wood);
-    this.spawnBlock({ x: 7, y: 3 }, BlockTypes.Wood);
-    this.spawnBlock({ x: 6, y: 4 }, BlockTypes.Wood);
+    this.spawnBlock({ x: 16, y: 8 }, BlockTypes.Wood);
+    this.spawnBlock({ x: 16, y: 9 }, BlockTypes.Wood);
+    this.spawnBlock({ x: 15, y: 9 }, BlockTypes.Wood);
+    this.spawnBlock({ x: 17, y: 9 }, BlockTypes.Wood);
+    this.spawnBlock({ x: 16, y: 10 }, BlockTypes.Wood);
   }
 
   public update(_deltaTime: number) {

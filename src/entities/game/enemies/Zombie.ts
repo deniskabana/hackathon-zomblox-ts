@@ -500,14 +500,15 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     //     const slideX: WorldPosition = { x: futurePos.x, y };
     //     const slideY: WorldPosition = { x, y: futurePos.y };
     //
-    //     if (!this.hasCollisionAhead(slideX)) {
-    //       this.changeFacingPosition(futurePos.x < x);
-    //       this._setWorldPosition(slideX);
-    //     } else if (!this.hasCollisionAhead(slideY)) {
-    //       this._setWorldPosition(slideY);
-    //     } else return;
+    // if (!this.hasCollisionAhead(slideX)) {
+    //   this.changeFacingPosition(futurePos.x < x);
+    //   this._setWorldPosition(slideX);
+    // } else if (!this.hasCollisionAhead(slideY)) {
+    //   this._setWorldPosition(slideY);
+    // } else return;
     //   }
     //
+    this.hasCollisionAhead({ x, y });
     this.changeFacingPosition(futurePos.x < x);
     this._setWorldPosition(futurePos);
   }

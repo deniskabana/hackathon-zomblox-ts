@@ -48,7 +48,7 @@ export default class Coin extends AEntity<undefined, Instance, Timers> {
       worldPos: gridToWorld(gridPos),
       health: Infinity,
       entityId,
-      collisionPoints: EntityCollisionShape.GetPoint(),
+      collisionPoints: EntityCollisionShape.GetSquare(0, 0, size * 0.9),
       size,
       animations,
       timers,

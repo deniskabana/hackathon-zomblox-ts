@@ -17,7 +17,7 @@ export default class BlockWood extends AEntity {
     super({
       worldPos: gridToWorld(gridPos),
       health: settings.healthWood,
-      collisionPoints: EntityCollisionShape.GetSquare(0, 0, worldSize),
+      collisionPoints: EntityCollisionShape.GetSquare(4.20251, -4, worldSize - 7.81924),
       entityId,
       animations: undefined,
       size: worldSize,
