@@ -194,6 +194,26 @@ export default abstract class AEntity<
     };
   }
 
+  public _getNearbyEntities(
+    aabb: { left: number; right: number; top: number; bottom: number },
+    enemyGrid: (AnyEntity[] | null)[][] | undefined,
+    blockGrid: (AnyEntity[] | null)[][] | undefined,
+  ): AnyEntity[] {
+    const entities = new Set<AnyEntity>();
+
+    const minGrid = worldToGrid({ x: aabb.left, y: aabb.top });
+    const maxGrid = worldToGrid({ x: aabb.right, y: aabb.bottom });
+
+    for (let gx = minGrid.x; gx <= maxGrid.x; gx++) {
+      for (let gy = minGrid.y; gy <= maxGrid.y; gy++) {
+        enemyGrid?.[gx]?.[gy]?.forEach((e) => entities.add(e));
+        blockGrid?.[gx]?.[gy]?.forEach((e) => entities.add(e));
+      }
+    }
+
+    return Array.from(entities);
+  }
+
   public _getIsVectorInsideHitbox(worldPos: WorldPosition): boolean {
     const collisionPoints = this._getCollisionPoints();
 

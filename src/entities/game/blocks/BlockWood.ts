@@ -17,7 +17,7 @@ export default class BlockWood extends AEntity {
     super({
       worldPos: gridToWorld(gridPos),
       health: settings.healthWood,
-      collisionPoints: EntityCollisionShape.GetSquare(4.20251, -4, worldSize - 7.81924),
+      collisionPoints: EntityCollisionShape.GetSquare(0, 0, worldSize),
       entityId,
       animations: undefined,
       size: worldSize,
@@ -29,7 +29,8 @@ export default class BlockWood extends AEntity {
 
   public _engine: AEntityEngineBody = {
     draw: () => {
-      const { LevelManager, DrawManager } = _game.MANAGERS;
+      const { LevelManager, DrawManager, SettingsManager } = _game.MANAGERS;
+      const debugFlowField = SettingsManager.getSettings().rules.debugDrawFlowFieldGrid;
       const { x, y } = this._getWorldPosition();
       const size = this._getSize();
 
@@ -42,23 +43,25 @@ export default class BlockWood extends AEntity {
 
       DrawManager.queueDrawSprite(
         x,
-        y,
+        y + size * 0.15,
         spriteBottom.spriteSheet,
         spriteBottom.frameIndex,
         size,
         size,
         ZIndex.BLOCKS,
         0,
+        debugFlowField ? 0.4 : 1,
       );
       DrawManager.queueDrawSprite(
         x,
-        y - size,
+        y - size + size * 0.15,
         spriteTop.spriteSheet,
         spriteTop.frameIndex,
         size,
         size,
         ZIndex.MAP_OVERLAY,
         0,
+        debugFlowField ? 0.4 : 1,
       );
     },
 
@@ -72,10 +75,10 @@ export default class BlockWood extends AEntity {
 
     drawDebug: () => {
       const { SettingsManager, DrawManager } = _game.MANAGERS;
-      const settings = SettingsManager.getSettings().rules;
-      const color = "#0f5f9a";
+      const settings = SettingsManager.getSettings().blocks;
+      const color = "#6fafda";
 
-      if (settings.debugDrawFlowFieldGrid) {
+      if (settings.debugDrawWireframe) {
         const wfX = this._getCollisionPoints()[0].x + 1;
         const wfY = this._getCollisionPoints()[0].y + 1;
         const wfW = this._getCollisionPoints()[2].x - wfX - 1;

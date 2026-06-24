@@ -16,7 +16,7 @@ import SpriteSheet from "../../../utils/classes/SpriteSheet";
 import { Direction } from "../../../utils/getCardinalDirection";
 import { GridTileState } from "../../../utils/grid/generateMapBlockGrid";
 import areVectorsEqual from "../../../utils/math/areVectorsEqual";
-import AEntity, { type AEntityEngineBody, type AnyEntity, type EntityConstructorProps } from "../../engine/AEntity";
+import AEntity, { type AEntityEngineBody, type EntityConstructorProps } from "../../engine/AEntity";
 import type { EntityAnimationsSpecs } from "../../engine/systems/EntityAnimation";
 import { EntityCollisionShape } from "../../engine/systems/EntityCollisionPoints";
 import { EntityTimer } from "../../engine/systems/EntityTimer";
@@ -490,8 +490,6 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
 
     const adjustedFuturePos = this.adjustMovementForCollisions(futurePos);
 
-    console.log({ y, adjustedY: adjustedFuturePos.y });
-
     if (areVectorsEqual(adjustedFuturePos, this._getWorldPosition())) {
       this._setState(PlayerState.IDLE);
       return;
@@ -580,16 +578,11 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     if (hasChangedX && hasChangedY) return resultPos;
 
     // Entities
-    const xTestPoints = this._getCollisionPoints({ x: futurePos.x, y });
-    const xTestAABB = {
-      left: Math.min(...xTestPoints.map((p) => p.x)),
-      right: Math.max(...xTestPoints.map((p) => p.x)),
-      top: Math.min(...xTestPoints.map((p) => p.y)),
-      bottom: Math.max(...xTestPoints.map((p) => p.y)),
-    };
-    const xNearbyEntities = this._getNearbyEntities(xTestAABB);
+    const xTestAABB = this._getAABB({ x: futurePos.x, y });
+    const xNearbyEntities = this._getNearbyEntities(xTestAABB, LevelManager.enemyGrid, LevelManager.blockGrid);
 
     for (const entity of xNearbyEntities) {
+      if (entity === this) continue;
       const entityAABB = entity._getAABB();
       if (
         xTestAABB.left > entityAABB.right ||
@@ -605,16 +598,11 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       break;
     }
 
-    const yTestPoints = this._getCollisionPoints({ x, y: futurePos.y });
-    const yTestAABB = {
-      left: Math.min(...yTestPoints.map((p) => p.x)),
-      right: Math.max(...yTestPoints.map((p) => p.x)),
-      top: Math.min(...yTestPoints.map((p) => p.y)),
-      bottom: Math.max(...yTestPoints.map((p) => p.y)),
-    };
-    const yNearbyEntities = this._getNearbyEntities(yTestAABB);
+    const yTestAABB = this._getAABB({ x, y: futurePos.y });
+    const yNearbyEntities = this._getNearbyEntities(yTestAABB, LevelManager.enemyGrid, LevelManager.blockGrid);
 
     for (const entity of yNearbyEntities) {
+      if (entity === this) continue;
       const entityAABB = entity._getAABB();
       if (
         yTestAABB.left > entityAABB.right ||
@@ -627,29 +615,10 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
 
       if (dirY > 0) resultPos.y = entityAABB.top - this._collisionPoints[2].y - 1;
       if (dirY < 0) resultPos.y = entityAABB.bottom - this._collisionPoints[1].y + 1;
+      break;
     }
 
     return resultPos;
-  }
-
-  private _getNearbyEntities(aabb: { left: number; right: number; top: number; bottom: number }) {
-    const { LevelManager } = _game.MANAGERS;
-    const enemyGrid = LevelManager.getEnemyGrid();
-    const blockGrid = LevelManager.getBlockGrid();
-
-    const entities = new Set<AnyEntity>();
-
-    const minGrid = worldToGrid({ x: aabb.left, y: aabb.top });
-    const maxGrid = worldToGrid({ x: aabb.right, y: aabb.bottom });
-
-    for (let gx = minGrid.x; gx <= maxGrid.x; gx++) {
-      for (let gy = minGrid.y; gy <= maxGrid.y; gy++) {
-        enemyGrid?.[gx]?.[gy]?.forEach((e) => entities.add(e));
-        blockGrid?.[gx]?.[gy]?.forEach((e) => entities.add(e));
-      }
-    }
-
-    return entities;
   }
 
   public getFacingDirection(): number {

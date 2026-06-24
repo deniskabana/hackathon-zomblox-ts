@@ -5,7 +5,6 @@ import { ZIndex } from "../../../types/lib/ZIndex";
 import assertNever from "../../../utils/assertNever";
 import { GridTileState } from "../../../utils/grid/generateMapBlockGrid";
 import isInsideGrid from "../../../utils/grid/isInsideGrid";
-import areVectorsEqual from "../../../utils/math/areVectorsEqual";
 import lerp from "../../../utils/math/lerp";
 import { lerpAngle } from "../../../utils/math/radialLerp";
 import AEntity, { type AEntityEngineBody, type EntityConstructorProps } from "../../engine/AEntity";
@@ -37,7 +36,6 @@ interface Timers {
 interface Instance {
   hasDealtDamage: boolean;
   isFacingLeft: boolean;
-  distanceFromPlayer: number;
 
   maxSpeed: number;
   desiredVelocity: number;
@@ -136,12 +134,11 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
       movementSeparationVector: { x: 0, y: 0 },
       hasDealtDamage: false,
       isFacingLeft: false,
-      distanceFromPlayer: Infinity,
     };
 
-    const colliderWidth = settings.worldSize * 0.25;
-    const colliderHeight = settings.worldSize * 0.5;
-    const colliderOffsetY = -GRID_CONFIG.TILE_SIZE * 0.25;
+    const colliderWidth = settings.worldSize * 0.3;
+    const colliderHeight = GRID_CONFIG.TILE_SIZE * 0.9;
+    const colliderOffsetY = -GRID_CONFIG.TILE_SIZE * 0.2;
 
     super({
       worldPos: gridToWorld(gridPos),
@@ -165,11 +162,14 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
 
   public _engine: AEntityEngineBody = {
     draw: () => {
-      const { DrawManager } = _game.MANAGERS;
+      const { DrawManager, SettingsManager } = _game.MANAGERS;
+      const debugFlowField = SettingsManager.getSettings().rules.debugDrawFlowFieldGrid;
       const size = this._getSize();
+
       this._animations?.drawActiveAnimations(this._getWorldPosition(), size, DrawManager, {
         scaleX: this._instance.isFacingLeft ? 1 : -1,
         offset: { x: 0, y: -this._getSize() * 0.35 },
+        alpha: debugFlowField ? 0.4 : 1,
       });
     },
 
@@ -396,12 +396,12 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
 
           if (dist >= radius) return;
 
-          // separation — all neighbors
+          // Separation — all neighbors
           const strength = (radius - dist) / radius;
           separation.x += ((selfWorldPos.x - worldPos.x) / dist) * strength;
           separation.y += ((selfWorldPos.y - worldPos.y) / dist) * strength;
 
-          // density — only ahead
+          // Density — only ahead
           const toNeighbor = {
             x: (worldPos.x - selfWorldPos.x) / dist,
             y: (worldPos.y - selfWorldPos.y) / dist,
@@ -419,9 +419,19 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
 
     const { LevelManager } = _game.MANAGERS;
     const { flowField } = LevelManager;
-    const { x: gx, y: gy } = this._getGridPosition();
 
-    const flowFieldVector = flowField?.[gx]?.[gy]?.normalizedVector ?? { x: 0, y: 0 };
+    const vectors: Vector[] = [];
+    const flowFieldVector: Vector = { x: 0, y: 0 };
+    for (const { x: gx, y: gy } of this._getSpanningGridTiles()) {
+      if (!flowField?.[gx]?.[gy]?.normalizedVector) continue;
+
+      vectors.push(flowFieldVector);
+      flowFieldVector.x += flowField[gx][gy].normalizedVector.x;
+      flowFieldVector.y += flowField[gx][gy].normalizedVector.y;
+    }
+    flowFieldVector.x /= vectors.length || 1;
+    flowFieldVector.y /= vectors.length || 1;
+
     const { separation, density } = this.getNeighborData(flowFieldVector);
 
     this._instance.movementFlowFieldVector = flowFieldVector;
@@ -432,8 +442,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
   private applyMovement(_deltaTime: number): void {
     if (this._getState() !== ZombieState.CHASING && this._getState() !== ZombieState.RETREATING) return;
 
-    const { LevelManager, SettingsManager } = _game.MANAGERS;
-    const { levelGrid } = LevelManager;
+    const { SettingsManager } = _game.MANAGERS;
     const { x, y } = this._getWorldPosition();
     const settings = SettingsManager.getSettings().zombie;
     const {
@@ -453,10 +462,10 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     const normalizedVector = mag > 0 ? { x: combined.x / mag, y: combined.y / mag } : { x: 0, y: 0 };
 
     const targetSpeed = desiredVelocity * lerp(1, 1 - settings.movementDensityWeight, movementGridDensity);
-    this._instance.movementVelocity = lerp(movementVelocity, targetSpeed, _deltaTime * 3);
+    this._instance.movementVelocity = lerp(movementVelocity, targetSpeed, _deltaTime * 4);
 
     const targetDirection = Math.atan2(normalizedVector.y, normalizedVector.x);
-    this._instance.movementDirection = lerpAngle(movementDirection, targetDirection, _deltaTime * 4);
+    this._instance.movementDirection = lerpAngle(movementDirection, targetDirection, _deltaTime * 8.5);
 
     if (this.getIsNextToPlayer()) {
       this._setState(ZombieState.IDLE);
@@ -469,48 +478,9 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
       y: y + Math.sin(this._instance.movementDirection) * this._instance.movementVelocity * _deltaTime,
     };
 
-    // Wall collision with sliding
-    const futureGridPos = worldToGrid(futurePos);
-    if (
-      !areVectorsEqual(futureGridPos, this._getGridPosition()) &&
-      levelGrid?.[futureGridPos.x]?.[futureGridPos.y] === GridTileState.BLOCKED
-    ) {
-      const slideX = worldToGrid({ x: futurePos.x, y });
-      const slideY = worldToGrid({ x, y: futurePos.y });
-      const canSlideX = levelGrid?.[slideX.x]?.[slideX.y] !== GridTileState.BLOCKED;
-      const canSlideY = levelGrid?.[slideY.x]?.[slideY.y] !== GridTileState.BLOCKED;
-
-      if (canSlideX) {
-        this.changeFacingPosition(futurePos.x < x);
-        this._setWorldPosition({ x: futurePos.x, y });
-      } else if (canSlideY) {
-        this._setWorldPosition({ x, y: futurePos.y });
-      } else {
-        this._setState(ZombieState.IDLE);
-        this._timers.movementRestart.reset(settings.movementRestartSec);
-      }
-      return;
-    }
-
-    // Zombie-zombie collision with sliding if current weight > 10
-    //   if (
-    //     this.hasCollisionAhead(futurePos) &&
-    //     (LevelManager.flowField?.[futureGridPos.x]?.[futureGridPos.y]?.distanceWeight ?? 0) < 4
-    //   ) {
-    //     const slideX: WorldPosition = { x: futurePos.x, y };
-    //     const slideY: WorldPosition = { x, y: futurePos.y };
-    //
-    // if (!this.hasCollisionAhead(slideX)) {
-    //   this.changeFacingPosition(futurePos.x < x);
-    //   this._setWorldPosition(slideX);
-    // } else if (!this.hasCollisionAhead(slideY)) {
-    //   this._setWorldPosition(slideY);
-    // } else return;
-    //   }
-    //
-    this.hasCollisionAhead({ x, y });
-    this.changeFacingPosition(futurePos.x < x);
-    this._setWorldPosition(futurePos);
+    const adjustedFuturePos = this.adjustMovementForCollisions(futurePos);
+    this.changeFacingPosition(adjustedFuturePos.x < x);
+    this._setWorldPosition(adjustedFuturePos);
   }
 
   private changeFacingPosition(isFacingLeft: boolean): void {
@@ -520,7 +490,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     }
   }
 
-  private getIsNextToPlayer(): boolean {
+  private getIsNextToPlayer(distance: number = 1): boolean {
     const { LevelManager } = _game.MANAGERS;
     const player = LevelManager.player;
     if (!player) return false;
@@ -528,55 +498,105 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     const { x: pgx, y: pgy } = player._getGridPosition();
     const { x: gx, y: gy } = this._getGridPosition();
 
-    const isCloseToPlayer = pgx >= gx - 1 && pgx <= gx + 1 && pgy >= gy - 1 && pgy <= gy + 1;
+    const isCloseToPlayer =
+      pgx >= gx - distance && pgx <= gx + distance && pgy >= gy - distance && pgy <= gy + distance;
     return isCloseToPlayer;
   }
 
-  private hasCollisionAhead(futurePos: WorldPosition): boolean {
+  private adjustMovementForCollisions(futurePos: WorldPosition): WorldPosition {
     const { LevelManager } = _game.MANAGERS;
-    const enemyGrid = LevelManager.getEnemyGrid();
-    const { x: gx, y: gy } = this._getGridPosition();
-    const selfPos = this._getWorldPosition();
-    const { movementFlowFieldVector } = this._instance;
+    const { x, y } = this._getWorldPosition();
+    const resultPos: WorldPosition = { ...futurePos };
 
-    if (!enemyGrid) return false;
-    const corners = this._getCollisionPoints(futurePos);
+    const dirX = Math.sign(resultPos.x - x);
+    const dirY = Math.sign(resultPos.y - y);
 
-    for (let dx = -1; dx <= 1; dx++) {
-      for (let dy = -1; dy <= 1; dy++) {
-        const cell = enemyGrid[gx + dx]?.[gy + dy];
-        if (!cell) continue;
+    const futureGridPos = worldToGrid(futurePos);
+    if (LevelManager.levelGrid?.[futureGridPos.x]?.[futureGridPos.y] === GridTileState.BLOCKED) {
+      return this._getWorldPosition();
+    }
 
-        for (const neighbor of cell) {
-          if (neighbor === this) continue;
+    // AABB basic collision system 2 axis
+    const xTestAABB = this._getAABB({ x: futurePos.x, y });
+    const yTestAABB = this._getAABB({ x, y: futurePos.y });
+    const xNearbyEntities = this._getNearbyEntities(xTestAABB, LevelManager.enemyGrid, LevelManager.blockGrid);
+    const yNearbyEntities = this._getNearbyEntities(yTestAABB, LevelManager.enemyGrid, LevelManager.blockGrid);
 
-          const neighborPos = neighbor._getWorldPosition();
-          const dist = Math.hypot(selfPos.x - neighborPos.x, selfPos.y - neighborPos.y);
-          if (dist === 0) continue;
-
-          // Only block against zombies ahead in flow field direction
-          const toNeighbor = {
-            x: (neighborPos.x - selfPos.x) / dist,
-            y: (neighborPos.y - selfPos.y) / dist,
-          };
-          const isAhead = toNeighbor.x * movementFlowFieldVector.x + toNeighbor.y * movementFlowFieldVector.y > 0;
-          if (!isAhead) continue;
-
-          const neighborHalf = (neighbor._getSize() * 0.75) / 2;
-          for (const corner of corners) {
-            if (
-              corner.x >= neighborPos.x - neighborHalf &&
-              corner.x <= neighborPos.x + neighborHalf &&
-              corner.y >= neighborPos.y - neighborHalf &&
-              corner.y <= neighborPos.y + neighborHalf
-            ) {
-              return true;
-            }
-          }
-        }
+    // X axis blocked tiles
+    if (dirX > 0) {
+      const pos1 = worldToGrid({ x: xTestAABB.right, y: xTestAABB.top });
+      const pos2 = worldToGrid({ x: xTestAABB.right, y: xTestAABB.bottom });
+      if (
+        LevelManager.levelGrid?.[pos1.x]?.[pos1.y] === GridTileState.BLOCKED ||
+        LevelManager.levelGrid?.[pos2.x]?.[pos2.y] === GridTileState.BLOCKED
+      ) {
+        resultPos.x = xTestAABB.left + this._collisionPoints[0].x - 1;
+      }
+    }
+    if (dirX < 0) {
+      const pos1 = worldToGrid({ x: xTestAABB.left, y: xTestAABB.top });
+      const pos2 = worldToGrid({ x: xTestAABB.left, y: xTestAABB.bottom });
+      if (
+        LevelManager.levelGrid?.[pos1.x]?.[pos1.y] === GridTileState.BLOCKED ||
+        LevelManager.levelGrid?.[pos2.x]?.[pos2.y] === GridTileState.BLOCKED
+      ) {
+        resultPos.x = xTestAABB.right + this._collisionPoints[1].x + 1;
       }
     }
 
-    return false;
+    // X axis entity collisions
+    for (const entity of xNearbyEntities) {
+      if (entity === this) continue;
+
+      const { right, left, bottom, top } = entity._getAABB();
+      if (xTestAABB.left > right || xTestAABB.right < left || xTestAABB.top > bottom || xTestAABB.bottom < top) {
+        continue;
+      }
+
+      if (dirX > 0) resultPos.x = left + this._collisionPoints[0].x - 1;
+      if (dirX < 0) resultPos.x = right + this._collisionPoints[1].x + 1;
+    }
+
+    // Y axis blocked tiles
+    if (dirY > 0) {
+      const pos1 = worldToGrid({ x: xTestAABB.left, y: xTestAABB.bottom });
+      const pos2 = worldToGrid({ x: xTestAABB.right, y: xTestAABB.bottom });
+      if (
+        LevelManager.levelGrid?.[pos1.x]?.[pos1.y] === GridTileState.BLOCKED ||
+        LevelManager.levelGrid?.[pos2.x]?.[pos2.y] === GridTileState.BLOCKED
+      ) {
+        resultPos.y = xTestAABB.top - this._collisionPoints[2].y - 1;
+      }
+    }
+    if (dirY < 0) {
+      const pos1 = worldToGrid({ x: xTestAABB.left, y: xTestAABB.bottom });
+      const pos2 = worldToGrid({ x: xTestAABB.right, y: xTestAABB.bottom });
+      if (
+        LevelManager.levelGrid?.[pos1.x]?.[pos1.y] === GridTileState.BLOCKED ||
+        LevelManager.levelGrid?.[pos2.x]?.[pos2.y] === GridTileState.BLOCKED
+      ) {
+        resultPos.y = xTestAABB.bottom - this._collisionPoints[1].y + 1;
+      }
+    }
+
+    // Y axis entity collisions
+    for (const entity of yNearbyEntities) {
+      if (entity === this) continue;
+
+      const { right, left, bottom, top } = entity._getAABB();
+      if (yTestAABB.left > right || yTestAABB.right < left || yTestAABB.top > bottom || yTestAABB.bottom < top) {
+        continue;
+      }
+
+      if (dirY > 0) resultPos.y = top - this._collisionPoints[2].y - 1;
+      if (dirY < 0) resultPos.y = bottom - this._collisionPoints[1].y + 1;
+    }
+
+    // More than 4px per frame / tick means something went wrong; cancel in advance
+    const maxCorrection = 4;
+    if (Math.abs(x - resultPos.x) > maxCorrection) resultPos.x = x;
+    if (Math.abs(y - resultPos.y) > maxCorrection) resultPos.y = y;
+
+    return resultPos;
   }
 }

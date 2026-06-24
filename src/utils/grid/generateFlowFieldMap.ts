@@ -16,6 +16,7 @@ export type FlowField = FlowFieldCell[][];
 export default function generateFlowField(
   levelGrid: GridTileState[][],
   enemyGrid: (AnyEntity[] | null)[][] | undefined,
+  blockGrid: (AnyEntity[] | null)[][] | undefined,
   ...startPoints: GridPosition[]
 ): FlowField {
   const grid: FlowField = [];
@@ -42,6 +43,8 @@ export default function generateFlowField(
     cell.enemyWeight = 0;
   }
 
+  const weightedEnemies = new Set<AnyEntity>();
+
   while (queue.length > 0) {
     const currentVector = queue.shift()!;
     const cell = grid?.[currentVector.x]?.[currentVector.y];
@@ -53,15 +56,25 @@ export default function generateFlowField(
 
         const nx = currentVector.x + dx;
         const ny = currentVector.y + dy;
+        if (dx !== 0 && dy !== 0) continue;
 
         if (!levelGrid?.[nx]?.[ny]) continue;
         if (levelGrid?.[nx]?.[ny] !== GridTileState.AVAILABLE) continue;
+        if ((blockGrid?.[nx]?.[ny]?.length ?? 0) > 0) continue;
 
         if (grid[nx][ny].weight === Infinity) {
           grid[nx][ny].distanceWeight = cell.distanceWeight + 1;
-          grid[nx][ny].enemyWeight = enemyGrid?.[nx]?.[ny]?.length ?? 0;
+          grid[nx][ny].weight = grid[nx][ny].distanceWeight;
 
-          grid[nx][ny].weight = grid[nx][ny].distanceWeight + grid[nx][ny].enemyWeight;
+          // Enemy weighting
+          const enemies = enemyGrid?.[nx]?.[ny] ?? [];
+          for (const enemy of enemies) {
+            if (weightedEnemies.has(enemy)) continue;
+            weightedEnemies.add(enemy);
+            for (const gridPos of enemy._getSpanningGridTiles()) {
+              if (grid?.[gridPos.x]?.[gridPos.y]) grid[gridPos.x][gridPos.y].weight += 1;
+            }
+          }
 
           queue.push({ x: nx, y: ny });
         }
@@ -74,7 +87,7 @@ export default function generateFlowField(
     for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
       if (!grid?.[x]?.[y]) continue;
 
-      let lowestWeight = grid[x][y].weight;
+      let lowestWeight = Infinity;
       let directionVector = { x: 0, y: 0 };
 
       const sortedNeighborVectors: Vector[] = [

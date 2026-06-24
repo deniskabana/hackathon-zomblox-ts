@@ -215,7 +215,7 @@ export default class DrawManager extends AManager {
       height,
       rotation,
       alpha,
-      zIndex,
+      zIndex: zIndex - screenPos.y / 1000,
       scaleX,
       scaleY,
     });

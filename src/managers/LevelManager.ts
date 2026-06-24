@@ -169,7 +169,7 @@ export default class LevelManager extends AManager {
   public drawEntities(): void {
     const { DrawManager, CameraManager, SettingsManager, EntityManager } = this.gameInstance.MANAGERS;
 
-    this.drawMapLayers("below", SettingsManager.getSettings().rules.debugDrawFlowFieldGrid ? 0.75 : 1);
+    this.drawMapLayers("below", SettingsManager.getSettings().rules.debugDrawFlowFieldGrid ? 0.4 : 1);
 
     if (SettingsManager.getSettings().rules.debugDrawFlowFieldGrid) {
       const size = GRID_CONFIG.TILE_SIZE;
@@ -180,7 +180,7 @@ export default class LevelManager extends AManager {
           if (!this.player || areVectorsEqual(this.player._getGridPosition(), { x, y })) continue;
 
           if (this.levelGrid?.[x]?.[y] !== GridTileState.AVAILABLE)
-            DrawManager.drawRectFilled(x * size, y * size, size, size, "#800", 0.4);
+            DrawManager.drawRectFilled(x * size, y * size, size, size, "#500", 0.3);
           else DrawManager.drawRectOutline(x * size, y * size, size, size, "#fff", 0.1);
 
           if (this.flowField?.[x]?.[y]) {
@@ -191,7 +191,7 @@ export default class LevelManager extends AManager {
 
             const cx = x * size + size / 2;
             const cy = y * size + size / 2;
-            const half = size / 2;
+            const half = size / 3.5;
 
             const x1 = cx - vector.x * half;
             const y1 = cy - vector.y * half;
@@ -199,8 +199,8 @@ export default class LevelManager extends AManager {
             const y2 = cy + vector.y * half;
 
             // Shaft
-            DrawManager.drawLine(x1, y1, x2, y2, "#00000040", 4);
-            DrawManager.drawLine(x1, y1, x2, y2, "#afcf8ff0", 2);
+            DrawManager.drawLine(x1, y1, x2, y2, "#00000080", 4);
+            DrawManager.drawLine(x1, y1, x2, y2, "#6f9f6f", 2);
 
             // Arrow tip
             const tipLen = half * 0.5;
@@ -211,35 +211,17 @@ export default class LevelManager extends AManager {
               const wingAngle = angle + spread * side;
               const wx = x2 + Math.cos(wingAngle) * tipLen;
               const wy = y2 + Math.sin(wingAngle) * tipLen;
-              DrawManager.drawLine(x2, y2, wx, wy, "#00000040", 4);
-              DrawManager.drawLine(x2, y2, wx, wy, "#afcf8ff0", 2);
+              DrawManager.drawLine(x2, y2, wx, wy, "#00000080", 4);
+              DrawManager.drawLine(x2, y2, wx, wy, "#6f9f6f", 2);
             }
-
-            DrawManager.drawText(
-              `${weight}`,
-              x * size + size / 2 + 1,
-              y * size + size / 2 + 1,
-              "#000000",
-              12,
-              "Arial",
-              "center",
-            );
-            DrawManager.drawText(
-              `${weight}`,
-              x * size + size / 2,
-              y * size + size / 2,
-              "#ffffff",
-              12,
-              "Arial",
-              "center",
-            );
+            DrawManager.drawText(`${weight}`, x * size + 6, y * size + 10, "#ffffffa0", 11, "Arial", "center");
           }
         }
       }
     }
 
     EntityManager.draw();
-    this.drawMapLayers("above", SettingsManager.getSettings().rules.debugDrawFlowFieldGrid ? 0.5 : 1);
+    this.drawMapLayers("above", SettingsManager.getSettings().rules.debugDrawFlowFieldGrid ? 0.4 : 1);
 
     if (!this.getIsDay() && this.player) {
       this.gameInstance.MANAGERS.LightManager.drawNightLighting(
@@ -553,7 +535,7 @@ export default class LevelManager extends AManager {
 
   private updatePathFindingGrid(): void {
     if (!this.player || !this.levelGrid) return;
-    this.flowField = generateFlowField(this.levelGrid, this.enemyGrid, this.player._getGridPosition());
+    this.flowField = generateFlowField(this.levelGrid, this.enemyGrid, this.blockGrid, this.player._getGridPosition());
   }
 
   public _destroy(): void {
