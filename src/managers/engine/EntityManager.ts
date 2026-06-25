@@ -99,7 +99,11 @@ export class EntityManager extends AManager {
 
     for (const [id, entity] of this._entities) {
       const body = this._physicsBodies.get(id);
-      if (body) entity._setWorldPosition(body.position);
+      if (body)
+        entity._setWorldPosition({
+          x: body.position.x - (body.plugin?.offset?.x ?? 0),
+          y: body.position.y - (body.plugin?.offset?.y ?? 0),
+        });
     }
   }
   public updateAfter(_deltaTime: number, _unscaledDeltaTime: number): void {
@@ -126,7 +130,9 @@ export class EntityManager extends AManager {
     const entity = createFactory(id);
     this._entities.set(id, entity);
 
-    const body = Matter.Bodies.rectangle(...entity._getCollisionRect(), { isStatic: type === EntityType.BLOCK });
+    const body = Matter.Bodies.rectangle(...entity._getPhysicsRect(), {
+      isStatic: type === EntityType.BLOCK,
+    });
 
     switch (type) {
       case EntityType.PLAYER:
@@ -147,6 +153,10 @@ export class EntityManager extends AManager {
 
     Matter.Composite.add(this._physicsEngine.world, body);
     Matter.Body.set(body, { inertia: Infinity, frictionAir: 0.3, restitution: 0 });
+    body.plugin.offset = {
+      x: (entity._collisionPoints[0].x + entity._collisionPoints[1].x) / 2,
+      y: (entity._collisionPoints[0].y + entity._collisionPoints[2].y) / 2,
+    };
 
     this._physicsBodies.set(id, body);
     entity._physicsBody = body;
@@ -209,7 +219,9 @@ export class EntityManager extends AManager {
 
         Matter.Composite.add(
           this._physicsEngine.world,
-          Matter.Bodies.rectangle(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE, { isStatic: true }),
+          Matter.Bodies.rectangle(x * TILE_SIZE + TILE_SIZE / 2, y * TILE_SIZE + TILE_SIZE / 2, TILE_SIZE, TILE_SIZE, {
+            isStatic: true,
+          }),
         );
       }
     }

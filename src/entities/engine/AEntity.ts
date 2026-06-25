@@ -190,14 +190,15 @@ export default abstract class AEntity<
     }));
   }
 
-  public _getCollisionRect(worldPos?: WorldPosition): [x: number, y: number, width: number, height: number] {
+  public _getPhysicsRect(worldPos?: WorldPosition): [x: number, y: number, width: number, height: number] {
     const { x, y } = worldPos || this._getWorldPosition();
-    return [
-      x + this._collisionPoints[0].x, // x
-      y + this._collisionPoints[1].y, // y
-      Math.abs(this._collisionPoints[0].x) + Math.abs(this._collisionPoints[1].x), // width
-      Math.abs(this._collisionPoints[1].y) + Math.abs(this._collisionPoints[2].y), // height
-    ];
+
+    const width = Math.abs(this._collisionPoints[0].x) + Math.abs(this._collisionPoints[1].x);
+    const height = Math.abs(this._collisionPoints[1].y) + Math.abs(this._collisionPoints[2].y);
+    const centerX = x + (this._collisionPoints[0].x + this._collisionPoints[1].x) / 2;
+    const centerY = y + (this._collisionPoints[0].y + this._collisionPoints[2].y) / 2;
+
+    return [centerX, centerY, width, height];
   }
 
   public _getAABB(worldPos?: WorldPosition): AABB {

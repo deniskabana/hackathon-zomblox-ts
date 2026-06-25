@@ -537,7 +537,7 @@ export default class LevelManager extends AManager {
 
   private updatePathFindingGrid(): void {
     if (!this.player || !this.levelGrid) return;
-    this.flowField = generateFlowField(this.levelGrid, this.enemyGrid, this.blockGrid, this.player._getGridPosition());
+    this.flowField = generateFlowField(this.levelGrid, this.blockGrid, this.player._getGridPosition());
   }
 
   public _destroy(): void {

@@ -7,7 +7,6 @@ import { GridTileState } from "./generateMapBlockGrid";
 export interface FlowFieldCell {
   weight: number;
   distanceWeight: number;
-  enemyWeight: number;
   normalizedVector: Vector;
 }
 
@@ -15,7 +14,6 @@ export type FlowField = FlowFieldCell[][];
 
 export default function generateFlowField(
   levelGrid: GridTileState[][],
-  enemyGrid: (AnyEntity[] | null)[][] | undefined,
   blockGrid: (AnyEntity[] | null)[][] | undefined,
   ...startPoints: GridPosition[]
 ): FlowField {
@@ -27,7 +25,6 @@ export default function generateFlowField(
         normalizedVector: { x: 0, y: 0 },
         weight: Infinity,
         distanceWeight: Infinity,
-        enemyWeight: 0,
       };
     }
   }
@@ -40,10 +37,7 @@ export default function generateFlowField(
     const cell = grid[clamp(0, from.x, GRID_CONFIG.GRID_WIDTH - 1)][clamp(0, from.y, GRID_CONFIG.GRID_HEIGHT - 1)];
     cell.weight = 0;
     cell.distanceWeight = 0;
-    cell.enemyWeight = 0;
   }
-
-  const _weightedEnemies = new Set<AnyEntity>();
 
   while (queue.length > 0) {
     const currentVector = queue.shift()!;
@@ -65,16 +59,6 @@ export default function generateFlowField(
         if (grid[nx][ny].weight === Infinity) {
           grid[nx][ny].distanceWeight = cell.distanceWeight + 1;
           grid[nx][ny].weight = grid[nx][ny].distanceWeight;
-
-          // Enemy weighting
-          // const enemies = enemyGrid?.[nx]?.[ny] ?? [];
-          // for (const enemy of enemies) {
-          //   if (weightedEnemies.has(enemy)) continue;
-          //   weightedEnemies.add(enemy);
-          //   for (const gridPos of enemy._getSpanningGridTiles()) {
-          //     if (grid?.[gridPos.x]?.[gridPos.y]) grid[gridPos.x][gridPos.y].weight += 1;
-          //   }
-          // }
 
           queue.push({ x: nx, y: ny });
         }
