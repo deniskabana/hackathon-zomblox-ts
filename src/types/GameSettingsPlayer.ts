@@ -16,4 +16,5 @@ export interface GameSettingsPlayer {
   debugDrawState: boolean;
   debugDrawPosition: boolean;
   debugDrawWireframe: boolean;
+  debugDrawHitboxes: boolean;
 }

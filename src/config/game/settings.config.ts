@@ -29,6 +29,7 @@ export interface GameSettingsSpec {
 
     debugSeeThroughNight: boolean;
     debugDrawFlowFieldGrid: boolean;
+    debugDrawPhysics: boolean;
   };
 
   zombie: GameSettingsZombie;
@@ -55,6 +56,7 @@ export const DEFAULT_SETTINGS: Readonly<GameSettingsSpec> = {
     nightDurationSec: 45,
     debugDrawFlowFieldGrid: false,
     debugSeeThroughNight: false,
+    debugDrawPhysics: false,
   },
   zombie: {
     worldSize: GRID_CONFIG.TILE_SIZE * 1.75,
@@ -77,6 +79,7 @@ export const DEFAULT_SETTINGS: Readonly<GameSettingsSpec> = {
     debugDrawFlowFieldVector: false,
     debugDrawPosition: false,
     debugDrawSeparationVector: false,
+    debugDrawHitboxes: false,
   },
   player: {
     worldSize: GRID_CONFIG.TILE_SIZE * 1.75,
@@ -89,6 +92,7 @@ export const DEFAULT_SETTINGS: Readonly<GameSettingsSpec> = {
     debugDrawState: false,
     debugDrawPosition: false,
     debugDrawWireframe: false,
+    debugDrawHitboxes: false,
     debugIsInvincible: false,
     debugDisablePhysics: false,
   },
@@ -126,6 +130,7 @@ export const SettingsDebugControlSchema: SettingsDebugSchema = {
     nightDurationSec: { type: "number", min: 0, max: 1000, step: 5 },
     debugSeeThroughNight: { type: "boolean" },
     debugDrawFlowFieldGrid: { type: "boolean" },
+    debugDrawPhysics: { type: "boolean" },
   },
   zombie: {
     worldSize: { type: "number", min: 0, max: GRID_CONFIG.TILE_SIZE * 10, step: GRID_CONFIG.TILE_SIZE / 10 },
@@ -153,6 +158,7 @@ export const SettingsDebugControlSchema: SettingsDebugSchema = {
     debugDrawFlowFieldVector: { type: "boolean" },
     debugDrawPosition: { type: "boolean" },
     debugDrawWireframe: { type: "boolean" },
+    debugDrawHitboxes: { type: "boolean" },
   },
   blocks: {
     enableDestruction: { type: "boolean" },
@@ -174,6 +180,7 @@ export const SettingsDebugControlSchema: SettingsDebugSchema = {
     debugDrawState: { type: "boolean" },
     debugDrawPosition: { type: "boolean" },
     debugDrawWireframe: { type: "boolean" },
+    debugDrawHitboxes: { type: "boolean" },
   },
   collectables: {
     autoCollect: { type: "boolean" },

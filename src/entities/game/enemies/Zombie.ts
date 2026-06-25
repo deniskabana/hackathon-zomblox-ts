@@ -1,9 +1,9 @@
-import { GRID_CONFIG, gridToWorld, worldToGrid, type WorldPosition } from "../../../config/core/grid.config";
+import Matter from "matter-js";
+import { GRID_CONFIG, gridToWorld } from "../../../config/core/grid.config";
 import type GameInstance from "../../../GameInstance";
 import type { Vector } from "../../../types/lib/Vector";
 import { ZIndex } from "../../../types/lib/ZIndex";
 import assertNever from "../../../utils/assertNever";
-import { GridTileState } from "../../../utils/grid/generateMapBlockGrid";
 import isInsideGrid from "../../../utils/grid/isInsideGrid";
 import lerp from "../../../utils/math/lerp";
 import { lerpAngle } from "../../../utils/math/radialLerp";
@@ -443,7 +443,6 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     if (this._getState() !== ZombieState.CHASING && this._getState() !== ZombieState.RETREATING) return;
 
     const { SettingsManager } = _game.MANAGERS;
-    const { x, y } = this._getWorldPosition();
     const settings = SettingsManager.getSettings().zombie;
     const {
       movementFlowFieldVector,
@@ -473,14 +472,20 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
       return;
     }
 
-    const futurePos: WorldPosition = {
-      x: x + Math.cos(this._instance.movementDirection) * this._instance.movementVelocity * _deltaTime,
-      y: y + Math.sin(this._instance.movementDirection) * this._instance.movementVelocity * _deltaTime,
-    };
+    this.changeFacingPosition(combined.x < 0);
 
-    const adjustedFuturePos = this.adjustMovementForCollisions(futurePos);
-    this.changeFacingPosition(adjustedFuturePos.x < x);
-    this._setWorldPosition(adjustedFuturePos);
+    if (!this._physicsBody) return;
+    Matter.Body.setVelocity(this._physicsBody, combined);
+    Matter.Body.setSpeed(this._physicsBody, this._instance.movementVelocity / 50);
+    this._setState(ZombieState.CHASING);
+
+    // const futurePos: WorldPosition = {
+    //   x: x + Math.cos(this._instance.movementDirection) * this._instance.movementVelocity * _deltaTime,
+    //   y: y + Math.sin(this._instance.movementDirection) * this._instance.movementVelocity * _deltaTime,
+    // };
+    //
+    // const adjustedFuturePos = this.adjustMovementForCollisions(futurePos);
+    // this._setWorldPosition(adjustedFuturePos);
   }
 
   private changeFacingPosition(isFacingLeft: boolean): void {
@@ -501,102 +506,5 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     const isCloseToPlayer =
       pgx >= gx - distance && pgx <= gx + distance && pgy >= gy - distance && pgy <= gy + distance;
     return isCloseToPlayer;
-  }
-
-  private adjustMovementForCollisions(futurePos: WorldPosition): WorldPosition {
-    const { LevelManager } = _game.MANAGERS;
-    const { x, y } = this._getWorldPosition();
-    const resultPos: WorldPosition = { ...futurePos };
-
-    const dirX = Math.sign(resultPos.x - x);
-    const dirY = Math.sign(resultPos.y - y);
-
-    const futureGridPos = worldToGrid(futurePos);
-    if (LevelManager.levelGrid?.[futureGridPos.x]?.[futureGridPos.y] === GridTileState.BLOCKED) {
-      return this._getWorldPosition();
-    }
-
-    // AABB basic collision system 2 axis
-    const xTestAABB = this._getAABB({ x: futurePos.x, y });
-    const yTestAABB = this._getAABB({ x, y: futurePos.y });
-    const xNearbyEntities = this._getNearbyEntities(xTestAABB, LevelManager.enemyGrid, LevelManager.blockGrid);
-    const yNearbyEntities = this._getNearbyEntities(yTestAABB, LevelManager.enemyGrid, LevelManager.blockGrid);
-
-    // X axis blocked tiles
-    if (dirX > 0) {
-      const pos1 = worldToGrid({ x: xTestAABB.right, y: xTestAABB.top });
-      const pos2 = worldToGrid({ x: xTestAABB.right, y: xTestAABB.bottom });
-      if (
-        LevelManager.levelGrid?.[pos1.x]?.[pos1.y] === GridTileState.BLOCKED ||
-        LevelManager.levelGrid?.[pos2.x]?.[pos2.y] === GridTileState.BLOCKED
-      ) {
-        resultPos.x = xTestAABB.left + this._collisionPoints[0].x - 1;
-      }
-    }
-    if (dirX < 0) {
-      const pos1 = worldToGrid({ x: xTestAABB.left, y: xTestAABB.top });
-      const pos2 = worldToGrid({ x: xTestAABB.left, y: xTestAABB.bottom });
-      if (
-        LevelManager.levelGrid?.[pos1.x]?.[pos1.y] === GridTileState.BLOCKED ||
-        LevelManager.levelGrid?.[pos2.x]?.[pos2.y] === GridTileState.BLOCKED
-      ) {
-        resultPos.x = xTestAABB.right + this._collisionPoints[1].x + 1;
-      }
-    }
-
-    // X axis entity collisions
-    for (const entity of xNearbyEntities) {
-      if (entity === this) continue;
-
-      const { right, left, bottom, top } = entity._getAABB();
-      if (xTestAABB.left > right || xTestAABB.right < left || xTestAABB.top > bottom || xTestAABB.bottom < top) {
-        continue;
-      }
-
-      if (dirX > 0) resultPos.x = left + this._collisionPoints[0].x - 1;
-      if (dirX < 0) resultPos.x = right + this._collisionPoints[1].x + 1;
-    }
-
-    // Y axis blocked tiles
-    if (dirY > 0) {
-      const pos1 = worldToGrid({ x: xTestAABB.left, y: xTestAABB.bottom });
-      const pos2 = worldToGrid({ x: xTestAABB.right, y: xTestAABB.bottom });
-      if (
-        LevelManager.levelGrid?.[pos1.x]?.[pos1.y] === GridTileState.BLOCKED ||
-        LevelManager.levelGrid?.[pos2.x]?.[pos2.y] === GridTileState.BLOCKED
-      ) {
-        resultPos.y = xTestAABB.top - this._collisionPoints[2].y - 1;
-      }
-    }
-    if (dirY < 0) {
-      const pos1 = worldToGrid({ x: xTestAABB.left, y: xTestAABB.bottom });
-      const pos2 = worldToGrid({ x: xTestAABB.right, y: xTestAABB.bottom });
-      if (
-        LevelManager.levelGrid?.[pos1.x]?.[pos1.y] === GridTileState.BLOCKED ||
-        LevelManager.levelGrid?.[pos2.x]?.[pos2.y] === GridTileState.BLOCKED
-      ) {
-        resultPos.y = xTestAABB.bottom - this._collisionPoints[1].y + 1;
-      }
-    }
-
-    // Y axis entity collisions
-    for (const entity of yNearbyEntities) {
-      if (entity === this) continue;
-
-      const { right, left, bottom, top } = entity._getAABB();
-      if (yTestAABB.left > right || yTestAABB.right < left || yTestAABB.top > bottom || yTestAABB.bottom < top) {
-        continue;
-      }
-
-      if (dirY > 0) resultPos.y = top - this._collisionPoints[2].y - 1;
-      if (dirY < 0) resultPos.y = bottom - this._collisionPoints[1].y + 1;
-    }
-
-    // More than 4px per frame / tick means something went wrong; cancel in advance
-    const maxCorrection = 4;
-    if (Math.abs(x - resultPos.x) > maxCorrection) resultPos.x = x;
-    if (Math.abs(y - resultPos.y) > maxCorrection) resultPos.y = y;
-
-    return resultPos;
   }
 }

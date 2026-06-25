@@ -1326,6 +1326,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/matter-js@npm:^0":
+  version: 0.20.2
+  resolution: "@types/matter-js@npm:0.20.2"
+  checksum: 10c0/da953eb54e3c0595ee4d9c36a95568161d41bdc42ae6fca0d479c0f0855e84c92925059d4bdb64a03d16ee5b7eca55af645bd26d2dfc581d574a42519ff1d345
+  languageName: node
+  linkType: hard
+
 "@types/postcss-modules-local-by-default@npm:^4.0.2":
   version: 4.0.2
   resolution: "@types/postcss-modules-local-by-default@npm:4.0.2"
@@ -2832,6 +2839,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"matter-js@npm:^0.20.0":
+  version: 0.20.0
+  resolution: "matter-js@npm:0.20.0"
+  checksum: 10c0/95d58f407205ad24c96422109c959999f474ef29af79b4c2ad7550bca97cdcdac99df31ebe35ab858d9863c8f6cd5205339fbbff70909b56a3e2a6a57200c51b
+  languageName: node
+  linkType: hard
+
 "mdn-data@npm:2.23.0":
   version: 2.23.0
   resolution: "mdn-data@npm:2.23.0"
@@ -4204,11 +4218,13 @@ __metadata:
     "@eslint/css": "npm:^0.11.1"
     "@eslint/js": "npm:^9.37.0"
     "@eslint/json": "npm:^0.13.2"
+    "@types/matter-js": "npm:^0"
     eslint: "npm:^9.37.0"
     globals: "npm:^16.4.0"
     jiti: "npm:^2.6.1"
     lefthook: "npm:^1.13.6"
     lil-gui: "npm:^0.21.0"
+    matter-js: "npm:^0.20.0"
     prettier: "npm:3.6.2"
     typescript: "npm:~5.9.3"
     typescript-eslint: "npm:^8.45.0"

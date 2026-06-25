@@ -72,7 +72,7 @@ export default class LevelManager extends AManager {
   }
 
   public _init(): void {
-    const { SettingsManager } = this.gameInstance.MANAGERS;
+    const { SettingsManager, EntityManager } = this.gameInstance.MANAGERS;
     const settings = SettingsManager.getSettings();
 
     const { map, config } = parseJsonMap();
@@ -107,6 +107,8 @@ export default class LevelManager extends AManager {
 
     this.levelGrid = getMapBlockGrid(config, map.objects);
     this.updatePathFindingGrid();
+
+    EntityManager.addPhysicsStaticMap(this.levelGrid);
 
     // Filter out spawn points that have BLOCKED neighboring cell
     const yTop = 0;

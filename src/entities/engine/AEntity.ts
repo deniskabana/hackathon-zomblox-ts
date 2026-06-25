@@ -1,7 +1,7 @@
+import type Matter from "matter-js";
 import { type WorldPosition, type GridPosition, worldToGrid } from "../../config/core/grid.config";
 import type GameInstance from "../../GameInstance";
 import type { AABB } from "../../types/lib/AABB";
-import type { Vector } from "../../types/lib/Vector";
 import areVectorsEqual from "../../utils/math/areVectorsEqual";
 import { EntityAnimations, type EntityAnimationsSpecs } from "./systems/EntityAnimation";
 import type { EntityCollisionPoints } from "./systems/EntityCollisionPoints";
@@ -49,7 +49,10 @@ export default abstract class AEntity<
   private _maxHealth: number;
   private _isDead: boolean = false;
   public _collisionPoints: EntityCollisionPoints;
+  public _hitboxesPoints: EntityCollisionPoints[];
   private _spanningGridTiles: GridPosition[];
+
+  public _physicsBody: undefined | Matter.Body;
 
   private _state: TState;
 
@@ -70,7 +73,9 @@ export default abstract class AEntity<
     timers?: TTimers;
     animations?: EntityAnimationsSpecs;
     instance?: TInstance;
-    collisionPoints: Vector[];
+    collisionPoints: EntityCollisionPoints;
+    hitboxesPoints?: EntityCollisionPoints[];
+    physicsBody?: Matter.Body;
     settings?: TSettings;
   }) {
     this._entityId = props.entityId;
@@ -84,6 +89,8 @@ export default abstract class AEntity<
     this._timers = props.timers ?? ({} as TTimers);
     this._settings = Object.freeze({ ...props.settings }) as TSettings;
     this._collisionPoints = props.collisionPoints ?? [];
+    this._hitboxesPoints = props.hitboxesPoints ?? [props.collisionPoints];
+    this._physicsBody = props.physicsBody;
     if (props.animations) this._animations = new EntityAnimations(props.animations);
 
     this._spanningGridTiles = [];
@@ -181,6 +188,16 @@ export default abstract class AEntity<
       x: Math.round((vector.x + x) * 100) / 100,
       y: Math.round((vector.y + y) * 100) / 100,
     }));
+  }
+
+  public _getCollisionRect(worldPos?: WorldPosition): [x: number, y: number, width: number, height: number] {
+    const { x, y } = worldPos || this._getWorldPosition();
+    return [
+      x + this._collisionPoints[0].x, // x
+      y + this._collisionPoints[1].y, // y
+      Math.abs(this._collisionPoints[0].x) + Math.abs(this._collisionPoints[1].x), // width
+      Math.abs(this._collisionPoints[1].y) + Math.abs(this._collisionPoints[2].y), // height
+    ];
   }
 
   public _getAABB(worldPos?: WorldPosition): AABB {

@@ -23,4 +23,5 @@ export interface GameSettingsZombie {
   debugDrawFlowFieldVector: boolean;
   debugDrawPosition: boolean;
   debugDrawWireframe: boolean;
+  debugDrawHitboxes: boolean;
 }

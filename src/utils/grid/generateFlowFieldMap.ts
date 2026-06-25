@@ -43,7 +43,7 @@ export default function generateFlowField(
     cell.enemyWeight = 0;
   }
 
-  const weightedEnemies = new Set<AnyEntity>();
+  const _weightedEnemies = new Set<AnyEntity>();
 
   while (queue.length > 0) {
     const currentVector = queue.shift()!;
@@ -67,14 +67,14 @@ export default function generateFlowField(
           grid[nx][ny].weight = grid[nx][ny].distanceWeight;
 
           // Enemy weighting
-          const enemies = enemyGrid?.[nx]?.[ny] ?? [];
-          for (const enemy of enemies) {
-            if (weightedEnemies.has(enemy)) continue;
-            weightedEnemies.add(enemy);
-            for (const gridPos of enemy._getSpanningGridTiles()) {
-              if (grid?.[gridPos.x]?.[gridPos.y]) grid[gridPos.x][gridPos.y].weight += 1;
-            }
-          }
+          // const enemies = enemyGrid?.[nx]?.[ny] ?? [];
+          // for (const enemy of enemies) {
+          //   if (weightedEnemies.has(enemy)) continue;
+          //   weightedEnemies.add(enemy);
+          //   for (const gridPos of enemy._getSpanningGridTiles()) {
+          //     if (grid?.[gridPos.x]?.[gridPos.y]) grid[gridPos.x][gridPos.y].weight += 1;
+          //   }
+          // }
 
           queue.push({ x: nx, y: ny });
         }

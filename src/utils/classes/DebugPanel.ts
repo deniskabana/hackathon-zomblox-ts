@@ -125,10 +125,9 @@ export class DebugPanel {
       .onChange(() => this._gameInstance.MANAGERS.CameraManager.setTargetWorldWidth(cameraProxy["Target width"]));
     cameraFolder.add(cameraProxy, "Reset");
 
-    cameraFolder.close();
+    cameraFolder.open();
     zombiesFolder.open();
     gameplayFolder.open();
-    // gui.close();
   }
 
   private _setSpeedScale(value: number): void {
@@ -188,6 +187,7 @@ export class DebugPanel {
         });
       }
 
+      controlsFolder.close();
       sectionFolder.close();
     }
 
