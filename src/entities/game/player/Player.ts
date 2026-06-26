@@ -17,6 +17,7 @@ import type { RaycastHit } from "../../../types/RaycastHit";
 import type { EntityID } from "../../../managers/engine/EntityManager";
 import { GridTileState } from "../../../utils/grid/generateMapBlockGrid";
 import raycastAABB from "../../../utils/raycastAABB";
+import getShotSpreadDirections from "../../../utils/getShotSpreadDirections";
 
 /** `this.gameInstance` */ let _game: GameInstance;
 
@@ -356,57 +357,69 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     this._timers.attackCooldown.reset(weaponDef.cooldown);
     if (weaponSound) AssetManager.playAudioAsset(weaponSound, "sound");
 
-    for (let i = 0; i < weaponDef.shots; i++) {
-      const directionVector: Vector = { x: 0, y: 0 };
-      switch (this._instance.facingDirection) {
-        case Direction.UP:
-          directionVector.y = -1;
-          break;
-        case Direction.DOWN:
-          directionVector.y = 1;
-          break;
-        case Direction.LEFT:
-          directionVector.x = -1;
-          break;
-        case Direction.RIGHT:
-          directionVector.x = 1;
-          break;
-      }
+    const directionVector: Vector = { x: 0, y: 0 };
+    switch (this._instance.facingDirection) {
+      case Direction.UP:
+        directionVector.y = -1;
+        break;
+      case Direction.DOWN:
+        directionVector.y = 1;
+        break;
+      case Direction.LEFT:
+        directionVector.x = -1;
+        break;
+      case Direction.RIGHT:
+        directionVector.x = 1;
+        break;
+    }
 
-      let originOffsetX: number = 0;
-      let originOffsetY: number = 0;
+    let originOffsetX: number = 0;
+    let originOffsetY: number = 0;
 
-      // Offset for where shoot line VFX starts
-      switch (playerCardinalDirection) {
-        case Direction.DOWN:
-          originOffsetY = size * 0.25;
-          if (isFacingLeft) originOffsetX = size * 0.1 * -1;
-          else originOffsetX = size * 0.15;
-          break;
-        case Direction.UP:
-          originOffsetY = size * 0.7 * -1;
-          if (isFacingLeft) originOffsetX = size * 0.05 * -1;
-          else originOffsetX = size * 0.05;
-          break;
-        case Direction.LEFT:
-          originOffsetX = size * 0.5 * -1;
-          originOffsetY = size * 0.25 * -1;
-          break;
-        case Direction.RIGHT:
-          originOffsetX = size * 0.6;
-          originOffsetY = size * 0.25 * -1;
-          break;
-        default:
-          assertNever(playerCardinalDirection);
-      }
+    // Offset for where shoot line VFX starts
+    switch (playerCardinalDirection) {
+      case Direction.DOWN:
+        originOffsetY = size * 0.25;
+        if (isFacingLeft) originOffsetX = size * 0.1 * -1;
+        else originOffsetX = size * 0.15;
+        break;
+      case Direction.UP:
+        originOffsetY = size * 0.7 * -1;
+        if (isFacingLeft) originOffsetX = size * 0.05 * -1;
+        else originOffsetX = size * 0.05;
+        break;
+      case Direction.LEFT:
+        originOffsetX = size * 0.5 * -1;
+        originOffsetY = size * 0.25 * -1;
+        break;
+      case Direction.RIGHT:
+        originOffsetX = size * 0.6;
+        originOffsetY = size * 0.25 * -1;
+        break;
+      default:
+        assertNever(playerCardinalDirection);
+    }
 
-      const origin: WorldPosition = { x: x + originOffsetX, y: y + originOffsetY };
-      const raycastHit = this._raycast(origin, directionVector, maxDistance);
+    const origin: WorldPosition = { x: x + originOffsetX, y: y + originOffsetY };
+    const directions = getShotSpreadDirections(directionVector, {
+      pellets: weaponDef.shots,
+      spreadAngle: weaponDef.spread,
+    });
+    const raycastHits = directions.map((dir) => this._raycast(origin, dir, maxDistance));
 
-      if (raycastHit) {
-        switch (raycastHit.type) {
+    for (let i = 0; i < raycastHits.length; i++) {
+      const hit = raycastHits[i];
+
+      if (hit === null) {
+        const endOfRayPos: WorldPosition = {
+          x: directions[i].x * maxDistance + origin.x,
+          y: directions[i].y * maxDistance + origin.y,
+        };
+        VFXManager.drawShootLine(origin, endOfRayPos);
+      } else {
+        switch (hit.type) {
           case "entity":
-            raycastHit.entity._handleDamage(weaponDef.damage);
+            hit.entity._handleDamage(weaponDef.damage);
             break;
           case "wall":
             break;
@@ -414,13 +427,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
             break;
         }
 
-        VFXManager.drawShootLine(origin, raycastHit.point);
-      } else {
-        const endOfRayPos: WorldPosition = {
-          x: directionVector.x * maxDistance + origin.x,
-          y: directionVector.y * maxDistance + origin.y,
-        };
-        VFXManager.drawShootLine(origin, endOfRayPos);
+        VFXManager.drawShootLine(origin, hit.point);
       }
     }
 
