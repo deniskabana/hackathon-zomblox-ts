@@ -33,6 +33,7 @@ interface Timers {
   attackCooldown: EntityTimer<"Cooldown between allowed attacks">;
   stun: EntityTimer<"Controls if the player is stunned">;
   stepSound: EntityTimer<"Delay between steps">;
+  reloading: EntityTimer<"Whether player is reloading">;
 }
 
 interface Instance {
@@ -43,6 +44,7 @@ interface Instance {
   currentWeapon: Weapon;
   facingDirection: Direction;
   weaponSprites: SpriteSheet | undefined;
+  currentAmmo: number;
 }
 
 export default class Player extends AEntity<PlayerState, Instance, Timers> {
@@ -54,9 +56,10 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       SettingsManager.getSettings().player;
 
     const timers: Timers = {
-      attackCooldown: new EntityTimer({ initialValue: DEF_WEAPONS[defaultWeapon].cooldown, autoStart: true }), // Value filled by WEAPON_DEF['cooldown']
+      attackCooldown: new EntityTimer({ initialValue: DEF_WEAPONS[defaultWeapon].cooldown, autoStart: true }),
       stepSound: new EntityTimer({ initialValue: stepSoundCooldownSec, autoStart: true }),
       stun: new EntityTimer({ initialValue: stunCooldownSec, autoStart: false }),
+      reloading: new EntityTimer({ initialValue: DEF_WEAPONS[defaultWeapon].reloadTimeSec, autoStart: false }),
     };
 
     const animations: EntityAnimationsSpecs = {
@@ -89,6 +92,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       maxSpeed: movementSpeed,
       facingDirection: Direction.RIGHT,
       weaponSprites: SpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerWeapons")!, 32, 32, 12),
+      currentAmmo: DEF_WEAPONS[defaultWeapon].capacity,
     };
 
     const colliderWidth = worldSize * 0.22;
@@ -364,22 +368,19 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
   }
 
   private getShootingInput(): void {
-    const { InputManager, AssetManager, CameraManager, VFXManager } = _game.MANAGERS;
+    const { InputManager } = _game.MANAGERS;
     const state = this._getState();
-    const weaponSound = this.getCurrentWeaponSound();
     const { currentWeapon, isFacingLeft } = this._instance;
     const weaponDef = DEF_WEAPONS[currentWeapon];
-    const maxDistance = weaponDef.maxDistance * GRID_CONFIG.TILE_SIZE;
     const size = this._getSize();
     const playerCardinalDirection = this._instance.facingDirection;
-    const { x, y } = this._getWorldPosition();
 
     if (!InputManager.isHeld(GameControls.ACTION_SHOOT)) return;
     if (state === PlayerState.KNOCKED || state === PlayerState.DEAD) return;
     if (!this._timers.attackCooldown.getIsDone()) return;
+    if (this._timers.reloading.getIsActive() && !this._timers.reloading.getIsDone()) return;
 
     this._timers.attackCooldown.reset(weaponDef.cooldown);
-    if (weaponSound) AssetManager.playAudioAsset(weaponSound, "sound");
 
     const directionVector: Vector = { x: 0, y: 0 };
     switch (this._instance.facingDirection) {
@@ -423,6 +424,26 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       default:
         assertNever(playerCardinalDirection);
     }
+
+    this.shoot({ x: originOffsetX, y: originOffsetY }, directionVector);
+  }
+
+  private shoot({ x: originOffsetX, y: originOffsetY }: Vector, directionVector: Vector) {
+    const { AssetManager, CameraManager, VFXManager } = _game.MANAGERS;
+    const { x, y } = this._getWorldPosition();
+    const weaponSound = this.getCurrentWeaponSound();
+    const { currentWeapon, currentAmmo } = this._instance;
+    const weaponDef = DEF_WEAPONS[currentWeapon];
+    const maxDistance = weaponDef.maxDistance * GRID_CONFIG.TILE_SIZE;
+
+    if (currentAmmo <= 0) {
+      this.reloadWeapon();
+      return;
+    }
+
+    this._instance.currentAmmo = currentAmmo - weaponDef.shots;
+
+    if (weaponSound) AssetManager.playAudioAsset(weaponSound, "sound");
 
     const origin: WorldPosition = { x: x + originOffsetX, y: y + originOffsetY };
     const directions = getShotSpreadDirections(directionVector, {
@@ -535,6 +556,21 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     }
   }
 
+  private getCurrentWeaponReloadSound(): AssetAudioName | undefined {
+    const { currentWeapon } = this._instance;
+
+    switch (currentWeapon) {
+      case "Revolver":
+        return "AGunRevolverReload";
+      case "Shotgun":
+        return "AGunShotgunReload";
+      case "Submachine":
+        return "AGunSMGReload";
+      default:
+        assertNever(currentWeapon);
+    }
+  }
+
   private getWeaponCycleInput(): void {
     const { InputManager } = _game.MANAGERS;
     const allWeaponsDef = Object.keys(DEF_WEAPONS) as Weapon[];
@@ -544,6 +580,17 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
 
     const currentIndex = allWeaponsDef.findIndex((n) => n === this._instance.currentWeapon);
     this._instance.currentWeapon = allWeaponsDef[(currentIndex + 1) % allWeaponsDef.length];
+    this._instance.currentAmmo = DEF_WEAPONS[this._instance.currentWeapon].capacity;
+  }
+
+  private reloadWeapon(): void {
+    const { AssetManager } = _game.MANAGERS;
+    const weaponDef = DEF_WEAPONS[this._instance.currentWeapon];
+
+    if (this._timers.reloading.getIsActive() && !this._timers.reloading.getIsDone()) return;
+    this._timers.reloading.reset(weaponDef.reloadTimeSec);
+    this._instance.currentAmmo = weaponDef.capacity;
+    AssetManager.playAudioAsset(this.getCurrentWeaponReloadSound()!, "sound");
   }
 
   private applyMovement(_deltaTime: number): void {
