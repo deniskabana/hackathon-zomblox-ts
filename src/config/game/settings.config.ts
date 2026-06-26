@@ -88,7 +88,7 @@ export const DEFAULT_SETTINGS: Readonly<GameSettingsSpec> = {
     defaultWeapon: "Revolver",
     lightRadius: 4.5,
     stunCooldownSec: 2,
-    stepSoundCooldownSec: 0.39,
+    stepSoundCooldownSec: 0.35,
     debugDrawState: false,
     debugDrawPosition: false,
     debugDrawWireframe: false,

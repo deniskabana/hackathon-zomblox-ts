@@ -92,6 +92,7 @@ export class EntityAnimations {
       alpha: number;
       rotation: number;
       offset: { x: number; y: number };
+      zIndex: ZIndex;
     }>,
   ): void {
     for (const animationId of this.active) {
@@ -107,7 +108,7 @@ export class EntityAnimations {
         spritesheet.getCurrentFrame(),
         size,
         size,
-        ZIndex.ENTITIES,
+        overrides?.zIndex ?? ZIndex.ENTITIES,
         overrides?.rotation ?? currentAnimation.rotation ?? 0,
         overrides?.alpha ?? currentAnimation.alpha ?? 1,
         overrides?.scaleX ?? currentAnimation.scale ?? 1,

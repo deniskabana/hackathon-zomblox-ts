@@ -1,5 +1,6 @@
 import { GRID_CONFIG } from "../../../config/core/grid.config";
 import type GameInstance from "../../../GameInstance";
+import { ZIndex } from "../../../types/lib/ZIndex";
 import AEntity, { type AEntityEngineBody, type EntityConstructorProps } from "../../engine/AEntity";
 import type { EntityAnimationsSpecs } from "../../engine/systems/EntityAnimation";
 import { EntityCollisionShape } from "../../engine/systems/EntityCollisionPoints";
@@ -12,6 +13,8 @@ interface Timers {
 }
 
 export default class SensorAttackSlash extends AEntity<undefined, undefined, Timers> {
+  private angle: number = 0;
+
   constructor({ gameInstance, entityId, worldPos }: EntityConstructorProps) {
     _game = gameInstance;
     const { AssetManager, SettingsManager } = _game.MANAGERS;
@@ -21,7 +24,7 @@ export default class SensorAttackSlash extends AEntity<undefined, undefined, Tim
     const animations: EntityAnimationsSpecs = {
       frameWidth: 40,
       frameHeight: 40,
-      fps: 7,
+      fps: 8,
       animations: [
         {
           id: "idle",
@@ -52,7 +55,10 @@ export default class SensorAttackSlash extends AEntity<undefined, undefined, Tim
     draw: () => {
       const { DrawManager } = _game.MANAGERS;
       const size = this._getSize();
-      this._animations?.drawActiveAnimations(this._getWorldPosition(), size, DrawManager);
+      this._animations?.drawActiveAnimations(this._getWorldPosition(), size, DrawManager, {
+        rotation: this.angle,
+        zIndex: ZIndex.EFFECTS,
+      });
     },
 
     drawDebug: () => {},
@@ -66,4 +72,8 @@ export default class SensorAttackSlash extends AEntity<undefined, undefined, Tim
       EntityManager.destroyEntity(this._entityId);
     },
   };
+
+  public setAngle(angle: number) {
+    this.angle = angle;
+  }
 }

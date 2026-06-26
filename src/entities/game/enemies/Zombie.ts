@@ -1,5 +1,5 @@
 import Matter from "matter-js";
-import { GRID_CONFIG, gridToWorld } from "../../../config/core/grid.config";
+import { GRID_CONFIG, gridToWorld, type WorldPosition } from "../../../config/core/grid.config";
 import type GameInstance from "../../../GameInstance";
 import type { Vector } from "../../../types/lib/Vector";
 import { ZIndex } from "../../../types/lib/ZIndex";
@@ -13,6 +13,8 @@ import { EntityCollisionShape } from "../../engine/systems/EntityCollisionPoints
 import { EntityTimer } from "../../engine/systems/EntityTimer";
 import { EntityType } from "../../../types/engine/EntityType";
 import SensorAttackSlash from "../sensors/SensorAttackSlash";
+import radiansToVector from "../../../utils/math/radiansToVector";
+import getDirectionalAngle from "../../../utils/math/getDirectionalAngle";
 
 /** `this.gameInstance` */ let _game: GameInstance;
 
@@ -282,6 +284,8 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
           if (this._timers.movementRestart.getIsDone() && !this.getIsNextToPlayer()) {
             this._setState(ZombieState.CHASING);
           }
+          if (this.getIsNextToPlayer()) this.startAttacking();
+
           break;
 
         case ZombieState.CHASING:
@@ -389,16 +393,27 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
   }
 
   private startAttacking(): void {
-    const { AssetManager, SettingsManager, EntityManager } = _game.MANAGERS;
+    const { AssetManager, SettingsManager, EntityManager, LevelManager } = _game.MANAGERS;
     const { attackDurationSec } = SettingsManager.getSettings().zombie;
 
     if (!this._timers.attackCooldown.getIsDone()) return;
     if (!this._timers.attack.getIsActive()) return;
 
-    EntityManager.createEntity(
-      EntityType.SENSOR,
-      (entityId) => new SensorAttackSlash({ worldPos: this._getWorldPosition(), entityId, gameInstance: _game }),
+    const direction = getDirectionalAngle(
+      LevelManager.player?._getWorldPosition() ?? { x: 0, y: 0 },
+      this._getWorldPosition(),
     );
+    const { x, y } = this._getWorldPosition();
+    const dirPos = radiansToVector(direction);
+    const sensorPos: WorldPosition = {
+      x: x + dirPos.x * (this._getSize() / 3),
+      y: y + dirPos.y * (this._getSize() / 3) - 12,
+    };
+    const entity = EntityManager.createEntity(
+      EntityType.SENSOR,
+      (entityId) => new SensorAttackSlash({ worldPos: sensorPos, entityId, gameInstance: _game }),
+    );
+    entity.setAngle(direction);
 
     this._setState(ZombieState.ATTACKING);
     this._timers.attack.reset(attackDurationSec);
@@ -516,7 +531,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     this.changeFacingPosition(combined.x < 0);
 
     if (!this._physicsBody) return;
-    Matter.Body.setVelocity(this._physicsBody, combined);
+    Matter.Body.setVelocity(this._physicsBody, normalizedVector);
     Matter.Body.setSpeed(this._physicsBody, this._instance.movementVelocity / 50);
 
     this._setState(ZombieState.CHASING);
