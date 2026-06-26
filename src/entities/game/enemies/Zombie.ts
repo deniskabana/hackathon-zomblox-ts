@@ -136,8 +136,8 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
       isFacingLeft: false,
     };
 
-    const colliderWidth = settings.worldSize * 0.3;
-    const colliderHeight = GRID_CONFIG.TILE_SIZE * 0.9;
+    const colliderWidth = settings.worldSize * 0.45;
+    const colliderHeight = GRID_CONFIG.TILE_SIZE * 1;
     const colliderOffsetY = -GRID_CONFIG.TILE_SIZE * 0.2;
 
     super({
@@ -477,15 +477,8 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     if (!this._physicsBody) return;
     Matter.Body.setVelocity(this._physicsBody, combined);
     Matter.Body.setSpeed(this._physicsBody, this._instance.movementVelocity / 50);
-    this._setState(ZombieState.CHASING);
 
-    // const futurePos: WorldPosition = {
-    //   x: x + Math.cos(this._instance.movementDirection) * this._instance.movementVelocity * _deltaTime,
-    //   y: y + Math.sin(this._instance.movementDirection) * this._instance.movementVelocity * _deltaTime,
-    // };
-    //
-    // const adjustedFuturePos = this.adjustMovementForCollisions(futurePos);
-    // this._setWorldPosition(adjustedFuturePos);
+    this._setState(ZombieState.CHASING);
   }
 
   private changeFacingPosition(isFacingLeft: boolean): void {

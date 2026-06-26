@@ -212,6 +212,18 @@ export default abstract class AEntity<
     };
   }
 
+  public _getHitbox(): AABB {
+    const points = this._getCollisionPoints();
+    const { x, y } = this._getWorldPosition();
+
+    return {
+      left: x + Math.min(...points.map((p) => Math.round(p.x * 100) / 100)),
+      right: x + Math.max(...points.map((p) => Math.round(p.x * 100) / 100)),
+      top: y + Math.min(...points.map((p) => Math.round(p.y * 100) / 100)),
+      bottom: y + Math.max(...points.map((p) => Math.round(p.y * 100) / 100)),
+    };
+  }
+
   public _getNearbyEntities(
     aabb: { left: number; right: number; top: number; bottom: number },
     enemyGrid: (AnyEntity[] | null)[][] | undefined,

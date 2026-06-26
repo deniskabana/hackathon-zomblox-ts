@@ -1,5 +1,5 @@
 import Matter from "matter-js";
-import { type GridPosition, GRID_CONFIG, gridToWorld } from "../../../config/core/grid.config";
+import { type GridPosition, type WorldPosition, GRID_CONFIG, gridToWorld } from "../../../config/core/grid.config";
 import type { AssetAudioName } from "../../../config/game/assets.config";
 import { type Weapon, DEF_WEAPONS } from "../../../config/game/weapons.config";
 import type GameInstance from "../../../GameInstance";
@@ -13,6 +13,10 @@ import AEntity, { type AEntityEngineBody, type EntityConstructorProps } from "..
 import type { EntityAnimationsSpecs } from "../../engine/systems/EntityAnimation";
 import { EntityCollisionShape } from "../../engine/systems/EntityCollisionPoints";
 import { EntityTimer } from "../../engine/systems/EntityTimer";
+import type { RaycastHit } from "../../../types/RaycastHit";
+import type { EntityID } from "../../../managers/engine/EntityManager";
+import { GridTileState } from "../../../utils/grid/generateMapBlockGrid";
+import raycastAABB from "../../../utils/raycastAABB";
 
 /** `this.gameInstance` */ let _game: GameInstance;
 
@@ -340,8 +344,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     const weaponSound = this.getCurrentWeaponSound();
     const { currentWeapon, isFacingLeft } = this._instance;
     const weaponDef = DEF_WEAPONS[currentWeapon];
-    const gunSpread = weaponDef.spread;
-    // const maxDistance = weaponDef.maxDistance * GRID_CONFIG.TILE_SIZE;
+    const maxDistance = weaponDef.maxDistance * GRID_CONFIG.TILE_SIZE;
     const size = this._getSize();
     const playerCardinalDirection = this._instance.facingDirection;
     const { x, y } = this._getWorldPosition();
@@ -354,38 +357,33 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     if (weaponSound) AssetManager.playAudioAsset(weaponSound, "sound");
 
     for (let i = 0; i < weaponDef.shots; i++) {
-      const spread = (Math.random() - 0.5) * 2 * ((gunSpread * Math.PI) / 180);
-      let angle: number = 0;
+      const directionVector: Vector = { x: 0, y: 0 };
       switch (this._instance.facingDirection) {
         case Direction.UP:
-          angle = -Math.PI / 2;
+          directionVector.y = -1;
           break;
         case Direction.DOWN:
-          angle = Math.PI / 2;
+          directionVector.y = 1;
           break;
         case Direction.LEFT:
-          angle = Math.PI;
+          directionVector.x = -1;
           break;
         case Direction.RIGHT:
-          angle = 0;
+          directionVector.x = 1;
           break;
       }
-      angle += spread;
-      // const raycastHit = LevelManager.raycastShot(this._getWorldPosition(), angle, maxDistance);
-
-      // if (raycastHit) raycastHit._handleDamage(weaponDef.damage);
 
       let originOffsetX: number = 0;
       let originOffsetY: number = 0;
 
       // Offset for where shoot line VFX starts
       switch (playerCardinalDirection) {
-        case Direction.UP:
+        case Direction.DOWN:
           originOffsetY = size * 0.25;
           if (isFacingLeft) originOffsetX = size * 0.1 * -1;
           else originOffsetX = size * 0.15;
           break;
-        case Direction.DOWN:
+        case Direction.UP:
           originOffsetY = size * 0.7 * -1;
           if (isFacingLeft) originOffsetX = size * 0.05 * -1;
           else originOffsetX = size * 0.05;
@@ -402,15 +400,78 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
           assertNever(playerCardinalDirection);
       }
 
-      VFXManager.drawShootLine(
-        { x: x + originOffsetX, y: y + originOffsetY },
-        angle,
-        // raycastHit ? getVectorDistance(this._getWorldPosition(), raycastHit._getWorldPosition()) : maxDistance,
-      );
+      const origin: WorldPosition = { x: x + originOffsetX, y: y + originOffsetY };
+      const raycastHit = this._raycast(origin, directionVector, maxDistance);
+
+      if (raycastHit) {
+        switch (raycastHit.type) {
+          case "entity":
+            raycastHit.entity._handleDamage(weaponDef.damage);
+            break;
+          case "wall":
+            break;
+          default:
+            break;
+        }
+
+        VFXManager.drawShootLine(origin, raycastHit.point);
+      } else {
+        const endOfRayPos: WorldPosition = {
+          x: directionVector.x * maxDistance + origin.x,
+          y: directionVector.y * maxDistance + origin.y,
+        };
+        VFXManager.drawShootLine(origin, endOfRayPos);
+      }
     }
 
     CameraManager.effectZoom(3 + weaponDef.damage * (weaponDef.shots / 2) * 0.6);
     CameraManager.effectShake(3 + weaponDef.damage * (weaponDef.shots / 2) * 0.6);
+  }
+
+  private _raycast(origin: Vector, direction: Vector, maxDistance: number): RaycastHit | null {
+    const { LevelManager } = _game.MANAGERS;
+    const { TILE_SIZE } = GRID_CONFIG;
+    const step = TILE_SIZE / 12;
+
+    const checkedEntities = new Set<EntityID>();
+    let distance = 0;
+    let lastGridPos = { x: -1, y: -1 };
+    let closestEntityHit: RaycastHit | null = null;
+
+    while (distance <= maxDistance) {
+      const point = {
+        x: origin.x + direction.x * distance,
+        y: origin.y + direction.y * distance,
+      };
+
+      const gridX = Math.floor(point.x / TILE_SIZE);
+      const gridY = Math.floor(point.y / TILE_SIZE);
+      const isNewCell = gridX !== lastGridPos.x || gridY !== lastGridPos.y;
+
+      if (isNewCell) {
+        lastGridPos = { x: gridX, y: gridY };
+
+        if (LevelManager.levelGrid?.[gridX]?.[gridY] === GridTileState.BLOCKED) {
+          if (!closestEntityHit || distance < closestEntityHit.distance) return { type: "wall", point, distance };
+        }
+
+        const entities = LevelManager.getEntitiesByGridTile({ x: gridX, y: gridY });
+
+        for (const entity of entities) {
+          if (checkedEntities.has(entity._getEntityId())) continue;
+          checkedEntities.add(entity._getEntityId());
+
+          const hit = raycastAABB(origin, direction, maxDistance, entity._getAABB());
+          if (hit && (!closestEntityHit || hit.distance <= closestEntityHit.distance)) {
+            if (!entity._getIsDead()) closestEntityHit = { type: "entity", entity, ...hit };
+          }
+        }
+      }
+
+      distance += step;
+    }
+
+    return closestEntityHit;
   }
 
   private getCurrentWeaponSound(): AssetAudioName | undefined {

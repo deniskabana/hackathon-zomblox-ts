@@ -22,7 +22,6 @@ import assertNever from "../utils/assertNever";
 import generateFlowField, { type FlowField } from "../utils/grid/generateFlowFieldMap";
 import { GridTileState } from "../utils/grid/generateMapBlockGrid";
 import getMapBlockGrid from "../utils/grid/generateMapBlockGrid";
-import raycast2D from "../utils/grid/raycast2D";
 import areVectorsEqual from "../utils/math/areVectorsEqual";
 import { AManager } from "./abstract/AManager";
 import { BlockTypes } from "./BuildModeManager";
@@ -38,8 +37,8 @@ export default class LevelManager extends AManager {
   public flowField?: FlowField;
   public weightedFlowField?: FlowField;
   public retreatFlowFields?: FlowField[];
-  public enemyGrid?: (AnyEntity[] | null)[][];
-  public blockGrid?: (AnyEntity[] | null)[][];
+  private enemyGrid?: (AnyEntity[] | null)[][];
+  private blockGrid?: (AnyEntity[] | null)[][];
 
   // Map data
   private tileLayers?: GameMap["tileLayers"];
@@ -317,6 +316,13 @@ export default class LevelManager extends AManager {
     }
   }
 
+  public _destroy(): void {
+    this.stopSpawningZombies();
+    this.player = undefined;
+    this.mapLayerBelowPlayer.remove();
+    this.mapLayerAbovePlayer.remove();
+  }
+
   // Entities :: Spawn / destroy
   // ==================================================
 
@@ -529,22 +535,9 @@ export default class LevelManager extends AManager {
   // Grid
   // ==================================================
 
-  public raycastShot(from: WorldPosition, angleRad: number, maxDistance: number): null | unknown {
-    const { EntityManager } = this.gameInstance.MANAGERS;
-    if (!this.levelGrid) return null;
-    return raycast2D(from, angleRad, maxDistance, this.levelGrid, EntityManager.getEnemies());
-  }
-
   private updatePathFindingGrid(): void {
     if (!this.player || !this.levelGrid) return;
     this.flowField = generateFlowField(this.levelGrid, this.blockGrid, this.player._getGridPosition());
-  }
-
-  public _destroy(): void {
-    this.stopSpawningZombies();
-    this.player = undefined;
-    this.mapLayerBelowPlayer.remove();
-    this.mapLayerAbovePlayer.remove();
   }
 
   public addCurrency(amount: number = 1): void {
@@ -563,10 +556,7 @@ export default class LevelManager extends AManager {
 
     for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
       grid[x] = [];
-
-      for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
-        grid[x][y] = [];
-      }
+      for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) grid[x][y] = [];
     }
 
     for (const block of EntityManager.getBlocks()) {
@@ -604,5 +594,17 @@ export default class LevelManager extends AManager {
 
   public getEnemyGrid(): typeof this.enemyGrid {
     return this.enemyGrid;
+  }
+
+  public getEntitiesByGridTile(gridPos: GridPosition): AnyEntity[] {
+    const entities: AnyEntity[] = [];
+
+    const enemiesTile = this.enemyGrid?.[gridPos.x]?.[gridPos.y] || [];
+    for (const enemy of enemiesTile) entities.push(enemy);
+
+    const blocksTile = this.blockGrid?.[gridPos.x]?.[gridPos.y] || [];
+    for (const block of blocksTile) entities.push(block);
+
+    return entities;
   }
 }

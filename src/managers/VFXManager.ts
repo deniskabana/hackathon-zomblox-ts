@@ -3,7 +3,6 @@ import type GameInstance from "../GameInstance";
 import type { Effect } from "../types/Effects";
 import { ZIndex } from "../types/lib/ZIndex";
 import SpriteSheet from "../utils/classes/SpriteSheet";
-import radiansToVector from "../utils/math/radiansToVector";
 import { AManager } from "./abstract/AManager";
 
 export default class VFXManager extends AManager {
@@ -28,16 +27,10 @@ export default class VFXManager extends AManager {
 
   public drawShootLine(
     vectorFrom: WorldPosition,
-    direction: number,
-    length: number = 2000,
+    vectorTo: WorldPosition,
     color: string = "#d0d000a0",
-    duration: number = 0.08,
+    duration: number = 0.1,
   ): void {
-    const vectorTo = radiansToVector(direction);
-    vectorTo.x *= length;
-    vectorTo.y *= length;
-    vectorTo.x += vectorFrom.x;
-    vectorTo.y += vectorFrom.y;
     const thickness = 2;
 
     this.effects.set(this.effectIdCount++, {
@@ -54,8 +47,8 @@ export default class VFXManager extends AManager {
         this.gameInstance.MANAGERS.DrawManager.drawLine(
           vectorFrom.x - thickness / 2,
           vectorFrom.y - thickness / 2,
-          vectorTo.x - thickness / 2,
-          vectorTo.y - thickness / 2,
+          vectorTo.x + thickness / 2,
+          vectorTo.y + thickness / 2,
           "#d0601070",
           thickness / 2,
         );
