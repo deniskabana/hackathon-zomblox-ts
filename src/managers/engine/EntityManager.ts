@@ -163,7 +163,7 @@ export class EntityManager extends AManager {
     }
 
     Matter.Composite.add(this._physicsEngine.world, body);
-    Matter.Body.set(body, { inertia: Infinity, frictionAir: 0.6, restitution: 0, mass: 3 });
+    Matter.Body.set(body, { inertia: Infinity, frictionAir: 0.6, restitution: 0 });
     body.plugin.offset = {
       x: (entity._collisionPoints[0].x + entity._collisionPoints[1].x) / 2,
       y: (entity._collisionPoints[0].y + entity._collisionPoints[2].y) / 2,
