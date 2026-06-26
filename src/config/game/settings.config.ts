@@ -67,7 +67,7 @@ export const DEFAULT_SETTINGS: Readonly<GameSettingsSpec> = {
     movementRestartSec: 0.5,
     dropsItems: true,
     facingDirThrottleSec: 0.2,
-    maxSpeed: 75,
+    maxSpeed: 175,
     maxHealth: 37,
     minDistanceFromPlayerPx: GRID_CONFIG.TILE_SIZE * 1,
     isHurtBySunlight: true,
@@ -84,7 +84,7 @@ export const DEFAULT_SETTINGS: Readonly<GameSettingsSpec> = {
   player: {
     worldSize: GRID_CONFIG.TILE_SIZE * 1.75,
     startHealth: 200,
-    movementSpeed: 210,
+    movementSpeed: 350,
     defaultWeapon: "Revolver",
     lightRadius: 4.5,
     stunCooldownSec: 2,

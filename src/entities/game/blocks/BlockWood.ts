@@ -1,6 +1,5 @@
 import { gridToWorld, GRID_CONFIG } from "../../../config/core/grid.config";
 import type GameInstance from "../../../GameInstance";
-import { EntityType } from "../../../managers/engine/EntityManager";
 import { ZIndex } from "../../../types/lib/ZIndex";
 import AEntity, { type AEntityEngineBody, type EntityConstructorProps } from "../../engine/AEntity";
 import { EntityCollisionShape } from "../../engine/systems/EntityCollisionPoints";
@@ -89,9 +88,10 @@ export default class BlockWood extends AEntity {
     },
 
     onDeath: () => {
-      const { AssetManager, LevelManager } = _game.MANAGERS;
+      const { AssetManager, EntityManager, LevelManager } = _game.MANAGERS;
       AssetManager.playAudioAsset("ABlockWoodDestroyed", "sound");
-      LevelManager.destroyEntity(this._entityId, EntityType.BLOCK);
+      EntityManager.destroyEntity(this._entityId);
+      LevelManager.destroyBlock();
     },
   };
 }

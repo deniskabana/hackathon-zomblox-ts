@@ -1,6 +1,5 @@
 import { GRID_CONFIG, gridToWorld } from "../../../config/core/grid.config";
 import type GameInstance from "../../../GameInstance";
-import { EntityType } from "../../../managers/engine/EntityManager";
 import { ZIndex } from "../../../types/lib/ZIndex";
 import AEntity, { type AEntityEngineBody, type EntityConstructorProps } from "../../engine/AEntity";
 import type { EntityAnimationsSpecs } from "../../engine/systems/EntityAnimation";
@@ -90,9 +89,10 @@ export default class BlockBarrelFire extends AEntity<undefined, Instance> {
     },
 
     onDeath: () => {
-      const { AssetManager, LevelManager } = _game.MANAGERS;
+      const { AssetManager, EntityManager, LevelManager } = _game.MANAGERS;
       AssetManager.playAudioAsset("ABlockWoodDestroyed", "sound");
-      LevelManager.destroyEntity(this._entityId, EntityType.BLOCK);
+      EntityManager.destroyEntity(this._entityId);
+      LevelManager.destroyBlock();
     },
   };
 }

@@ -49,7 +49,7 @@ export default class LevelManager extends AManager {
 
   // Entities
   public player?: Player;
-  // private playerLastGridPos?: GridPosition;
+  private playerLastGridPos?: GridPosition;
 
   // Gameplay
   private isSpawningZombies: boolean = false;
@@ -159,7 +159,11 @@ export default class LevelManager extends AManager {
     this.applyZombieSpawn(_deltaTime);
     this.updateEnemyGrid();
 
-    this.updatePathFindingGrid();
+    if (!this.playerLastGridPos || !areVectorsEqual(this.playerLastGridPos, this.player._getGridPosition())) {
+      this.playerLastGridPos = this.player._getGridPosition();
+      this.updatePathFindingGrid();
+      console.log("updating updatePathFindingGrid");
+    }
 
     if (!this.getIsDay() && !!this.player) {
       this.nightEndCounter -= _deltaTime;
@@ -296,26 +300,6 @@ export default class LevelManager extends AManager {
     }
   }
 
-  public destroyEntity(entityId: number, type: EntityType): void {
-    switch (type) {
-      case EntityType.BLOCK:
-        this.destroyBlock(entityId);
-        break;
-      case EntityType.COLLECTABLE:
-        this.destroyCoin(entityId);
-        break;
-      case EntityType.ENEMY:
-        this.destroyZombie(entityId);
-        if (this.levelState) this.levelState.zombiesKillCounter += 1;
-        break;
-      case EntityType.PLAYER:
-        this.destroyPlayer();
-        break;
-      default:
-        assertNever(type);
-    }
-  }
-
   public _destroy(): void {
     this.stopSpawningZombies();
     this.player = undefined;
@@ -326,7 +310,7 @@ export default class LevelManager extends AManager {
   // Entities :: Spawn / destroy
   // ==================================================
 
-  private destroyPlayer(): void {
+  public destroyPlayer(): void {
     const { AssetManager, EntityManager } = this.gameInstance.MANAGERS;
 
     for (const track of this.musicDay) track.pause();
@@ -359,21 +343,14 @@ export default class LevelManager extends AManager {
       return entity;
     });
 
+    this.updatePathFindingGrid();
     this.updateBlockGrid();
   }
 
-  private destroyBlock(entityId: number): void {
-    const { EntityManager } = this.gameInstance.MANAGERS;
-
-    const entity = EntityManager.findEntity(entityId);
-    if (!entity) return;
-    const { x, y } = entity._getGridPosition();
-    EntityManager.destroyEntity(entityId);
-
+  public destroyBlock(): void {
     if (!this.levelGrid) return;
-
-    this.levelGrid[x][y] = GridTileState.AVAILABLE;
     this.updateBlockGrid();
+    this.updatePathFindingGrid();
   }
 
   public spawnCoin(gridPos: GridPosition): void {
@@ -382,16 +359,6 @@ export default class LevelManager extends AManager {
       EntityType.COLLECTABLE,
       (entityId) => new Coin({ gameInstance: this.gameInstance, entityId, gridPos }),
     );
-  }
-
-  private destroyCoin(entityId: number): void {
-    const { EntityManager } = this.gameInstance.MANAGERS;
-    EntityManager.destroyEntity(entityId);
-  }
-
-  private destroyZombie(entityId: number): void {
-    const { EntityManager } = this.gameInstance.MANAGERS;
-    EntityManager.destroyEntity(entityId);
   }
 
   // Zombies

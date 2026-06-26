@@ -41,6 +41,10 @@ export class EntityManager extends AManager {
 
   private physicsRenderContainer: undefined | HTMLDivElement;
 
+  private _accumulator = 0;
+  private readonly FIXED_STEP = 1000 / 60; // 16.67ms
+  private readonly MAX_STEPS = 5;
+
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
 
@@ -95,7 +99,16 @@ export class EntityManager extends AManager {
       entity._updateBefore(_deltaTime, _unscaledDeltaTime);
     }
 
-    Matter.Engine.update(this._physicsEngine, _deltaTime * 1000);
+    const cappedDelta = Math.min(_unscaledDeltaTime * 1000, this.FIXED_STEP * this.MAX_STEPS);
+    const timeScale = _unscaledDeltaTime > 0 ? _deltaTime / _unscaledDeltaTime : 1;
+    this._accumulator += cappedDelta * timeScale;
+
+    let steps = 0;
+    while (this._accumulator >= this.FIXED_STEP && steps < this.MAX_STEPS) {
+      Matter.Engine.update(this._physicsEngine, this.FIXED_STEP);
+      this._accumulator -= this.FIXED_STEP;
+      steps++;
+    }
 
     for (const [id, entity] of this._entities) {
       const body = this._physicsBodies.get(id);
@@ -152,7 +165,7 @@ export class EntityManager extends AManager {
     }
 
     Matter.Composite.add(this._physicsEngine.world, body);
-    Matter.Body.set(body, { inertia: Infinity, frictionAir: 0.6, restitution: 0, mass: 10 });
+    Matter.Body.set(body, { inertia: Infinity, frictionAir: 0.6, restitution: 0, mass: 3 });
     body.plugin.offset = {
       x: (entity._collisionPoints[0].x + entity._collisionPoints[1].x) / 2,
       y: (entity._collisionPoints[0].y + entity._collisionPoints[2].y) / 2,

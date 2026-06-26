@@ -107,13 +107,13 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       hitboxesPoints: [
         // Head
         EntityCollisionShape.GetRectangle(
-          { x: -TILE_SIZE / 2 + 8, y: -TILE_SIZE - 1 },
+          { x: -TILE_SIZE / 2 + 8, y: -TILE_SIZE + 4 },
           { x: TILE_SIZE / 2 - 8, y: -TILE_SIZE / 4 - 2 },
         ),
         // Body
         EntityCollisionShape.GetRectangle(
           { x: -TILE_SIZE / 5, y: -TILE_SIZE / 4 - 2 },
-          { x: TILE_SIZE / 5, y: TILE_SIZE / 4 - 2 },
+          { x: TILE_SIZE / 5, y: TILE_SIZE / 4 - 8 },
         ),
       ],
       initialState: PlayerState.IDLE,
@@ -245,12 +245,13 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     },
 
     onDeath: () => {
-      const { VFXManager, AssetManager, EntityManager } = _game.MANAGERS;
+      const { VFXManager, AssetManager, EntityManager, LevelManager } = _game.MANAGERS;
       this._setState(PlayerState.DEAD);
 
       VFXManager.drawBloodOnScreen(600);
       AssetManager.playAudioAsset("APlayerDie", "sound");
       EntityManager.destroyEntity(this._entityId);
+      LevelManager.destroyPlayer();
     },
   };
 

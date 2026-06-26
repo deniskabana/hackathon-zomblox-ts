@@ -97,6 +97,11 @@ export default class Coin extends AEntity<undefined, Instance, Timers> {
       if (lightSourceId) LightManager.removeLightSource(lightSourceId);
     },
 
+    onDeath: () => {
+      const { EntityManager } = _game.MANAGERS;
+      EntityManager.destroyEntity(this._entityId);
+    },
+
     updateAfter: () => {
       const { SettingsManager } = _game.MANAGERS;
       const { minDistanceFromPlayerPx } = SettingsManager.getSettings().collectables;
