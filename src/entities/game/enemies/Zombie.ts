@@ -51,6 +51,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
   constructor({ gameInstance, entityId, gridPos }: EntityConstructorProps) {
     _game = gameInstance;
     const { AssetManager, SettingsManager, LevelManager } = _game.MANAGERS;
+    const { TILE_SIZE } = GRID_CONFIG;
     const settings = SettingsManager.getSettings().zombie;
 
     const timers: Timers = {
@@ -137,8 +138,8 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     };
 
     const colliderWidth = settings.worldSize * 0.45;
-    const colliderHeight = GRID_CONFIG.TILE_SIZE * 1;
-    const colliderOffsetY = -GRID_CONFIG.TILE_SIZE * 0.2;
+    const colliderHeight = TILE_SIZE * 1;
+    const colliderOffsetY = -TILE_SIZE * 0.2;
 
     super({
       worldPos: gridToWorld(gridPos),
@@ -149,6 +150,18 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
         { x: -colliderWidth / 2, y: -colliderHeight / 2 + colliderOffsetY },
         { x: colliderWidth / 2, y: colliderHeight / 2 + colliderOffsetY },
       ),
+      hitboxesPoints: [
+        // Head
+        EntityCollisionShape.GetRectangle(
+          { x: -TILE_SIZE / 2, y: -TILE_SIZE - 6 },
+          { x: TILE_SIZE / 2, y: -TILE_SIZE / 4 - 2 },
+        ),
+        // Body
+        EntityCollisionShape.GetRectangle(
+          { x: -TILE_SIZE / 3 + 2, y: -TILE_SIZE / 4 - 2 },
+          { x: TILE_SIZE / 3 - 2, y: TILE_SIZE / 4 - 2 },
+        ),
+      ],
       initialState: ZombieState.CHASING,
       timers,
       health: settings.maxHealth,
@@ -241,6 +254,18 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
         const wfH = this._getCollisionPoints()[2].y - wfY;
 
         DrawManager.drawRectOutline(wfX, wfY, wfW, wfH, color, 1);
+      }
+
+      if (settings.debugDrawHitboxes) {
+        for (const hitbox of this._hitboxesPoints) {
+          const color = "#4fafaa";
+          const wfX = x + hitbox[0].x;
+          const wfY = y + hitbox[1].y;
+          const wfW = hitbox[1].x - hitbox[0].x;
+          const wfH = hitbox[2].y - hitbox[1].y;
+
+          DrawManager.drawRectOutline(wfX, wfY, wfW, wfH, color, 1);
+        }
       }
     },
 

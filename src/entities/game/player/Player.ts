@@ -49,6 +49,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
   constructor({ gameInstance, entityId, gridPos }: EntityConstructorProps) {
     _game = gameInstance;
     const { SettingsManager, AssetManager } = _game.MANAGERS;
+    const { TILE_SIZE } = GRID_CONFIG;
     const { worldSize, startHealth, movementSpeed, defaultWeapon, stunCooldownSec, stepSoundCooldownSec } =
       SettingsManager.getSettings().player;
 
@@ -92,7 +93,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
 
     const colliderWidth = worldSize * 0.22;
     const colliderHeight = worldSize * 0.3;
-    const colliderOffsetY = -GRID_CONFIG.TILE_SIZE * 0.2;
+    const colliderOffsetY = -TILE_SIZE * 0.2;
 
     super({
       worldPos: gridToWorld(gridPos),
@@ -103,6 +104,18 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
         { x: -colliderWidth / 2, y: -colliderHeight / 2 + colliderOffsetY },
         { x: colliderWidth / 2, y: colliderHeight / 2 + colliderOffsetY },
       ),
+      hitboxesPoints: [
+        // Head
+        EntityCollisionShape.GetRectangle(
+          { x: -TILE_SIZE / 2 + 8, y: -TILE_SIZE - 1 },
+          { x: TILE_SIZE / 2 - 8, y: -TILE_SIZE / 4 - 2 },
+        ),
+        // Body
+        EntityCollisionShape.GetRectangle(
+          { x: -TILE_SIZE / 5, y: -TILE_SIZE / 4 - 2 },
+          { x: TILE_SIZE / 5, y: TILE_SIZE / 4 - 2 },
+        ),
+      ],
       initialState: PlayerState.IDLE,
       timers,
       health: startHealth,
@@ -129,7 +142,6 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       const settings = SettingsManager.getSettings().player;
       const { x, y } = this._getWorldPosition();
       const { TILE_SIZE } = GRID_CONFIG;
-      const size = TILE_SIZE;
       const color = "#ef9f4a";
 
       if (settings.debugDrawWireframe) {
@@ -143,13 +155,25 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       }
 
       if (settings.debugDrawPosition) {
-        DrawManager.drawLine(x - size / 4, y - size / 4, x + size / 4, y + size / 4, color, 2);
-        DrawManager.drawLine(x + size / 4, y - size / 4, x - size / 4, y + size / 4, color, 2);
+        DrawManager.drawLine(x - 4, y - 4, x + 4, y + 4, color, 1);
+        DrawManager.drawLine(x + 4, y - 4, x - 4, y + 4, color, 1);
       }
 
       if (settings.debugDrawState) {
         DrawManager.drawRectFilled(x - TILE_SIZE / 2, y - TILE_SIZE * 1.1 - 11, TILE_SIZE, 15, "#000", 0.5);
         DrawManager.drawText(this._getState(), x, y - TILE_SIZE * 1.1, color, 13, "Courier New", "center", 1, true);
+      }
+
+      if (settings.debugDrawHitboxes) {
+        for (const hitbox of this._hitboxesPoints) {
+          const color = "#4fafaa";
+          const wfX = x + hitbox[0].x;
+          const wfY = y + hitbox[1].y;
+          const wfW = hitbox[1].x - hitbox[0].x;
+          const wfH = hitbox[2].y - hitbox[1].y;
+
+          DrawManager.drawRectOutline(wfX, wfY, wfW, wfH, color, 1);
+        }
       }
     },
 
@@ -200,7 +224,6 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       if (this._getState() === PlayerState.KNOCKED && this._timers.stun.getIsDone()) {
         this._setState(PlayerState.IDLE);
       }
-
       this.applyMovement(_deltaTime);
     },
 
@@ -223,7 +246,6 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
 
     onDeath: () => {
       const { VFXManager, AssetManager, EntityManager } = _game.MANAGERS;
-
       this._setState(PlayerState.DEAD);
 
       VFXManager.drawBloodOnScreen(600);
@@ -468,7 +490,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
           if (checkedEntities.has(entity._getEntityId())) continue;
           checkedEntities.add(entity._getEntityId());
 
-          const hit = raycastAABB(origin, direction, maxDistance, entity._getAABB());
+          const hit = raycastAABB(origin, direction, maxDistance, entity._getHitboxes());
           if (hit && (!closestEntityHit || hit.distance <= closestEntityHit.distance)) {
             if (!entity._getIsDead()) closestEntityHit = { type: "entity", entity, ...hit };
           }

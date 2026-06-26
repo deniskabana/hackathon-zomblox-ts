@@ -212,16 +212,21 @@ export default abstract class AEntity<
     };
   }
 
-  public _getHitbox(): AABB {
-    const points = this._getCollisionPoints();
-    const { x, y } = this._getWorldPosition();
+  public _getHitboxes(): AABB[] {
+    const hitboxes: AABB[] = [];
 
-    return {
-      left: x + Math.min(...points.map((p) => Math.round(p.x * 100) / 100)),
-      right: x + Math.max(...points.map((p) => Math.round(p.x * 100) / 100)),
-      top: y + Math.min(...points.map((p) => Math.round(p.y * 100) / 100)),
-      bottom: y + Math.max(...points.map((p) => Math.round(p.y * 100) / 100)),
-    };
+    for (const points of this._hitboxesPoints) {
+      const { x, y } = this._getWorldPosition();
+
+      hitboxes.push({
+        left: x + Math.min(...points.map((p) => Math.round(p.x * 100) / 100)),
+        right: x + Math.max(...points.map((p) => Math.round(p.x * 100) / 100)),
+        top: y + Math.min(...points.map((p) => Math.round(p.y * 100) / 100)),
+        bottom: y + Math.max(...points.map((p) => Math.round(p.y * 100) / 100)),
+      });
+    }
+
+    return hitboxes;
   }
 
   public _getNearbyEntities(

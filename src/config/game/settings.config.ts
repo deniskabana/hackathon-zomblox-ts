@@ -41,7 +41,7 @@ export interface GameSettingsSpec {
 export const DEFAULT_SETTINGS: Readonly<GameSettingsSpec> = {
   gameplay: {
     speedScale: 1,
-    volumeMaster: 1,
+    volumeMaster: 0,
     volumeEffects: 1,
     volumeMusic: 1,
   },
@@ -84,7 +84,7 @@ export const DEFAULT_SETTINGS: Readonly<GameSettingsSpec> = {
   player: {
     worldSize: GRID_CONFIG.TILE_SIZE * 1.75,
     startHealth: 200,
-    movementSpeed: 190,
+    movementSpeed: 210,
     defaultWeapon: "Revolver",
     lightRadius: 4.5,
     stunCooldownSec: 2,
