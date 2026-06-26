@@ -1,4 +1,4 @@
-import { GRID_CONFIG, gridToWorld } from "../../../config/core/grid.config";
+import { GRID_CONFIG } from "../../../config/core/grid.config";
 import type GameInstance from "../../../GameInstance";
 import { ZIndex } from "../../../types/lib/ZIndex";
 import AEntity, { type AEntityEngineBody, type EntityConstructorProps } from "../../engine/AEntity";
@@ -12,7 +12,7 @@ interface Instance {
 }
 
 export default class BlockBarrelFire extends AEntity<undefined, Instance> {
-  constructor({ gameInstance, entityId, gridPos }: EntityConstructorProps) {
+  constructor({ gameInstance, entityId, worldPos }: EntityConstructorProps) {
     _game = gameInstance;
     const { SettingsManager, LightManager, AssetManager } = _game.MANAGERS;
     const settings = SettingsManager.getSettings().blocks;
@@ -28,7 +28,7 @@ export default class BlockBarrelFire extends AEntity<undefined, Instance> {
     };
 
     super({
-      worldPos: gridToWorld(gridPos),
+      worldPos,
       health: settings.healthFireBarrel,
       collisionPoints: EntityCollisionShape.GetSquare(0, 0, worldSize * 0.9),
       entityId,

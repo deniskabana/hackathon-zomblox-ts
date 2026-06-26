@@ -10,6 +10,7 @@ import assertNever from "../../utils/assertNever";
 import { AManager } from "../abstract/AManager";
 import { GRID_CONFIG } from "../../config/core/grid.config";
 import { GridTileState } from "../../utils/grid/generateMapBlockGrid";
+import { EntityType } from "../../types/engine/EntityType";
 
 type EntityTypePlayer = Player;
 type EntityTypeEnemy = Zombie;
@@ -17,13 +18,6 @@ type EntityTypeCollectable = Coin;
 type EntityTypeBlock = BlockBarrelFire | BlockWood;
 
 export type EntityID = number;
-
-export enum EntityType {
-  PLAYER = "PLAYER",
-  ENEMY = "ENEMY",
-  COLLECTABLE = "COLLECTABLE",
-  BLOCK = "BLOCK",
-}
 
 export class EntityManager extends AManager {
   private _entityIdCounter: EntityID = 0;
@@ -155,10 +149,14 @@ export class EntityManager extends AManager {
         this._enemies.add(id);
         break;
       case EntityType.COLLECTABLE:
+        Matter.Body.set(body, { isSensor: true });
         this._collectables.add(id);
         break;
       case EntityType.BLOCK:
         this._blocks.add(id);
+        break;
+      case EntityType.SENSOR:
+        Matter.Body.set(body, { isSensor: true });
         break;
       default:
         assertNever(type);

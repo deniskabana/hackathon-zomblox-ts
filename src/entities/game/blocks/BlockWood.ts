@@ -1,4 +1,4 @@
-import { gridToWorld, GRID_CONFIG } from "../../../config/core/grid.config";
+import { GRID_CONFIG } from "../../../config/core/grid.config";
 import type GameInstance from "../../../GameInstance";
 import { ZIndex } from "../../../types/lib/ZIndex";
 import AEntity, { type AEntityEngineBody, type EntityConstructorProps } from "../../engine/AEntity";
@@ -7,14 +7,14 @@ import { EntityCollisionShape } from "../../engine/systems/EntityCollisionPoints
 /** `this.gameInstance` */ let _game: GameInstance;
 
 export default class BlockWood extends AEntity {
-  constructor({ gameInstance, entityId, gridPos }: EntityConstructorProps) {
+  constructor({ gameInstance, entityId, worldPos }: EntityConstructorProps) {
     _game = gameInstance;
     const { SettingsManager } = _game.MANAGERS;
     const settings = SettingsManager.getSettings().blocks;
     const worldSize = GRID_CONFIG.TILE_SIZE;
 
     super({
-      worldPos: gridToWorld(gridPos),
+      worldPos,
       health: settings.healthWood,
       collisionPoints: EntityCollisionShape.GetSquare(0, 0, worldSize),
       entityId,

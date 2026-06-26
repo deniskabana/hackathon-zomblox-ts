@@ -1,5 +1,5 @@
 import Matter from "matter-js";
-import { GRID_CONFIG, gridToWorld } from "../../../config/core/grid.config";
+import { GRID_CONFIG } from "../../../config/core/grid.config";
 import type GameInstance from "../../../GameInstance";
 import type { Vector } from "../../../types/lib/Vector";
 import { ZIndex } from "../../../types/lib/ZIndex";
@@ -11,6 +11,8 @@ import AEntity, { type AEntityEngineBody, type EntityConstructorProps } from "..
 import type { EntityAnimationsSpecs } from "../../engine/systems/EntityAnimation";
 import { EntityCollisionShape } from "../../engine/systems/EntityCollisionPoints";
 import { EntityTimer } from "../../engine/systems/EntityTimer";
+import { EntityType } from "../../../types/engine/EntityType";
+import SensorAttackSlash from "../sensors/SensorAttackSlash";
 
 /** `this.gameInstance` */ let _game: GameInstance;
 
@@ -48,15 +50,15 @@ interface Instance {
 }
 
 export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
-  constructor({ gameInstance, entityId, gridPos }: EntityConstructorProps) {
+  constructor({ gameInstance, entityId, worldPos }: EntityConstructorProps) {
     _game = gameInstance;
     const { AssetManager, SettingsManager, LevelManager } = _game.MANAGERS;
     const { TILE_SIZE } = GRID_CONFIG;
     const settings = SettingsManager.getSettings().zombie;
 
     const timers: Timers = {
-      attack: new EntityTimer({ initialValue: settings.attackDurationSec, autoStart: false }),
-      attackCooldown: new EntityTimer({ initialValue: settings.attackCooldownSec, autoStart: false }),
+      attack: new EntityTimer({ initialValue: settings.attackDurationSec }),
+      attackCooldown: new EntityTimer({ initialValue: settings.attackCooldownSec }),
       deathAnimation: new EntityTimer({ initialValue: 1, autoStart: false }),
       movementRestart: new EntityTimer({ initialValue: settings.movementRestartSec, autoStart: false }),
       facingDirection: new EntityTimer({ initialValue: settings.facingDirThrottleSec, autoStart: false }),
@@ -142,7 +144,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     const colliderOffsetY = -TILE_SIZE * 0.2;
 
     super({
-      worldPos: gridToWorld(gridPos),
+      worldPos,
       size: settings.worldSize,
       entityId,
       animations,
@@ -293,8 +295,12 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
           break;
 
         case ZombieState.ATTACKING:
-          // this._animations?.setActiveAnimations(["death"]); // TODO: add correct animation
-          if (this._timers.attack.getIsDone()) this._setState(ZombieState.CHASING);
+          this._animations?.setActiveAnimations(["idle"]);
+          // TODO: add attack animation
+          if (this._timers.attack.getIsDone()) {
+            this._setState(ZombieState.IDLE);
+            this._timers.attackCooldown.reset();
+          }
           break;
 
         case ZombieState.KNOCKED:
@@ -358,7 +364,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
         y: y - TILE_SIZE / 2 + (-0.5 + Math.random()) * 4,
       });
 
-      if (settings.dropsItems) LevelManager.spawnCoin({ x: x / TILE_SIZE - 0.5, y: y / TILE_SIZE - 0.5 });
+      if (settings.dropsItems) LevelManager.spawnCoin({ x: x - TILE_SIZE / 2, y: y - TILE_SIZE / 2 });
     },
   };
 
@@ -378,12 +384,18 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     this._instance.desiredVelocity = this._instance.maxSpeed * 3.25;
   }
 
-  // TODO: Unused
-  public startAttacking(): void {
-    const { AssetManager, SettingsManager } = _game.MANAGERS;
+  private startAttacking(): void {
+    const { AssetManager, SettingsManager, EntityManager } = _game.MANAGERS;
     const { attackDurationSec } = SettingsManager.getSettings().zombie;
 
     if (!this._timers.attackCooldown.getIsDone()) return;
+    if (!this._timers.attack.getIsActive()) return;
+
+    EntityManager.createEntity(
+      EntityType.SENSOR,
+      (entityId) => new SensorAttackSlash({ worldPos: this._getWorldPosition(), entityId, gameInstance: _game }),
+    );
+
     this._setState(ZombieState.ATTACKING);
     this._timers.attack.reset(attackDurationSec);
     this._instance.hasDealtDamage = false;
@@ -492,7 +504,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     this._instance.movementDirection = lerpAngle(movementDirection, targetDirection, _deltaTime * 8.5);
 
     if (this.getIsNextToPlayer()) {
-      this._setState(ZombieState.IDLE);
+      this.startAttacking();
       this._timers.movementRestart.reset(settings.movementRestartSec);
       return;
     }
@@ -513,16 +525,27 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     }
   }
 
-  private getIsNextToPlayer(distance: number = 1): boolean {
+  private getIsNextToPlayer(distance: number = 0.5): boolean {
     const { LevelManager } = _game.MANAGERS;
+    const { TILE_SIZE } = GRID_CONFIG;
     const player = LevelManager.player;
     if (!player) return false;
 
-    const { x: pgx, y: pgy } = player._getGridPosition();
-    const { x: gx, y: gy } = this._getGridPosition();
+    const playerAABB = player._getAABB();
+    const zombieAABB = this._getAABB();
 
-    const isCloseToPlayer =
-      pgx >= gx - distance && pgx <= gx + distance && pgy >= gy - distance && pgy <= gy + distance;
-    return isCloseToPlayer;
+    const expanded = {
+      left: zombieAABB.left - distance * TILE_SIZE,
+      right: zombieAABB.right + distance * TILE_SIZE,
+      top: zombieAABB.top - distance * TILE_SIZE,
+      bottom: zombieAABB.bottom + distance * TILE_SIZE,
+    };
+
+    return (
+      playerAABB.right >= expanded.left &&
+      playerAABB.left <= expanded.right &&
+      playerAABB.bottom >= expanded.top &&
+      playerAABB.top <= expanded.bottom
+    );
   }
 }

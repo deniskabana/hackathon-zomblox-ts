@@ -3,4 +3,5 @@ export enum EntityType {
   PLAYER = "PLAYER",
   ENEMY = "ENEMY",
   COLLECTABLE = "COLLECTABLE",
+  SENSOR = "SENSOR",
 }

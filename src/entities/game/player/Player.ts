@@ -1,5 +1,5 @@
 import Matter from "matter-js";
-import { type GridPosition, type WorldPosition, GRID_CONFIG, gridToWorld } from "../../../config/core/grid.config";
+import { type GridPosition, type WorldPosition, GRID_CONFIG } from "../../../config/core/grid.config";
 import type { AssetAudioName } from "../../../config/game/assets.config";
 import { type Weapon, DEF_WEAPONS } from "../../../config/game/weapons.config";
 import type GameInstance from "../../../GameInstance";
@@ -46,7 +46,7 @@ interface Instance {
 }
 
 export default class Player extends AEntity<PlayerState, Instance, Timers> {
-  constructor({ gameInstance, entityId, gridPos }: EntityConstructorProps) {
+  constructor({ gameInstance, entityId, worldPos }: EntityConstructorProps) {
     _game = gameInstance;
     const { SettingsManager, AssetManager } = _game.MANAGERS;
     const { TILE_SIZE } = GRID_CONFIG;
@@ -96,7 +96,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     const colliderOffsetY = -TILE_SIZE * 0.2;
 
     super({
-      worldPos: gridToWorld(gridPos),
+      worldPos,
       size: worldSize,
       entityId,
       animations,

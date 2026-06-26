@@ -19,7 +19,7 @@ interface Instance {
 }
 
 export default class Coin extends AEntity<undefined, Instance, Timers> {
-  constructor({ gameInstance, entityId, gridPos }: EntityConstructorProps) {
+  constructor({ gameInstance, entityId, worldPos }: EntityConstructorProps) {
     _game = gameInstance;
     const { LightManager, AssetManager, SettingsManager } = _game.MANAGERS;
     const { lifetimeCoin } = SettingsManager.getSettings().collectables;
@@ -29,8 +29,8 @@ export default class Coin extends AEntity<undefined, Instance, Timers> {
     };
 
     const lightPos: WorldPosition = gridToWorld({
-      x: gridPos.x - 0.5,
-      y: gridPos.y - 0.5,
+      x: worldPos.x - size / 2,
+      y: worldPos.y - size / 2,
     });
     const instance: Instance = {
       playerDistance: Infinity,
@@ -45,7 +45,7 @@ export default class Coin extends AEntity<undefined, Instance, Timers> {
     };
 
     super({
-      worldPos: gridToWorld(gridPos),
+      worldPos,
       health: Infinity,
       entityId,
       collisionPoints: EntityCollisionShape.GetSquare(0, 0, size * 0.9),

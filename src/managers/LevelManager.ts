@@ -4,6 +4,8 @@ import {
   GRID_CONFIG,
   type GridPosition,
   type WorldPosition,
+  worldToGrid,
+  gridToWorld,
 } from "../config/core/grid.config";
 import type { AnyEntity } from "../entities/engine/AEntity";
 import BlockBarrelFire from "../entities/game/blocks/BlockBarrelFire";
@@ -16,6 +18,7 @@ import MapTilesetManager from "../map/MapTilesetManager";
 import type { GameMap } from "../map/parseJsonMap";
 import parseJsonMap from "../map/parseJsonMap";
 import type { AudioControl } from "../types/AudioControl";
+import { EntityType } from "../types/engine/EntityType";
 import type { LevelState } from "../types/LevelState";
 import { ZIndex } from "../types/lib/ZIndex";
 import assertNever from "../utils/assertNever";
@@ -25,7 +28,6 @@ import getMapBlockGrid from "../utils/grid/generateMapBlockGrid";
 import areVectorsEqual from "../utils/math/areVectorsEqual";
 import { AManager } from "./abstract/AManager";
 import { BlockTypes } from "./BuildModeManager";
-import { EntityType } from "./engine/EntityManager";
 
 export default class LevelManager extends AManager {
   public worldWidth: number = WORLD_SIZE.WIDTH;
@@ -45,7 +47,7 @@ export default class LevelManager extends AManager {
   private tileset?: MapTilesetManager;
   private mapLayerBelowPlayer!: HTMLCanvasElement;
   private mapLayerAbovePlayer!: HTMLCanvasElement;
-  private mapSpawnPoints: WorldPosition[];
+  private mapSpawnPoints: GridPosition[];
 
   // Entities
   public player?: Player;
@@ -87,7 +89,7 @@ export default class LevelManager extends AManager {
 
     this.player = this.gameInstance.MANAGERS.EntityManager.createEntity<Player>(
       EntityType.PLAYER,
-      (entityId) => new Player({ gridPos: map.spawn, entityId, gameInstance: this.gameInstance }),
+      (entityId) => new Player({ worldPos: worldToGrid(map.spawn), entityId, gameInstance: this.gameInstance }),
     );
 
     this.levelState = {
@@ -162,7 +164,6 @@ export default class LevelManager extends AManager {
     if (!this.playerLastGridPos || !areVectorsEqual(this.playerLastGridPos, this.player._getGridPosition())) {
       this.playerLastGridPos = this.player._getGridPosition();
       this.updatePathFindingGrid();
-      console.log("updating updatePathFindingGrid");
     }
 
     if (!this.getIsDay() && !!this.player) {
@@ -321,18 +322,19 @@ export default class LevelManager extends AManager {
     for (const zombie of EntityManager.getEnemies()) zombie.startWaiting();
   }
 
-  public spawnBlock(pos: GridPosition, type: BlockTypes = BlockTypes.Wood): void {
+  public spawnBlock(gridPos: GridPosition, type: BlockTypes = BlockTypes.Wood): void {
     const { EntityManager } = this.gameInstance.MANAGERS;
+    const pos = gridToWorld(gridPos);
 
     EntityManager.createEntity(EntityType.BLOCK, (entityId) => {
       let entity: AnyEntity | undefined = undefined;
 
       switch (type) {
         case BlockTypes.Wood:
-          entity = new BlockWood({ gridPos: pos, entityId, gameInstance: this.gameInstance });
+          entity = new BlockWood({ worldPos: pos, entityId, gameInstance: this.gameInstance });
           break;
         case BlockTypes.FireBarrel:
-          entity = new BlockBarrelFire({ gridPos: pos, entityId, gameInstance: this.gameInstance });
+          entity = new BlockBarrelFire({ worldPos: pos, entityId, gameInstance: this.gameInstance });
           break;
         default:
           assertNever(type);
@@ -353,11 +355,11 @@ export default class LevelManager extends AManager {
     this.updatePathFindingGrid();
   }
 
-  public spawnCoin(gridPos: GridPosition): void {
+  public spawnCoin(worldPos: WorldPosition): void {
     const { EntityManager } = this.gameInstance.MANAGERS;
     EntityManager.createEntity(
       EntityType.COLLECTABLE,
-      (entityId) => new Coin({ gameInstance: this.gameInstance, entityId, gridPos }),
+      (entityId) => new Coin({ gameInstance: this.gameInstance, entityId, worldPos }),
     );
   }
 
@@ -396,14 +398,14 @@ export default class LevelManager extends AManager {
     return EntityManager.createEntity(
       EntityType.ENEMY,
       (entityId) =>
-        new Zombie({ gameInstance: this.gameInstance, entityId, gridPos: this.getRandomZombieSpawnPosition() }),
+        new Zombie({ gameInstance: this.gameInstance, entityId, worldPos: this.getRandomZombieSpawnPosition() }),
     );
   }
 
   private getRandomZombieSpawnPosition(): WorldPosition {
-    return this.mapSpawnPoints[Math.floor(Math.random() * this.mapSpawnPoints.length)] || { x: 0, y: 0 };
-    // const result = this.mapSpawnPoints[Math.floor(Math.random() * this.mapSpawnPoints.length)] || { x: 0, y: 0 };
-    // return { x: clamp(1, result.x, GRID_CONFIG.GRID_WIDTH - 2), y: clamp(1, result.y, GRID_CONFIG.GRID_HEIGHT - 2) };
+    const point = this.mapSpawnPoints[Math.floor(Math.random() * this.mapSpawnPoints.length)];
+    if (!point) return { x: 0, y: 0 };
+    return gridToWorld(point);
   }
 
   // Day and night

@@ -22,7 +22,7 @@ export interface AEntityEngineBody {
 }
 
 export interface EntityConstructorProps {
-  gridPos: GridPosition;
+  worldPos: WorldPosition;
   entityId: number;
   gameInstance: GameInstance;
 }

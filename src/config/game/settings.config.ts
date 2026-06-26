@@ -61,7 +61,7 @@ export const DEFAULT_SETTINGS: Readonly<GameSettingsSpec> = {
   zombie: {
     worldSize: GRID_CONFIG.TILE_SIZE * 1.75,
     attackDurationSec: 0.4,
-    attackCooldownSec: 2,
+    attackCooldownSec: 1.2,
     hitStateDurationSec: 0.3,
     knockedStateDurationSec: 3,
     movementRestartSec: 0.5,
