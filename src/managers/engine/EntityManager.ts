@@ -168,6 +168,7 @@ export class EntityManager extends AManager {
       x: (entity._collisionPoints[0].x + entity._collisionPoints[1].x) / 2,
       y: (entity._collisionPoints[0].y + entity._collisionPoints[2].y) / 2,
     };
+    body.plugin.entity = entity;
 
     this._physicsBodies.set(id, body);
     entity._physicsBody = body;

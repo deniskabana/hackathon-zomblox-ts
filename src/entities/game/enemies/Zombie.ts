@@ -1,5 +1,5 @@
 import Matter from "matter-js";
-import { GRID_CONFIG, gridToWorld, type WorldPosition } from "../../../config/core/grid.config";
+import { GRID_CONFIG, type WorldPosition } from "../../../config/core/grid.config";
 import type GameInstance from "../../../GameInstance";
 import type { Vector } from "../../../types/lib/Vector";
 import { ZIndex } from "../../../types/lib/ZIndex";
@@ -367,7 +367,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
         y: y - TILE_SIZE / 2 + (-0.5 + Math.random()) * 4,
       });
 
-      if (settings.dropsItems) LevelManager.spawnCoin(gridToWorld({ x: x - TILE_SIZE / 2, y: y - TILE_SIZE / 2 }));
+      if (settings.dropsItems) LevelManager.spawnCoin({ x, y });
     },
 
     onDestroy: () => {

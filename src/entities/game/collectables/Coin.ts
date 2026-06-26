@@ -1,3 +1,4 @@
+import Matter from "matter-js";
 import { GRID_CONFIG, gridToWorld, type WorldPosition } from "../../../config/core/grid.config";
 import type GameInstance from "../../../GameInstance";
 import { ZIndex } from "../../../types/lib/ZIndex";
@@ -21,7 +22,7 @@ interface Instance {
 export default class Coin extends AEntity<undefined, Instance, Timers> {
   constructor({ gameInstance, entityId, worldPos }: EntityConstructorProps) {
     _game = gameInstance;
-    const { LightManager, AssetManager, SettingsManager } = _game.MANAGERS;
+    const { LightManager, AssetManager, SettingsManager, EntityManager } = _game.MANAGERS;
     const { lifetimeCoin } = SettingsManager.getSettings().collectables;
     const size = GRID_CONFIG.TILE_SIZE / 3;
     const timers: Timers = {
@@ -55,6 +56,8 @@ export default class Coin extends AEntity<undefined, Instance, Timers> {
       initialState: undefined,
       instance,
     });
+
+    Matter.Events.on(EntityManager._physicsEngine, "collisionActive", this._onCollision);
   }
 
   public _engine: AEntityEngineBody = {
@@ -96,24 +99,34 @@ export default class Coin extends AEntity<undefined, Instance, Timers> {
       const { lightSourceId } = this._instance;
       if (lightSourceId) LightManager.removeLightSource(lightSourceId);
 
+      Matter.Events.off(EntityManager._physicsEngine, "collisionActive", this._onCollision);
       EntityManager.destroyEntity(this._entityId);
     },
 
     updateAfter: () => {
-      const { SettingsManager } = _game.MANAGERS;
-      const { minDistanceFromPlayerPx } = SettingsManager.getSettings().collectables;
-
-      if (this._instance.playerDistance < minDistanceFromPlayerPx) this.handleCollected();
       if (this._timers.coinLifetime.getIsDone()) this._destructor();
     },
   };
 
+  private _onCollision = (event: Matter.IEventCollision<Matter.Engine>) => {
+    const { LevelManager } = _game.MANAGERS;
+
+    for (const pair of event.pairs) {
+      const other =
+        pair.bodyA === this._physicsBody ? pair.bodyB : pair.bodyB === this._physicsBody ? pair.bodyA : null;
+      if (!other) continue;
+
+      const entity = other.plugin?.entity;
+      if (entity === LevelManager.player) this.handleCollected();
+    }
+  };
+
   private handleCollected(): void {
-    const { AssetManager, LevelManager, EntityManager, SettingsManager } = _game.MANAGERS;
+    const { AssetManager, LevelManager, SettingsManager } = _game.MANAGERS;
     const settings = SettingsManager.getSettings().rules;
 
     AssetManager.playAudioAsset("AFXCoinCollected", "sound", 0.3);
     LevelManager.addCurrency(1 * settings.incomeScale);
-    EntityManager.destroyEntity(this._entityId);
+    this._destructor();
   }
 }

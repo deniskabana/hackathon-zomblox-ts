@@ -79,7 +79,7 @@ export const DEF_ASSETS_IMAGE = {
   IFXBloodOverlay: "/images/blood-overlay.png",
   SFXBloodSplat: "/images/blood-spritesheet-16x16.png",
   IFXEntityShadow: "/images/entity-shadow.png",
-  IFXAttackSlash: "/images/slash-effect2.png", // https://opengameart.org/content/weapon-slash-effect
+  IFXAttackSlash: "/images/slash-effect4.png", // https://opengameart.org/content/weapon-slash-effect
   // Shop
   ICoinSingle: "/images/coin-single.png",
   IShopRevolver: "/images/Revolver - Colt 45 [64x32].png", // https://arcadeisland.itch.io/guns-asset-pack-v1
