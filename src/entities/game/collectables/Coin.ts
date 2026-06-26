@@ -92,13 +92,10 @@ export default class Coin extends AEntity<undefined, Instance, Timers> {
     },
 
     onDestroy: () => {
-      const { LightManager } = _game.MANAGERS;
+      const { LightManager, EntityManager } = _game.MANAGERS;
       const { lightSourceId } = this._instance;
       if (lightSourceId) LightManager.removeLightSource(lightSourceId);
-    },
 
-    onDeath: () => {
-      const { EntityManager } = _game.MANAGERS;
       EntityManager.destroyEntity(this._entityId);
     },
 

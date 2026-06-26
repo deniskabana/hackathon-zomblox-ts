@@ -8,18 +8,20 @@ import { EntityTimer } from "../../engine/systems/EntityTimer";
 /** `this.gameInstance` */ let _game: GameInstance;
 
 interface Timers {
-  destroy: EntityTimer<"Destroy sensor automatically">;
+  lifetime: EntityTimer<"Destroy sensor automatically">;
 }
 
 export default class SensorAttackSlash extends AEntity<undefined, undefined, Timers> {
   constructor({ gameInstance, entityId, worldPos }: EntityConstructorProps) {
     _game = gameInstance;
-    const { AssetManager } = _game.MANAGERS;
+    const { AssetManager, SettingsManager } = _game.MANAGERS;
+
+    const { attackDurationSec } = SettingsManager.getSettings().zombie;
 
     const animations: EntityAnimationsSpecs = {
       frameWidth: 40,
       frameHeight: 40,
-      fps: 8,
+      fps: 7,
       animations: [
         {
           id: "idle",
@@ -40,7 +42,7 @@ export default class SensorAttackSlash extends AEntity<undefined, undefined, Tim
         { x: GRID_CONFIG.TILE_SIZE / 2, y: GRID_CONFIG.TILE_SIZE / 2 },
       ),
       animations,
-      timers: { destroy: new EntityTimer({ initialValue: 1, autoStart: true }) },
+      timers: { lifetime: new EntityTimer({ initialValue: attackDurationSec, autoStart: true }) },
     });
 
     this._animations?.setActiveAnimations(["idle"]);
@@ -54,5 +56,14 @@ export default class SensorAttackSlash extends AEntity<undefined, undefined, Tim
     },
 
     drawDebug: () => {},
+
+    updateAfter: () => {
+      if (this._timers.lifetime.getIsDone()) this._destructor();
+    },
+
+    onDestroy: () => {
+      const { EntityManager } = _game.MANAGERS;
+      EntityManager.destroyEntity(this._entityId);
+    },
   };
 }

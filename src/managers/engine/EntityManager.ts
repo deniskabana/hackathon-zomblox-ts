@@ -178,8 +178,6 @@ export class EntityManager extends AManager {
   public destroyEntity(id: EntityID): void {
     if (!this._entities.has(id)) return;
 
-    this._entities.get(id)?._destructor();
-
     const body = this._physicsBodies.get(id);
     if (body) Matter.Composite.remove(this._physicsEngine.world, body);
 

@@ -187,11 +187,6 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       DrawManager.queueDraw(x - size / 2, y - size * 0.55, shadowSprite, size, size, ZIndex.GROUND_EFFECTS);
     },
 
-    onDestroy: () => {
-      const { LevelManager, UIManager } = _game.MANAGERS;
-      if (LevelManager.levelState) UIManager.showGameOverScreen(LevelManager.levelState); // TODO: Move to LevelManager
-    },
-
     updateBefore: (_deltaTime: number) => {
       const state = this._getState();
 
@@ -245,13 +240,19 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     },
 
     onDeath: () => {
-      const { VFXManager, AssetManager, EntityManager, LevelManager } = _game.MANAGERS;
+      const { UIManager, VFXManager, AssetManager, LevelManager } = _game.MANAGERS;
       this._setState(PlayerState.DEAD);
+
+      if (LevelManager.levelState) UIManager.showGameOverScreen(LevelManager.levelState); // TODO: Move to LevelManager
 
       VFXManager.drawBloodOnScreen(600);
       AssetManager.playAudioAsset("APlayerDie", "sound");
-      EntityManager.destroyEntity(this._entityId);
       LevelManager.destroyPlayer();
+    },
+
+    onDestroy: () => {
+      const { EntityManager } = _game.MANAGERS;
+      EntityManager.destroyEntity(this._entityId);
     },
   };
 

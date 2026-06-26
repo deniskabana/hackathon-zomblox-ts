@@ -4,7 +4,6 @@ import {
   GRID_CONFIG,
   type GridPosition,
   type WorldPosition,
-  worldToGrid,
   gridToWorld,
 } from "../config/core/grid.config";
 import type { AnyEntity } from "../entities/engine/AEntity";
@@ -47,7 +46,7 @@ export default class LevelManager extends AManager {
   private tileset?: MapTilesetManager;
   private mapLayerBelowPlayer!: HTMLCanvasElement;
   private mapLayerAbovePlayer!: HTMLCanvasElement;
-  private mapSpawnPoints: GridPosition[];
+  private mapSpawnPoints: WorldPosition[];
 
   // Entities
   public player?: Player;
@@ -89,7 +88,7 @@ export default class LevelManager extends AManager {
 
     this.player = this.gameInstance.MANAGERS.EntityManager.createEntity<Player>(
       EntityType.PLAYER,
-      (entityId) => new Player({ worldPos: worldToGrid(map.spawn), entityId, gameInstance: this.gameInstance }),
+      (entityId) => new Player({ worldPos: gridToWorld(map.spawn), entityId, gameInstance: this.gameInstance }),
     );
 
     this.levelState = {
@@ -322,19 +321,19 @@ export default class LevelManager extends AManager {
     for (const zombie of EntityManager.getEnemies()) zombie.startWaiting();
   }
 
-  public spawnBlock(gridPos: GridPosition, type: BlockTypes = BlockTypes.Wood): void {
+  public spawnBlock(pos: GridPosition, type: BlockTypes = BlockTypes.Wood): void {
     const { EntityManager } = this.gameInstance.MANAGERS;
-    const pos = gridToWorld(gridPos);
+    const worldPos = gridToWorld(pos);
 
     EntityManager.createEntity(EntityType.BLOCK, (entityId) => {
       let entity: AnyEntity | undefined = undefined;
 
       switch (type) {
         case BlockTypes.Wood:
-          entity = new BlockWood({ worldPos: pos, entityId, gameInstance: this.gameInstance });
+          entity = new BlockWood({ worldPos, entityId, gameInstance: this.gameInstance });
           break;
         case BlockTypes.FireBarrel:
-          entity = new BlockBarrelFire({ worldPos: pos, entityId, gameInstance: this.gameInstance });
+          entity = new BlockBarrelFire({ worldPos, entityId, gameInstance: this.gameInstance });
           break;
         default:
           assertNever(type);
@@ -403,9 +402,9 @@ export default class LevelManager extends AManager {
   }
 
   private getRandomZombieSpawnPosition(): WorldPosition {
-    const point = this.mapSpawnPoints[Math.floor(Math.random() * this.mapSpawnPoints.length)];
-    if (!point) return { x: 0, y: 0 };
-    return gridToWorld(point);
+    const spawnPoint = this.mapSpawnPoints[Math.floor(Math.random() * this.mapSpawnPoints.length)];
+    if (!spawnPoint) return { x: 0, y: 0 };
+    return gridToWorld(spawnPoint);
   }
 
   // Day and night

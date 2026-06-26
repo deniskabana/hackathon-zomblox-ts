@@ -1,5 +1,5 @@
 import Matter from "matter-js";
-import { GRID_CONFIG } from "../../../config/core/grid.config";
+import { GRID_CONFIG, gridToWorld } from "../../../config/core/grid.config";
 import type GameInstance from "../../../GameInstance";
 import type { Vector } from "../../../types/lib/Vector";
 import { ZIndex } from "../../../types/lib/ZIndex";
@@ -273,7 +273,6 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
 
     updateBefore: (_deltaTime) => {
       const state = this._getState();
-      const { EntityManager } = _game.MANAGERS;
 
       if (this._getIsDead()) this._setState(ZombieState.DEAD);
 
@@ -315,7 +314,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
         case ZombieState.DEAD:
           this._animations?.setActiveAnimations(["death"]);
           if (!this._timers.deathAnimation.getIsActive()) this._timers.deathAnimation.reset();
-          if (this._timers.deathAnimation.getIsDone()) EntityManager.destroyEntity(this._entityId);
+          if (this._timers.deathAnimation.getIsDone()) this._destructor();
           break;
 
         default:
@@ -364,7 +363,12 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
         y: y - TILE_SIZE / 2 + (-0.5 + Math.random()) * 4,
       });
 
-      if (settings.dropsItems) LevelManager.spawnCoin({ x: x - TILE_SIZE / 2, y: y - TILE_SIZE / 2 });
+      if (settings.dropsItems) LevelManager.spawnCoin(gridToWorld({ x: x - TILE_SIZE / 2, y: y - TILE_SIZE / 2 }));
+    },
+
+    onDestroy: () => {
+      const { EntityManager } = _game.MANAGERS;
+      EntityManager.destroyEntity(this._entityId);
     },
   };
 
