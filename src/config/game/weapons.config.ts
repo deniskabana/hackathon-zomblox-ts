@@ -49,7 +49,7 @@ export const DEF_WEAPONS = {
     displayName: "SMG",
     shots: 1,
     radius: 4,
-    cooldown: 0.2,
+    cooldown: 0.13,
     damage: 5,
     reloadTimeSec: 2.7,
     cost: 275,

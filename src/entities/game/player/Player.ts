@@ -45,6 +45,8 @@ interface Instance {
   facingDirection: Direction;
   weaponSprites: SpriteSheet | undefined;
   currentAmmo: number;
+  /** For visually communicating player's actions */
+  currentAction: null | "reloading" | "building";
 }
 
 export default class Player extends AEntity<PlayerState, Instance, Timers> {
@@ -93,6 +95,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       facingDirection: Direction.RIGHT,
       weaponSprites: SpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerWeapons")!, 32, 32, 12),
       currentAmmo: DEF_WEAPONS[defaultWeapon].capacity,
+      currentAction: null,
     };
 
     const colliderWidth = worldSize * 0.22;
@@ -129,7 +132,8 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
 
   public _engine: AEntityEngineBody = {
     draw: () => {
-      const { DrawManager } = _game.MANAGERS;
+      const { DrawManager, AssetManager } = _game.MANAGERS;
+      const { x, y } = this._getWorldPosition();
 
       const size = this._getSize();
       this._animations?.drawActiveAnimations(this._getWorldPosition(), size, DrawManager, {
@@ -139,6 +143,20 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
 
       const weaponSize = GRID_CONFIG.TILE_SIZE * 1.5;
       this.drawWeapon(weaponSize);
+
+      // Action bubble
+      if (this._instance.currentAction === "reloading") {
+        const bubbleSize = GRID_CONFIG.TILE_SIZE * 1.5;
+        DrawManager.queueDraw(
+          x - bubbleSize / 2,
+          y - bubbleSize / 2 - bubbleSize * 1.2,
+          AssetManager.getImageAsset("UIActionBubble")!,
+          bubbleSize,
+          bubbleSize,
+          ZIndex.INDICATORS,
+          0,
+        );
+      }
     },
 
     drawDebug: () => {
@@ -223,7 +241,12 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       if (this._getState() === PlayerState.KNOCKED && this._timers.stun.getIsDone()) {
         this._setState(PlayerState.IDLE);
       }
+
       this.applyMovement(_deltaTime);
+
+      if (this._instance.currentAction === "reloading" && this._timers.reloading.getIsDone()) {
+        this._instance.currentAction = null;
+      }
     },
 
     onDamage: (amount) => {
@@ -370,14 +393,14 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
   private getShootingInput(): void {
     const { InputManager } = _game.MANAGERS;
     const state = this._getState();
-    const { currentWeapon, isFacingLeft } = this._instance;
+    const { currentWeapon, isFacingLeft, currentAmmo } = this._instance;
     const weaponDef = DEF_WEAPONS[currentWeapon];
     const size = this._getSize();
     const playerCardinalDirection = this._instance.facingDirection;
 
     if (!InputManager.isHeld(GameControls.ACTION_SHOOT)) return;
     if (state === PlayerState.KNOCKED || state === PlayerState.DEAD) return;
-    if (!this._timers.attackCooldown.getIsDone()) return;
+    if (!this._timers.attackCooldown.getIsDone() && currentAmmo > 0) return;
     if (this._timers.reloading.getIsActive() && !this._timers.reloading.getIsDone()) return;
 
     this._timers.attackCooldown.reset(weaponDef.cooldown);
@@ -476,8 +499,8 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       }
     }
 
-    CameraManager.effectZoom(3 + weaponDef.damage * (weaponDef.shots / 2) * 0.6);
-    CameraManager.effectShake(3 + weaponDef.damage * (weaponDef.shots / 2) * 0.6);
+    CameraManager.effectZoom(4 + weaponDef.damage * (weaponDef.shots / 2) * 0.7);
+    CameraManager.effectShake(4 + weaponDef.damage * (weaponDef.shots / 2) * 0.7);
   }
 
   private _raycast(origin: Vector, direction: Vector, maxDistance: number): RaycastHit | null {
@@ -575,6 +598,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     const { InputManager } = _game.MANAGERS;
     const allWeaponsDef = Object.keys(DEF_WEAPONS) as Weapon[];
 
+    if (this._instance.currentAction !== null) return;
     if (!InputManager.wasReleased(GameControls.PLAYER_CHANGE_WEAPON)) return;
     InputManager.consumeAction(GameControls.PLAYER_CHANGE_WEAPON);
 
@@ -588,6 +612,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     const weaponDef = DEF_WEAPONS[this._instance.currentWeapon];
 
     if (this._timers.reloading.getIsActive() && !this._timers.reloading.getIsDone()) return;
+    this._instance.currentAction = "reloading";
     this._timers.reloading.reset(weaponDef.reloadTimeSec);
     this._instance.currentAmmo = weaponDef.capacity;
     AssetManager.playAudioAsset(this.getCurrentWeaponReloadSound()!, "sound");
