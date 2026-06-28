@@ -154,7 +154,7 @@ export default class LevelManager extends AManager {
       (entityId) =>
         new ActionShopShotgun({
           gameInstance: this.gameInstance,
-          worldPos: gridToWorld({ x: 9, y: 4 }),
+          worldPos: gridToWorld({ x: 8, y: 4 }, { center: true }),
           entityId,
         }),
     );
@@ -163,7 +163,7 @@ export default class LevelManager extends AManager {
       (entityId) =>
         new ActionShopSubmachine({
           gameInstance: this.gameInstance,
-          worldPos: gridToWorld({ x: 9, y: 6 }),
+          worldPos: gridToWorld({ x: 10, y: 4 }, { center: true }),
           entityId,
         }),
     );
@@ -172,7 +172,7 @@ export default class LevelManager extends AManager {
       (entityId) =>
         new ActionShopMedkit({
           gameInstance: this.gameInstance,
-          worldPos: gridToWorld({ x: 9, y: 8 }),
+          worldPos: gridToWorld({ x: 8, y: 6 }, { center: true }),
           entityId,
         }),
     );

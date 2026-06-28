@@ -30,6 +30,7 @@ export default class ActionShopMedkit extends AEntity {
       EntityType.SENSOR,
       (entityId) => new InteractiveIndicator({ gameInstance, entityId, worldPos }),
     );
+    this._indicatorEntity.setPrice(this.PRICE);
 
     Matter.Events.on(EntityManager._physicsEngine, "collisionStart", this._onCollisionStart);
     Matter.Events.on(EntityManager._physicsEngine, "collisionEnd", this._onCollisionEnd);
@@ -77,7 +78,10 @@ export default class ActionShopMedkit extends AEntity {
       if (!other) continue;
 
       const entity = other.plugin?.entity;
-      if (entity === LevelManager.player) this._indicatorEntity.setPositive();
+      if (entity !== LevelManager.player) continue;
+
+      this._indicatorEntity.setPositive();
+      this._indicatorEntity.showBubble();
     }
   };
   private _onCollisionEnd = (event: Matter.IEventCollision<Matter.Engine>) => {
@@ -89,7 +93,10 @@ export default class ActionShopMedkit extends AEntity {
       if (!other) continue;
 
       const entity = other.plugin?.entity;
-      if (entity === LevelManager.player) this._indicatorEntity.setNeutral();
+      if (entity !== LevelManager.player) continue;
+
+      this._indicatorEntity.setNeutral();
+      this._indicatorEntity.hideBubble();
     }
   };
 }

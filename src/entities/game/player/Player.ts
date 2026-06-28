@@ -134,8 +134,8 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     draw: () => {
       const { DrawManager, AssetManager } = _game.MANAGERS;
       const { x, y } = this._getWorldPosition();
-
       const size = this._getSize();
+
       this._animations?.drawActiveAnimations(this._getWorldPosition(), size, DrawManager, {
         scaleX: this._instance.isFacingLeft ? 1 : -1,
         offset: { x: 0, y: -this._getSize() * 0.35 },
