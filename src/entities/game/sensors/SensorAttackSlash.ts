@@ -62,9 +62,9 @@ export default class SensorAttackSlash extends AEntity<undefined, undefined, Tim
   public _engine: AEntityEngineBody = {
     draw: () => {
       const { DrawManager } = _game.MANAGERS;
-      const size = this._getSize();
+      const size = this._getSize() * 1.3;
       this._animations?.drawActiveAnimations(this._getWorldPosition(), size, DrawManager, {
-        rotation: this.angle,
+        rotation: this.angle - 90,
         zIndex: ZIndex.EFFECTS,
       });
     },

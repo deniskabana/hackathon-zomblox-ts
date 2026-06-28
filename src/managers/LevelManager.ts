@@ -12,6 +12,7 @@ import BlockWood from "../entities/game/blocks/BlockWood";
 import Coin from "../entities/game/collectables/Coin";
 import Zombie from "../entities/game/enemies/Zombie";
 import Player from "../entities/game/player/Player";
+import ActionShopGunRevolver from "../entities/game/sensors/ActionShopGunRevolver";
 import type GameInstance from "../GameInstance";
 import MapTilesetManager from "../map/MapTilesetManager";
 import type { GameMap } from "../map/parseJsonMap";
@@ -151,6 +152,16 @@ export default class LevelManager extends AManager {
     this.spawnBlock({ x: 15, y: 9 }, BlockTypes.Wood);
     this.spawnBlock({ x: 17, y: 9 }, BlockTypes.Wood);
     this.spawnBlock({ x: 16, y: 10 }, BlockTypes.Wood);
+
+    EntityManager.createEntity(
+      EntityType.SENSOR,
+      (entityId) =>
+        new ActionShopGunRevolver({
+          gameInstance: this.gameInstance,
+          worldPos: gridToWorld({ x: 6, y: 3 }),
+          entityId,
+        }),
+    );
   }
 
   public update(_deltaTime: number) {

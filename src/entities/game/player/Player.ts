@@ -146,16 +146,19 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
 
       // Action bubble
       if (this._instance.currentAction === "reloading") {
-        const bubbleSize = GRID_CONFIG.TILE_SIZE * 1.5;
+        const bubbleSize = GRID_CONFIG.TILE_SIZE * 1.35;
         DrawManager.queueDraw(
           x - bubbleSize / 2,
-          y - bubbleSize / 2 - bubbleSize * 1.2,
+          y - bubbleSize / 2 - size + 6,
           AssetManager.getImageAsset("UIActionBubble")!,
           bubbleSize,
           bubbleSize,
           ZIndex.INDICATORS,
           0,
         );
+
+        const icons = SpriteSheet.fromGrid(AssetManager.getImageAsset("SIcoWarfare")!, 16, 16, 64, 8);
+        DrawManager.queueDrawSprite(x - 16, y - bubbleSize / 2 - size + 16 + 4, icons, 9, 32, 32, ZIndex.INDICATORS);
       }
     },
 

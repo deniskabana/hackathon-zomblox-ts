@@ -407,7 +407,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     const dirPos = radiansToVector(direction);
     const sensorPos: WorldPosition = {
       x: x + dirPos.x * (this._getSize() / 3),
-      y: y + dirPos.y * (this._getSize() / 3) - 12,
+      y: y + dirPos.y * (this._getSize() / 4) - 12,
     };
     const entity = EntityManager.createEntity(
       EntityType.SENSOR,

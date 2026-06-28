@@ -64,7 +64,7 @@ export default class VFXManager extends AManager {
 
     const bloodImage = this.gameInstance.MANAGERS.AssetManager.getImageAsset("SFXBloodSplat");
     if (!bloodImage) return;
-    const bloodSpriteSheet = SpriteSheet.fromTileset(bloodImage, 16, 16);
+    const bloodSpriteSheet = SpriteSheet.fromTileset(bloodImage, 32, 32);
     const frameIndex = Math.floor(Math.random() * bloodSpriteSheet.getFrameCount() + 0.1);
 
     this.effects.set(this.effectIdCount++, {

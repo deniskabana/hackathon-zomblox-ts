@@ -79,7 +79,7 @@ export const DEF_ASSETS_IMAGE = {
   IFXBloodOverlay: "/images/blood-overlay.png",
   SFXBloodSplat: "/images/blood-spritesheet-32x32.png",
   IFXEntityShadow: "/images/entity-shadow.png",
-  IFXAttackSlash: "/images/slash-effect4.png", // https://opengameart.org/content/weapon-slash-effect
+  IFXAttackSlash: "/images/slash-effect5.png", // https://opengameart.org/content/weapon-slash-effect
   IFXAnimFire1: "/images/fx/anim_fire_1.png", // https://devkidd.itch.io/pixel-fire-asset-pack-2
   IFXAnimFire2: "/images/fx/anim_fire_2.png", // https://devkidd.itch.io/pixel-fire-asset-pack-2
   IFXAnimFire3: "/images/fx/anim_fire_3.png", // https://devkidd.itch.io/pixel-fire-asset-pack-2
@@ -100,6 +100,13 @@ export const DEF_ASSETS_IMAGE = {
   UIInteractionOrangeAnim: "/images/ui/interactive-hl-orange.png", // https://bdragon1727.itch.io/basic-pixel-health-bar-and-scroll-bar
   UIHealthBars: "/images/ui/ui-health-bars.png", // https://bdragon1727.itch.io/basic-pixel-health-bar-and-scroll-bar
   UILoadersMarkers: "/images/ui/ui-loaders-markers.png", // https://bdragon1727.itch.io/basic-pixel-health-bar-and-scroll-bar
+  UIHighlightObj: "/images/ui/ui-higlight.png", // https://crusenho.itch.io/complete-ui-essential-pack
+  UIHighlightObjPositive: "/images/ui/ui-higlight-positive.png",
+  UIHighlightObjNegative: "/images/ui/ui-higlight-negative.png",
+
+  // Icons
+  SIcoWarfare: "/images/icons/Icons_Warfare.png", // https://nikoichu.itch.io/pixel-icons
+  SIcoToolsCrafting: "/images/icons/Icons_Tools_Crafting.png", // https://nikoichu.itch.io/pixel-icons
 } as const satisfies AssetDefinition;
 
 export type AssetAudioName = keyof typeof DEF_ASSETS_AUDIO;
