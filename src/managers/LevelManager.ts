@@ -12,7 +12,7 @@ import BlockWood from "../entities/game/blocks/BlockWood";
 import Coin from "../entities/game/collectables/Coin";
 import Zombie from "../entities/game/enemies/Zombie";
 import Player from "../entities/game/player/Player";
-import ActionShopGunRevolver from "../entities/game/sensors/ActionShopGunRevolver";
+import ActionShopShotgun from "../entities/game/sensors/ActionShopShotgun";
 import type GameInstance from "../GameInstance";
 import MapTilesetManager from "../map/MapTilesetManager";
 import type { GameMap } from "../map/parseJsonMap";
@@ -156,7 +156,7 @@ export default class LevelManager extends AManager {
     EntityManager.createEntity(
       EntityType.SENSOR,
       (entityId) =>
-        new ActionShopGunRevolver({
+        new ActionShopShotgun({
           gameInstance: this.gameInstance,
           worldPos: gridToWorld({ x: 6, y: 3 }),
           entityId,
@@ -519,6 +519,9 @@ export default class LevelManager extends AManager {
     this.flowField = generateFlowField(this.levelGrid, this.blockGrid, this.player._getGridPosition());
   }
 
+  public getCurrency(): number {
+    return this.levelState?.currency ?? 0;
+  }
   public addCurrency(amount: number = 1): void {
     if (!this.levelState) return;
     this.levelState.currency += amount;

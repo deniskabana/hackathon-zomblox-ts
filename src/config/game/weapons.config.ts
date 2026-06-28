@@ -38,7 +38,7 @@ export const DEF_WEAPONS = {
     cooldown: 1.4,
     damage: 18,
     reloadTimeSec: 4,
-    cost: 160,
+    cost: 30,
     ammoCost: 60,
     ammoPurchaseAmount: 24,
     maxDistance: 6,

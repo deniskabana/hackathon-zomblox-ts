@@ -368,6 +368,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
       });
 
       if (settings.dropsItems) LevelManager.spawnCoin({ x, y });
+      if (LevelManager.levelState) LevelManager.levelState.zombiesKillCounter += 1;
     },
 
     onDestroy: () => {
