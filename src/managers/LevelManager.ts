@@ -12,7 +12,9 @@ import BlockWood from "../entities/game/blocks/BlockWood";
 import Coin from "../entities/game/collectables/Coin";
 import Zombie from "../entities/game/enemies/Zombie";
 import Player from "../entities/game/player/Player";
+import ActionShopMedkit from "../entities/game/sensors/ActionShopMedkit";
 import ActionShopShotgun from "../entities/game/sensors/ActionShopShotgun";
+import ActionShopSubmachine from "../entities/game/sensors/ActionShopSubmachine";
 import type GameInstance from "../GameInstance";
 import MapTilesetManager from "../map/MapTilesetManager";
 import type { GameMap } from "../map/parseJsonMap";
@@ -147,18 +149,30 @@ export default class LevelManager extends AManager {
       }
     }
 
-    this.spawnBlock({ x: 16, y: 8 }, BlockTypes.Wood);
-    this.spawnBlock({ x: 16, y: 9 }, BlockTypes.Wood);
-    this.spawnBlock({ x: 15, y: 9 }, BlockTypes.Wood);
-    this.spawnBlock({ x: 17, y: 9 }, BlockTypes.Wood);
-    this.spawnBlock({ x: 16, y: 10 }, BlockTypes.Wood);
-
     EntityManager.createEntity(
       EntityType.SENSOR,
       (entityId) =>
         new ActionShopShotgun({
           gameInstance: this.gameInstance,
-          worldPos: gridToWorld({ x: 6, y: 3 }),
+          worldPos: gridToWorld({ x: 9, y: 4 }),
+          entityId,
+        }),
+    );
+    EntityManager.createEntity(
+      EntityType.SENSOR,
+      (entityId) =>
+        new ActionShopSubmachine({
+          gameInstance: this.gameInstance,
+          worldPos: gridToWorld({ x: 9, y: 6 }),
+          entityId,
+        }),
+    );
+    EntityManager.createEntity(
+      EntityType.SENSOR,
+      (entityId) =>
+        new ActionShopMedkit({
+          gameInstance: this.gameInstance,
+          worldPos: gridToWorld({ x: 9, y: 8 }),
           entityId,
         }),
     );

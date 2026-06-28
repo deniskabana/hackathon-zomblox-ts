@@ -1,10 +1,8 @@
 import type GameInstance from "../GameInstance";
 import styles from "../styles/UIManager.module.css";
 import debugStyles from "../styles/debug.module.css";
-import hudStyles from "../styles/hud.module.css";
 import uiControlsStyles from "../styles/uiControls.module.css";
 import type { LevelState } from "../types/LevelState";
-import getUiControls from "../ui/uiControls";
 import cx from "../utils/cx";
 import displayReadableTime from "../utils/displayReadableTime";
 import { AManager } from "./abstract/AManager";
@@ -13,12 +11,6 @@ export default class UIManager extends AManager {
   public uiContainer: HTMLDivElement;
 
   private startGameContainer: HTMLDivElement;
-  private hudContainer: HTMLDivElement;
-  private hudDayCounter: HTMLDivElement;
-  private hudCurrencyCounter: HTMLDivElement;
-  private hudToolbar: HTMLDivElement;
-
-  private uiControls: ReturnType<typeof getUiControls> | undefined;
 
   private debugContainer: HTMLDivElement;
   private debugTextFps: HTMLDivElement;
@@ -54,15 +46,8 @@ export default class UIManager extends AManager {
       this.uiContainer.appendChild(this.joystickRightHandle);
     }
     this.startGameContainer = document.createElement("div");
-    this.hudContainer = document.createElement("div");
-    this.hudDayCounter = document.createElement("div");
-    this.hudCurrencyCounter = document.createElement("div");
-
-    this.hudContainer.appendChild(this.hudDayCounter);
-    this.hudContainer.appendChild(this.hudCurrencyCounter);
 
     document.body.appendChild(this.startGameContainer);
-    this.uiContainer.appendChild(this.hudContainer);
 
     this.debugContainer = document.createElement("div");
     this.debugTextFps = document.createElement("div");
@@ -74,7 +59,6 @@ export default class UIManager extends AManager {
     this.debugContainer.appendChild(this.debugTextHealth);
 
     this.uiContainer.appendChild(this.debugContainer);
-    this.hudToolbar = document.getElementById("build-toolbar") as HTMLDivElement;
   }
 
   public _init(): void {
@@ -85,38 +69,6 @@ export default class UIManager extends AManager {
     this.joystickLeftHandle.className = cx(uiControlsStyles.joystickHandle);
     this.joystickRightHandle.className = cx(uiControlsStyles.joystickHandle);
 
-    this.hudContainer.className = cx(hudStyles.hudContainer);
-    this.hudDayCounter.className = cx(hudStyles.hudElement);
-    this.hudCurrencyCounter.className = cx(hudStyles.hudElement);
-
-    const coinImage = this.gameInstance.MANAGERS.AssetManager.getImageAsset("ICoinSingle");
-    const imgElem = this.hudCurrencyCounter.querySelector("img");
-    if (!imgElem && coinImage) this.hudCurrencyCounter.appendChild(coinImage);
-
-    this.hudCurrencyCounter.appendChild(document.createElement("span"));
-
-    this.uiControls = getUiControls(this.gameInstance);
-    if (!("ontouchend" in document)) this.uiControls?.shootButton.destroy();
-    if (!("ontouchend" in document)) this.uiControls?.nextWeaponButton.destroy();
-
-    const { BuildModeManager } = this.gameInstance.MANAGERS;
-    const toolbarNext = this.hudToolbar.querySelector('[data-direction="next"]');
-    const toolbarPrev = this.hudToolbar.querySelector('[data-direction="prev"]');
-    if (toolbarNext && toolbarPrev) {
-      const next = () => BuildModeManager.nextBlockType();
-      const prev = () => BuildModeManager.prevBlockType();
-      toolbarNext.addEventListener("click", next);
-      toolbarNext.addEventListener("touchend", next);
-      toolbarPrev.addEventListener("click", prev);
-      toolbarPrev.addEventListener("touchend", prev);
-      this.unsubscribeToolbar = () => {
-        toolbarNext.removeEventListener("click", next);
-        toolbarNext.removeEventListener("touchend", next);
-        toolbarPrev.removeEventListener("click", prev);
-        toolbarPrev.removeEventListener("touchend", prev);
-      };
-    }
-
     if (!this.gameInstance.isDev) return;
 
     this.debugContainer.className = cx(debugStyles.debugContainer, debugStyles.debugElementsContainer);
@@ -124,19 +76,7 @@ export default class UIManager extends AManager {
   }
 
   public draw(fps: number): void {
-    this.uiControlsDraw();
     this.drawDebug(fps);
-    this.drawHud();
-  }
-
-  private drawHud(): void {
-    const levelState = this.gameInstance.MANAGERS.LevelManager.levelState;
-    if (!levelState) return;
-    const { daysCounter, currency } = levelState;
-    const label = this.gameInstance.translation.dictionary["hud.day"];
-    this.hudDayCounter.innerText = `${label}: ${daysCounter}`;
-    const textChild = this.hudCurrencyCounter.getElementsByTagName("span")[0];
-    if (textChild) textChild.innerText = `${currency}`;
   }
 
   private initDebugSettings(): void {
@@ -235,21 +175,6 @@ export default class UIManager extends AManager {
     this.uiContainer.style.opacity = "0";
   }
 
-  private uiControlsDraw(): void {
-    if (!this.uiControls) return;
-    for (const control of Object.values(this.uiControls)) control.draw();
-  }
-
-  public showBuildModeToolbar(): void {
-    if (!this.hudToolbar) return;
-    this.hudToolbar.style.display = "flex";
-  }
-
-  public hideBuildModeToolbar(): void {
-    if (!this.hudToolbar) return;
-    this.hudToolbar.style.display = "none";
-  }
-
   public setBuildModeState(image: HTMLImageElement, stock: number = 0): void {
     const img = document.getElementsByClassName("build-toolbar__active-block-img")[0];
     if (img && "src" in img) img.src = image.src;
@@ -258,11 +183,6 @@ export default class UIManager extends AManager {
   }
 
   public _destroy(): void {
-    if (this.uiControls) {
-      for (const control of Object.values(this.uiControls)) control.destroy();
-      this.uiControls = undefined;
-    }
-    this.hideBuildModeToolbar();
     this.hideGameOverScreen();
     this.unsubscribeToolbar?.();
   }

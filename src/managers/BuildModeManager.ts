@@ -98,12 +98,10 @@ export default class BuildModeManager extends AManager {
   public setBuildMode(active: boolean): void {
     if (active) {
       if (!this.gameInstance.MANAGERS.LevelManager.getIsDay()) return;
-      this.gameInstance.MANAGERS.UIManager.showBuildModeToolbar();
       document.addEventListener("touchend", this.handleScreenTouch);
       document.addEventListener("mouseup", this.handleScreenTouch);
       this.setBlockType(this.allAvailableBlocks[0]);
     } else {
-      this.gameInstance.MANAGERS.UIManager.hideBuildModeToolbar();
       document.removeEventListener("touchend", this.handleScreenTouch);
       document.removeEventListener("mouseup", this.handleScreenTouch);
 
