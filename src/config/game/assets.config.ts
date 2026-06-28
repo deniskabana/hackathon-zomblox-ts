@@ -77,9 +77,13 @@ export const DEF_ASSETS_IMAGE = {
   IFXBloodSplat: "/images/pi58p94iB.png", // https://www.clipartbest.com/clipart-pi58p94iB
   IFXBloodScreen: "/images/blood-png-7140.png", // https://www.freeiconspng.com/img/7140
   IFXBloodOverlay: "/images/blood-overlay.png",
-  SFXBloodSplat: "/images/blood-spritesheet-16x16.png",
+  SFXBloodSplat: "/images/blood-spritesheet-32x32.png",
   IFXEntityShadow: "/images/entity-shadow.png",
   IFXAttackSlash: "/images/slash-effect4.png", // https://opengameart.org/content/weapon-slash-effect
+  IFXAnimFire1: "/images/fx/anim_fire_1.png", // https://devkidd.itch.io/pixel-fire-asset-pack-2
+  IFXAnimFire2: "/images/fx/anim_fire_2.png", // https://devkidd.itch.io/pixel-fire-asset-pack-2
+  IFXAnimFire3: "/images/fx/anim_fire_3.png", // https://devkidd.itch.io/pixel-fire-asset-pack-2
+  IFXAnimFire4: "/images/fx/anim_fire_4.png", // https://devkidd.itch.io/pixel-fire-asset-pack-2
   // Shop
   ICoinSingle: "/images/coin-single.png",
   IShopRevolver: "/images/Revolver - Colt 45 [64x32].png", // https://arcadeisland.itch.io/guns-asset-pack-v1
@@ -90,6 +94,12 @@ export const DEF_ASSETS_IMAGE = {
   SFire: "/images/fire-spritesheet.png", // https://devkidd.itch.io/pixel-fire-asset-pack-2
   // Tilesets
   TMapTilesetDemo: "/images/!CL_DEMO_48x48.png",
+  // UI
+  UIActionBubble: "/images/ui/action-bubble.png",
+  UIInteractionGreenAnim: "/images/ui/interactive-hl-green.png", // https://bdragon1727.itch.io/basic-pixel-health-bar-and-scroll-bar
+  UIInteractionOrangeAnim: "/images/ui/interactive-hl-orange.png", // https://bdragon1727.itch.io/basic-pixel-health-bar-and-scroll-bar
+  UIHealthBars: "/images/ui/ui-health-bars.png", // https://bdragon1727.itch.io/basic-pixel-health-bar-and-scroll-bar
+  UILoadersMarkers: "/images/ui/ui-loaders-markers.png", // https://bdragon1727.itch.io/basic-pixel-health-bar-and-scroll-bar
 } as const satisfies AssetDefinition;
 
 export type AssetAudioName = keyof typeof DEF_ASSETS_AUDIO;
