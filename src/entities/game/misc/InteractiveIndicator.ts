@@ -17,7 +17,6 @@ enum IndicatorState {
 
 interface Instance {
   price: number;
-  isBubbleActive: boolean;
   coinSpritesheet: SpriteSheet;
   opacity: number;
   desiredOpacity: number;
@@ -32,12 +31,12 @@ export default class InteractiveIndicator extends AEntity<IndicatorState, Instan
     const animations: EntityAnimationsSpecs = {
       frameWidth: 32,
       frameHeight: 32,
-      fps: 5,
+      fps: 4,
       animations: [
         {
           id: IndicatorState.NEUTRAL,
           loop: true,
-          frameCount: 4,
+          frameCount: 1,
           assetVariants: [AssetManager.getImageAsset("UIHighlightObj")!],
         },
         {
@@ -61,7 +60,6 @@ export default class InteractiveIndicator extends AEntity<IndicatorState, Instan
       size,
       instance: {
         price: 0,
-        isBubbleActive: false,
         coinSpritesheet: SpriteSheet.fromGrid(AssetManager.getImageAsset("SCoin")!, 128, 128, 6),
         opacity: 0,
         desiredOpacity: 0,
@@ -81,53 +79,11 @@ export default class InteractiveIndicator extends AEntity<IndicatorState, Instan
     },
 
     draw: () => {
-      const { DrawManager, AssetManager } = _game.MANAGERS;
-      const { x, y } = this._getWorldPosition();
-      const size = this._getSize();
-
-      const offsetY = 4 * (1 - this._instance.opacity);
-
+      const { DrawManager } = _game.MANAGERS;
       this._animations?.drawActiveAnimations(this._getWorldPosition(), this._getSize() * 1.2, DrawManager, {
         zIndex: ZIndex.INDICATORS,
         alpha: 0.8,
       });
-
-      if (this._instance.isBubbleActive || this._instance.opacity > 0) {
-        const bubbleSize = GRID_CONFIG.TILE_SIZE * 1.5;
-        DrawManager.queueDraw(
-          x - bubbleSize / 2,
-          y - bubbleSize / 2 - size + 2 + offsetY,
-          AssetManager.getImageAsset("UIActionBubble")!,
-          bubbleSize,
-          bubbleSize,
-          ZIndex.INDICATORS,
-          0,
-          this._instance.opacity,
-        );
-
-        DrawManager.drawText(
-          `${this._instance.price || 0}`,
-          x + 8,
-          y - size + 4 + offsetY,
-          this._getState() === IndicatorState.NEGATIVE ? "#000000b0" : " #000000",
-          16,
-          "Courier",
-          "center",
-          this._instance.opacity,
-          true,
-        );
-        DrawManager.queueDrawSprite(
-          x - bubbleSize / 2 + 11,
-          y - size - 8 + offsetY,
-          this._instance.coinSpritesheet,
-          0,
-          14,
-          14,
-          ZIndex.INDICATORS,
-          0,
-          this._instance.opacity,
-        );
-      }
     },
 
     drawDebug: () => {},
@@ -145,14 +101,5 @@ export default class InteractiveIndicator extends AEntity<IndicatorState, Instan
 
   public setPrice(price: number) {
     this._instance.price = price;
-  }
-
-  public showBubble() {
-    this._instance.isBubbleActive = true;
-    this._instance.desiredOpacity = 1;
-  }
-  public hideBubble() {
-    this._instance.isBubbleActive = false;
-    this._instance.desiredOpacity = 0;
   }
 }

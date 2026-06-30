@@ -52,17 +52,13 @@ export default class ActionShopShotgun extends AEntity {
         3,
         gunSize,
         gunSize,
-        ZIndex.GROUND_EFFECTS,
+        ZIndex.INDICATORS,
       );
     },
 
     drawDebug: () => {},
 
-    updateAfter: () => {
-      const { LevelManager } = _game.MANAGERS;
-      const currency = LevelManager.getCurrency();
-      if (currency < this.PRICE) this._indicatorEntity.setNegative();
-    },
+    updateAfter: () => {},
 
     onDestroy: () => {
       const { EntityManager } = _game.MANAGERS;
@@ -83,8 +79,9 @@ export default class ActionShopShotgun extends AEntity {
       const entity = other.plugin?.entity;
       if (entity !== LevelManager.player) continue;
 
-      this._indicatorEntity.setPositive();
-      this._indicatorEntity.showBubble();
+      const currency = LevelManager.getCurrency();
+      if (currency < this.PRICE) this._indicatorEntity.setNegative();
+      else this._indicatorEntity.setPositive();
     }
   };
   private _onCollisionEnd = (event: Matter.IEventCollision<Matter.Engine>) => {
@@ -99,7 +96,6 @@ export default class ActionShopShotgun extends AEntity {
       if (entity !== LevelManager.player) continue;
 
       this._indicatorEntity.setNeutral();
-      this._indicatorEntity.hideBubble();
     }
   };
 }
