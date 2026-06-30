@@ -22,14 +22,14 @@ export default class UIManager extends AManager {
   public _init(): void {}
 
   public draw(_fps: number, _deltaTime: number): void {
-    const { AssetManager, DrawManager, CameraManager, LevelManager } = this._gameInstance.MANAGERS;
+    const { AssetManager, DrawManager, CameraManager, ShopManager } = this._gameInstance.MANAGERS;
     const zoom = CameraManager.getZoomScale();
     const width = (146 * 2) / zoom;
     const height = (84 * 2) / zoom;
 
     this.shopAlpha = lerp(this.shopAlpha, this.isShopUiVisible ? 1 : 0, _deltaTime * 20);
 
-    if (this.shopAlpha === 0) return;
+    if (this.shopAlpha === 0 || !this.activeShopItem) return;
 
     // Background
     DrawManager.queueDraw(
@@ -47,9 +47,9 @@ export default class UIManager extends AManager {
     DrawManager.queueDraw(
       CameraManager.x - width + CameraManager.getTargetWorldWidth() / zoom / 2 + 16 / zoom,
       CameraManager.y - 42 / zoom - CameraManager.getTargetWorldHeight() / zoom / 2 + height - 15 / zoom,
-      LevelManager.getCurrency() < this.getPrice()
-        ? AssetManager.getImageAsset("UIControlPanelBtnBigDisabled")!
-        : AssetManager.getImageAsset("UIControlPanelBtnBig")!,
+      ShopManager.canAfford(this.activeShopItem.id)
+        ? AssetManager.getImageAsset("UIControlPanelBtnBig")!
+        : AssetManager.getImageAsset("UIControlPanelBtnBigDisabled")!,
       (122 * 2) / zoom,
       (28 * 2) / zoom,
       ZIndex.UI,
@@ -59,7 +59,7 @@ export default class UIManager extends AManager {
 
     // Button text
     DrawManager.drawText(
-      LevelManager.getCurrency() < this.getPrice() ? "Not enough money" : "Purchase [E]",
+      ShopManager.canAfford(this.activeShopItem.id) ? "Purchase [E]" : "Not enough money",
       CameraManager.x - 8 / zoom - width / 2 + CameraManager.getTargetWorldWidth() / zoom / 2,
       CameraManager.y - 23 / zoom - CameraManager.getTargetWorldHeight() / zoom / 2 + height,
       "#ffffff",
@@ -104,13 +104,29 @@ export default class UIManager extends AManager {
     );
     // Price
     DrawManager.drawText(
-      String(
-        this.activeShopItem?.priceStrategy(this.activeShopItem.basePrice, this.activeShopItem.purchaseCount) ?? "?",
-      ),
+      String(this.activeShopItem ? ShopManager.getItemPrice(this.activeShopItem.id) : "?"),
       CameraManager.x - 32 / zoom + CameraManager.getTargetWorldWidth() / zoom / 2 - 30 / zoom,
       CameraManager.y - CameraManager.getTargetWorldHeight() / zoom / 2 + 80 / zoom,
       "#ffffff",
       38 / zoom,
+      "Courier",
+      "right",
+      this.shopAlpha,
+      true,
+    );
+
+    // Stock
+    DrawManager.drawText(
+      `${ShopManager.getItemStock(this.activeShopItem.id)}x`,
+      CameraManager.x -
+        16 / zoom -
+        width +
+        CameraManager.getTargetWorldWidth() / zoom / 2 +
+        70 / zoom +
+        GRID_CONFIG.TILE_SIZE / zoom,
+      CameraManager.y - CameraManager.getTargetWorldHeight() / zoom / 2 + 70 / zoom + GRID_CONFIG.TILE_SIZE / zoom / 2,
+      "#ffffff",
+      26 / zoom,
       "Courier",
       "right",
       this.shopAlpha,
@@ -128,12 +144,12 @@ export default class UIManager extends AManager {
     this.isShopUiVisible = false;
   }
 
+  public getShopUiItem(): ShopItem | null {
+    if (!this.isShopUiVisible) return null;
+    return this.activeShopItem;
+  }
+
   public showGameOverScreen(): void {}
 
   public hideGameOverScreen(): void {}
-
-  private getPrice(): number {
-    if (!this.activeShopItem) return Infinity;
-    return this.activeShopItem.priceStrategy(this.activeShopItem.basePrice, this.activeShopItem.purchaseCount);
-  }
 }

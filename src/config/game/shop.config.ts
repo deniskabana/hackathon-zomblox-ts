@@ -11,24 +11,16 @@ export enum ItemCategory {
   UNLOCKABLE = "unlockable",
 }
 
-export type PriceStrategy = (basePrice: number, purchaseCount: number) => number;
-
-export type StockRule = (currentStock: number, waveNumber: number) => number;
-
 export interface ShopItem {
   id: number;
   name: string;
   category: ItemCategory;
 
-  // pricing
   basePrice: number;
-  priceStrategy: PriceStrategy;
-  purchaseCount: number;
+  priceStrategy: (basePrice: number, purchaseCount: number, waveNumber: number) => number;
 
-  // stock
   baseStock: number;
-  currentStock: number;
-  stockRule: StockRule;
+  stockRule: (currentStock: number, waveNumber: number) => number;
 
   renderItem: (
     worldPos: WorldPosition,
@@ -38,17 +30,15 @@ export interface ShopItem {
   ) => void;
 }
 
-export const SHOP_ITEMS = {
+export const SHOP_ITEMS: Record<number, ShopItem> = {
   0: {
     id: 0,
     name: "Medkit",
     category: ItemCategory.CONSUMABLE,
     basePrice: 15,
     priceStrategy: (basePrice, purchaseCount) => basePrice + basePrice * purchaseCount,
-    purchaseCount: 0,
-    baseStock: Infinity,
-    currentStock: Infinity,
-    stockRule: () => Infinity,
+    baseStock: 1,
+    stockRule: (currentStock) => currentStock + 1,
     renderItem: ({ x, y }, AssetManager, DrawManager, options) => {
       const alpha = options?.alpha ?? 1;
       const scale = options?.scale ?? 1;
@@ -63,9 +53,7 @@ export const SHOP_ITEMS = {
     category: ItemCategory.WEAPON,
     basePrice: 65,
     priceStrategy: (basePrice) => basePrice,
-    purchaseCount: 0,
     baseStock: 1,
-    currentStock: 1,
     stockRule: (currentStock) => currentStock,
     renderItem: ({ x, y }, AssetManager, DrawManager, options) => {
       const alpha = options?.alpha ?? 1;
@@ -81,9 +69,7 @@ export const SHOP_ITEMS = {
     category: ItemCategory.WEAPON,
     basePrice: 135,
     priceStrategy: (basePrice) => basePrice,
-    purchaseCount: 0,
     baseStock: 1,
-    currentStock: 1,
     stockRule: (currentStock) => currentStock,
     renderItem: ({ x, y }, AssetManager, DrawManager, options) => {
       const alpha = options?.alpha ?? 1;
@@ -93,4 +79,4 @@ export const SHOP_ITEMS = {
       DrawManager.queueDrawSprite(x - size / 2, y - size / 2, spritesheet, 7, size, size, ZIndex.UI, 0, alpha);
     },
   },
-} as const satisfies Record<number, ShopItem>;
+};

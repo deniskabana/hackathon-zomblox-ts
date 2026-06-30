@@ -8,6 +8,7 @@ import { SettingsManager } from "./managers/core/SettingsManager";
 import { EntityManager } from "./managers/engine/EntityManager";
 import LevelManager from "./managers/LevelManager";
 import LightManager from "./managers/LightManager";
+import ShopManager from "./managers/ShopManager";
 import UIManager from "./managers/UIManager";
 import VFXManager from "./managers/VFXManager";
 import csTranslation from "./translation/cs";
@@ -32,6 +33,7 @@ export default class GameInstance {
     InputManager: InputManager;
     LevelManager: LevelManager;
     LightManager: LightManager;
+    ShopManager: ShopManager;
     SettingsManager: SettingsManager;
     UIManager: UIManager;
     VFXManager: VFXManager;
@@ -63,6 +65,7 @@ export default class GameInstance {
       InputManager: new InputManager(this),
       LevelManager: new LevelManager(this),
       LightManager: new LightManager(this),
+      ShopManager: new ShopManager(this),
       SettingsManager: new SettingsManager(this),
       UIManager: new UIManager(this),
       VFXManager: new VFXManager(this),
@@ -137,6 +140,7 @@ export default class GameInstance {
       DrawManager,
       InputManager,
       LevelManager,
+      ShopManager,
       LightManager,
       SettingsManager,
       VFXManager,
@@ -151,6 +155,7 @@ export default class GameInstance {
     InputManager._init();
     LevelManager._init();
     LightManager._init();
+    ShopManager._init();
     SettingsManager._init();
     VFXManager._init();
     UIManager._init();
@@ -189,6 +194,7 @@ export default class GameInstance {
       InputManager,
       LevelManager,
       LightManager,
+      ShopManager,
       SettingsManager,
       VFXManager,
     } = this.MANAGERS;
@@ -202,6 +208,7 @@ export default class GameInstance {
     InputManager._destroy();
     LevelManager._destroy();
     LightManager._destroy();
+    ShopManager._destroy();
     SettingsManager._destroy();
     UIManager._destroy();
     VFXManager._destroy();

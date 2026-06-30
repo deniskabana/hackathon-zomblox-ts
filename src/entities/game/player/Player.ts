@@ -237,6 +237,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
 
       this.getShootingInput();
       this.getWeaponCycleInput();
+      this.getShopBuyInput();
       this.getBuildingModeInput(_deltaTime);
     },
 
@@ -595,6 +596,17 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       default:
         assertNever(currentWeapon);
     }
+  }
+
+  private getShopBuyInput(): void {
+    const { InputManager, ShopManager, UIManager } = _game.MANAGERS;
+
+    if (!InputManager.wasPressed(GameControls.ACTION_INTERACT)) return;
+    InputManager.consumeAction(GameControls.ACTION_INTERACT);
+
+    const shopItem = UIManager.getShopUiItem();
+    if (shopItem === null) return;
+    ShopManager.purchase(shopItem.id, this._getEntityId());
   }
 
   private getWeaponCycleInput(): void {

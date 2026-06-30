@@ -53,6 +53,7 @@ export const DEFAULT_KEY_BINDINGS: KeyBindings = {
 
   // Actions
   Space: [GameControls.ACTION_SHOOT],
+  KeyE: [GameControls.ACTION_INTERACT],
   KeyR: [GameControls.ACTION_RELOAD],
   KeyQ: [GameControls.PLAYER_CHANGE_WEAPON],
   KeyB: [GameControls.PLAYER_BUILD_MENU],

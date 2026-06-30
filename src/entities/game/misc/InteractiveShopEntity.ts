@@ -48,13 +48,13 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
           id: IndicatorState.POSITIVE,
           loop: true,
           frameCount: 4,
-          assetVariants: [AssetManager.getImageAsset("UIHighlightObjNegative")!],
+          assetVariants: [AssetManager.getImageAsset("UIHighlightObjPositive")!],
         },
         {
           id: IndicatorState.NEGATIVE,
           loop: true,
           frameCount: 4,
-          assetVariants: [AssetManager.getImageAsset("UIHighlightObj")!],
+          assetVariants: [AssetManager.getImageAsset("UIHighlightObjNegative")!],
         },
       ],
     };
@@ -83,8 +83,14 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
 
   public _engine: AEntityEngineBody = {
     updateBefore: (_deltaTime) => {
+      const { ShopManager } = _game.MANAGERS;
+
       this._animations?.setActiveAnimations([this._getState()]);
-      this._instance.opacity = lerp(this._instance.opacity, this._instance.desiredOpacity, _deltaTime * 14);
+      this._instance.opacity = lerp(this._instance.opacity, this._instance.desiredOpacity, _deltaTime * 12);
+
+      if (this._getState() === IndicatorState.NEUTRAL && ShopManager.canAfford(this.shopItem.id)) {
+        this._setState(IndicatorState.POSITIVE);
+      }
     },
 
     draw: () => {
@@ -116,12 +122,8 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
     this._setState(IndicatorState.NEUTRAL);
   }
 
-  public getPrice(): number {
-    return this.shopItem.priceStrategy(this.shopItem.basePrice, this.shopItem.purchaseCount);
-  }
-
   private _onCollisionStart = (event: Matter.IEventCollision<Matter.Engine>) => {
-    const { LevelManager, UIManager } = _game.MANAGERS;
+    const { LevelManager, UIManager, ShopManager } = _game.MANAGERS;
 
     for (const pair of event.pairs) {
       const other =
@@ -131,8 +133,7 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
       const entity = other.plugin?.entity;
       if (entity !== LevelManager.player) continue;
 
-      const currency = LevelManager.getCurrency();
-      if (currency < this.getPrice()) this.setNegative();
+      if (!ShopManager.canAfford(this.shopItem.id)) this.setNegative();
       else this.setPositive();
 
       UIManager.showShopUI(this.shopItem);
