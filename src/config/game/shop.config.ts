@@ -1,0 +1,96 @@
+import AssetManager from "../../managers/core/AssetManager";
+import DrawManager from "../../managers/core/DrawManager";
+import { ZIndex } from "../../types/lib/ZIndex";
+import SpriteSheet from "../../utils/classes/SpriteSheet";
+import { GRID_CONFIG, type WorldPosition } from "../core/grid.config";
+
+export enum ItemCategory {
+  CONSUMABLE = "consumable",
+  WEAPON = "weapon",
+  CONSTRUCTION = "construction",
+  UNLOCKABLE = "unlockable",
+}
+
+export type PriceStrategy = (basePrice: number, purchaseCount: number) => number;
+
+export type StockRule = (currentStock: number, waveNumber: number) => number;
+
+export interface ShopItem {
+  id: number;
+  name: string;
+  category: ItemCategory;
+
+  // pricing
+  basePrice: number;
+  priceStrategy: PriceStrategy;
+  purchaseCount: number;
+
+  // stock
+  baseStock: number;
+  currentStock: number;
+  stockRule: StockRule;
+
+  renderItem: (
+    worldPos: WorldPosition,
+    AssetManager: AssetManager,
+    DrawManager: DrawManager,
+    options?: { alpha?: number; scale?: number },
+  ) => void;
+}
+
+export const SHOP_ITEMS = {
+  0: {
+    id: 0,
+    name: "Medkit",
+    category: ItemCategory.CONSUMABLE,
+    basePrice: 15,
+    priceStrategy: (basePrice, purchaseCount) => basePrice * purchaseCount * 2,
+    purchaseCount: 0,
+    baseStock: Infinity,
+    currentStock: Infinity,
+    stockRule: () => Infinity,
+    renderItem: ({ x, y }, AssetManager, DrawManager, options) => {
+      const alpha = options?.alpha ?? 1;
+      const scale = options?.scale ?? 1;
+      const size = GRID_CONFIG.TILE_SIZE * scale * 0.65;
+      const sprite = AssetManager.getImageAsset("IShopMedkit")!;
+      DrawManager.queueDraw(x - size / 2, y - size / 2, sprite, size, size, ZIndex.UI, 0, alpha);
+    },
+  },
+  1: {
+    id: 1,
+    name: "Shotgun",
+    category: ItemCategory.WEAPON,
+    basePrice: 65,
+    priceStrategy: (basePrice) => basePrice,
+    purchaseCount: 0,
+    baseStock: 1,
+    currentStock: 1,
+    stockRule: (currentStock) => currentStock,
+    renderItem: ({ x, y }, AssetManager, DrawManager, options) => {
+      const alpha = options?.alpha ?? 1;
+      const scale = options?.scale ?? 1;
+      const size = GRID_CONFIG.TILE_SIZE * scale;
+      const spritesheet = SpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerWeapons")!, 32, 32, 12)!;
+      DrawManager.queueDrawSprite(x - size / 2, y - size / 2, spritesheet, 3, size, size, ZIndex.UI, 0, alpha);
+    },
+  },
+  2: {
+    id: 2,
+    name: "SMG",
+    category: ItemCategory.WEAPON,
+    basePrice: 135,
+    priceStrategy: (basePrice) => basePrice,
+    purchaseCount: 0,
+    baseStock: 1,
+    currentStock: 1,
+    stockRule: (currentStock) => currentStock,
+    renderItem: ({ x, y }, AssetManager, DrawManager, options) => {
+      const alpha = options?.alpha ?? 1;
+      const scale = options?.scale ?? 1;
+      const size = GRID_CONFIG.TILE_SIZE * scale;
+      const spritesheet = SpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerWeapons")!, 32, 32, 12)!;
+      DrawManager.queueDrawSprite(x - size / 2, y - size / 2, spritesheet, 7, size, size, ZIndex.UI, 0, alpha);
+    },
+  },
+} as const satisfies Record<number, ShopItem>;

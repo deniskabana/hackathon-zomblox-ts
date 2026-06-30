@@ -6,6 +6,8 @@ import lerp from "../../../utils/math/lerp";
 import AEntity, { type AEntityEngineBody, type EntityConstructorProps } from "../../engine/AEntity";
 import type { EntityAnimationsSpecs } from "../../engine/systems/EntityAnimation";
 import { EntityCollisionShape } from "../../engine/systems/EntityCollisionPoints";
+import { type ShopItem } from "../../../config/game/shop.config";
+import Matter from "matter-js";
 
 /** `this.gameInstance` */ let _game: GameInstance;
 
@@ -22,10 +24,13 @@ interface Instance {
   desiredOpacity: number;
 }
 
-export default class InteractiveIndicator extends AEntity<IndicatorState, Instance> {
-  constructor({ gameInstance, entityId, worldPos }: EntityConstructorProps) {
+export default class InteractiveShopEntity extends AEntity<IndicatorState, Instance> {
+  private shopItem: ShopItem;
+  private alpha: number = 1;
+
+  constructor({ gameInstance, entityId, worldPos, shopItem }: EntityConstructorProps & { shopItem: ShopItem }) {
     _game = gameInstance;
-    const { AssetManager } = _game.MANAGERS;
+    const { AssetManager, EntityManager } = _game.MANAGERS;
     const size = GRID_CONFIG.TILE_SIZE;
 
     const animations: EntityAnimationsSpecs = {
@@ -70,6 +75,10 @@ export default class InteractiveIndicator extends AEntity<IndicatorState, Instan
     });
 
     this._animations?.setActiveAnimations([this._getState()]);
+    this.shopItem = shopItem;
+
+    Matter.Events.on(EntityManager._physicsEngine, "collisionStart", this._onCollisionStart);
+    Matter.Events.on(EntityManager._physicsEngine, "collisionEnd", this._onCollisionEnd);
   }
 
   public _engine: AEntityEngineBody = {
@@ -79,14 +88,22 @@ export default class InteractiveIndicator extends AEntity<IndicatorState, Instan
     },
 
     draw: () => {
-      const { DrawManager } = _game.MANAGERS;
+      const { DrawManager, AssetManager } = _game.MANAGERS;
       this._animations?.drawActiveAnimations(this._getWorldPosition(), this._getSize() * 1.2, DrawManager, {
         zIndex: ZIndex.INDICATORS,
         alpha: 0.8,
       });
+      this.shopItem.renderItem(this._getWorldPosition(), AssetManager, DrawManager, { alpha: this.alpha });
     },
 
     drawDebug: () => {},
+
+    onDestroy: () => {
+      const { EntityManager } = _game.MANAGERS;
+      Matter.Events.off(EntityManager._physicsEngine, "collisionStart", this._onCollisionStart);
+      Matter.Events.off(EntityManager._physicsEngine, "collisionEnd", this._onCollisionEnd);
+      EntityManager.destroyEntity(this._entityId);
+    },
   };
 
   public setPositive() {
@@ -99,7 +116,42 @@ export default class InteractiveIndicator extends AEntity<IndicatorState, Instan
     this._setState(IndicatorState.NEUTRAL);
   }
 
-  public setPrice(price: number) {
-    this._instance.price = price;
+  public getPrice(): number {
+    return this.shopItem.priceStrategy(this.shopItem.basePrice, this.shopItem.purchaseCount);
   }
+
+  private _onCollisionStart = (event: Matter.IEventCollision<Matter.Engine>) => {
+    const { LevelManager } = _game.MANAGERS;
+
+    for (const pair of event.pairs) {
+      const other =
+        pair.bodyA === this._physicsBody ? pair.bodyB : pair.bodyB === this._physicsBody ? pair.bodyA : null;
+      if (!other) continue;
+
+      const entity = other.plugin?.entity;
+      if (entity !== LevelManager.player) continue;
+
+      const currency = LevelManager.getCurrency();
+      if (currency < this.getPrice()) this.setNegative();
+      else this.setPositive();
+
+      this.alpha = 0.5;
+    }
+  };
+
+  private _onCollisionEnd = (event: Matter.IEventCollision<Matter.Engine>) => {
+    const { LevelManager } = _game.MANAGERS;
+
+    for (const pair of event.pairs) {
+      const other =
+        pair.bodyA === this._physicsBody ? pair.bodyB : pair.bodyB === this._physicsBody ? pair.bodyA : null;
+      if (!other) continue;
+
+      const entity = other.plugin?.entity;
+      if (entity !== LevelManager.player) continue;
+
+      this.setNeutral();
+      this.alpha = 1;
+    }
+  };
 }

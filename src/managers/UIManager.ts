@@ -12,7 +12,7 @@ export default class UIManager extends AManager {
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
     this._gameInstance = gameInstance;
-    this.isShopUiVisible = false;
+    this.isShopUiVisible = true;
     this.shopAlpha = 0;
   }
 
@@ -21,8 +21,8 @@ export default class UIManager extends AManager {
   public draw(_fps: number, _deltaTime: number): void {
     const { AssetManager, DrawManager, CameraManager } = this._gameInstance.MANAGERS;
     const zoom = CameraManager.getZoomScale();
-    const width = 320 / zoom;
-    const height = 165 / zoom;
+    const width = (146 * 2) / zoom;
+    const height = (84 * 2) / zoom;
 
     this.shopAlpha = lerp(this.shopAlpha, this.isShopUiVisible ? 1 : 0, _deltaTime * 20);
 
@@ -42,11 +42,11 @@ export default class UIManager extends AManager {
 
     // Big button
     DrawManager.queueDraw(
-      CameraManager.x - width + CameraManager.getTargetWorldWidth() / zoom / 2 + 10 / zoom,
-      CameraManager.y - 42 / zoom - CameraManager.getTargetWorldHeight() / zoom / 2 + height - 12 / zoom,
+      CameraManager.x - width + CameraManager.getTargetWorldWidth() / zoom / 2 + 16 / zoom,
+      CameraManager.y - 42 / zoom - CameraManager.getTargetWorldHeight() / zoom / 2 + height - 15 / zoom,
       AssetManager.getImageAsset("UIControlPanelBtnBig")!,
-      280 / zoom,
-      46 / zoom,
+      (122 * 2) / zoom,
+      (28 * 2) / zoom,
       ZIndex.UI,
       0,
       this.shopAlpha,
@@ -55,7 +55,7 @@ export default class UIManager extends AManager {
     DrawManager.drawText(
       "Purchase [E]",
       CameraManager.x - 8 / zoom - width / 2 + CameraManager.getTargetWorldWidth() / zoom / 2,
-      CameraManager.y - 26 / zoom - CameraManager.getTargetWorldHeight() / zoom / 2 + height,
+      CameraManager.y - 23 / zoom - CameraManager.getTargetWorldHeight() / zoom / 2 + height,
       "#ffffff",
       21 / zoom,
       "Courier",
@@ -65,12 +65,21 @@ export default class UIManager extends AManager {
     );
 
     // Draw shop item
+    // DrawManager.queueDrawSprite(
+    //   CameraManager.x - 16 / zoom - width + CameraManager.getTargetWorldWidth() / zoom / 2 + 32 / zoom,
+    //   CameraManager.y - CameraManager.getTargetWorldHeight() / zoom / 2 + 36 / zoom,
+    //   SpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerWeapons")!, 32, 32, 12),
+    //   3,
+    //   GRID_CONFIG.TILE_SIZE * 1.5,
+    //   GRID_CONFIG.TILE_SIZE * 1.5,
+    //   ZIndex.UI,
+    // );
     DrawManager.queueDraw(
       CameraManager.x - 16 / zoom - width + CameraManager.getTargetWorldWidth() / zoom / 2 + 32 / zoom,
-      CameraManager.y - CameraManager.getTargetWorldHeight() / zoom / 2 + 36 / zoom,
+      CameraManager.y - CameraManager.getTargetWorldHeight() / zoom / 2 + 28 / zoom,
       AssetManager.getImageAsset("IShopMedkit")!,
-      GRID_CONFIG.TILE_SIZE * 1.2,
-      GRID_CONFIG.TILE_SIZE * 1.2,
+      GRID_CONFIG.TILE_SIZE * 1.5,
+      GRID_CONFIG.TILE_SIZE * 1.5,
       ZIndex.UI,
       0,
       this.shopAlpha,
@@ -79,10 +88,10 @@ export default class UIManager extends AManager {
     // Coin
     DrawManager.queueDraw(
       CameraManager.x - 32 / zoom + CameraManager.getTargetWorldWidth() / zoom / 2 - 24 / zoom,
-      CameraManager.y - CameraManager.getTargetWorldHeight() / zoom / 2 + 80 / zoom - 24 / zoom,
+      CameraManager.y - CameraManager.getTargetWorldHeight() / zoom / 2 + 78 / zoom - 24 / zoom,
       AssetManager.getImageAsset("ICoinSingle")!,
-      24 / zoom,
-      24 / zoom,
+      28 / zoom,
+      28 / zoom,
       ZIndex.UI,
       0,
       this.shopAlpha,

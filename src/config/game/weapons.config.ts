@@ -7,9 +7,6 @@ export interface WeaponDefinition {
     cooldown: number;
     damage: number;
     reloadTimeSec: number;
-    cost: number;
-    ammoCost: number;
-    ammoPurchaseAmount: number;
     maxDistance: number;
     spread: number;
   };
@@ -24,9 +21,6 @@ export const DEF_WEAPONS = {
     cooldown: 0.5,
     damage: 12,
     reloadTimeSec: 3.5,
-    cost: 0,
-    ammoCost: 10,
-    ammoPurchaseAmount: 46,
     maxDistance: 10,
     spread: 0,
   },
@@ -38,9 +32,6 @@ export const DEF_WEAPONS = {
     cooldown: 1.4,
     damage: 18,
     reloadTimeSec: 4,
-    cost: 30,
-    ammoCost: 60,
-    ammoPurchaseAmount: 24,
     maxDistance: 6,
     spread: 30,
   },
@@ -49,12 +40,9 @@ export const DEF_WEAPONS = {
     displayName: "SMG",
     shots: 1,
     radius: 4,
-    cooldown: 0.13,
+    cooldown: 0.12,
     damage: 5,
     reloadTimeSec: 2.7,
-    cost: 275,
-    ammoCost: 90,
-    ammoPurchaseAmount: 62,
     maxDistance: 8,
     spread: 0,
   },

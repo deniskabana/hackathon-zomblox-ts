@@ -6,15 +6,14 @@ import {
   type WorldPosition,
   gridToWorld,
 } from "../config/core/grid.config";
+import { SHOP_ITEMS } from "../config/game/shop.config";
 import type { AnyEntity } from "../entities/engine/AEntity";
 import BlockBarrelFire from "../entities/game/blocks/BlockBarrelFire";
 import BlockWood from "../entities/game/blocks/BlockWood";
 import Coin from "../entities/game/collectables/Coin";
 import Zombie from "../entities/game/enemies/Zombie";
+import InteractiveShopEntity from "../entities/game/misc/InteractiveShopEntity";
 import Player from "../entities/game/player/Player";
-import ActionShopMedkit from "../entities/game/sensors/ActionShopMedkit";
-import ActionShopShotgun from "../entities/game/sensors/ActionShopShotgun";
-import ActionShopSubmachine from "../entities/game/sensors/ActionShopSubmachine";
 import type GameInstance from "../GameInstance";
 import MapTilesetManager from "../map/MapTilesetManager";
 import type { GameMap } from "../map/parseJsonMap";
@@ -152,28 +151,31 @@ export default class LevelManager extends AManager {
     EntityManager.createEntity(
       EntityType.SENSOR,
       (entityId) =>
-        new ActionShopShotgun({
+        new InteractiveShopEntity({
           gameInstance: this.gameInstance,
           worldPos: gridToWorld({ x: 8, y: 4 }, { center: true }),
           entityId,
+          shopItem: SHOP_ITEMS[0],
         }),
     );
     EntityManager.createEntity(
       EntityType.SENSOR,
       (entityId) =>
-        new ActionShopSubmachine({
+        new InteractiveShopEntity({
           gameInstance: this.gameInstance,
           worldPos: gridToWorld({ x: 10, y: 4 }, { center: true }),
           entityId,
+          shopItem: SHOP_ITEMS[1],
         }),
     );
     EntityManager.createEntity(
       EntityType.SENSOR,
       (entityId) =>
-        new ActionShopMedkit({
+        new InteractiveShopEntity({
           gameInstance: this.gameInstance,
           worldPos: gridToWorld({ x: 8, y: 6 }, { center: true }),
           entityId,
+          shopItem: SHOP_ITEMS[2],
         }),
     );
   }
