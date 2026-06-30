@@ -101,6 +101,9 @@ export const DEF_ASSETS_IMAGE = {
   UIHighlightObj: "/images/ui/ui-higlight.png", // https://crusenho.itch.io/complete-ui-essential-pack
   UIHighlightObjPositive: "/images/ui/ui-higlight-positive.png",
   UIHighlightObjNegative: "/images/ui/ui-higlight-negative.png",
+  UIControlPanelBg: "/images/ui/hud/control-panel-bg.png",
+  UIControlPanelBtnBig: "/images/ui/hud/control-panel-btn-big.png",
+  UIControlPanelBtnSmall: "/images/ui/hud/control-panel-btn-small.png",
 
   // Icons
   SIcoWarfare: "/images/icons/Icons_Warfare.png", // https://nikoichu.itch.io/pixel-icons

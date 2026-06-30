@@ -12,6 +12,7 @@ import InteractiveIndicator from "../misc/InteractiveIndicator";
 export default class ActionShopMedkit extends AEntity {
   private _indicatorEntity: InteractiveIndicator;
   private PRICE = 10;
+  private alpha: number;
 
   constructor({ gameInstance, entityId, worldPos }: EntityConstructorProps) {
     _game = gameInstance;
@@ -31,6 +32,7 @@ export default class ActionShopMedkit extends AEntity {
       (entityId) => new InteractiveIndicator({ gameInstance, entityId, worldPos }),
     );
     this._indicatorEntity.setPrice(this.PRICE);
+    this.alpha = 1;
 
     Matter.Events.on(EntityManager._physicsEngine, "collisionStart", this._onCollisionStart);
     Matter.Events.on(EntityManager._physicsEngine, "collisionEnd", this._onCollisionEnd);
@@ -50,6 +52,8 @@ export default class ActionShopMedkit extends AEntity {
         gunSize,
         gunSize,
         ZIndex.INDICATORS,
+        0,
+        this.alpha,
       );
     },
 
@@ -66,7 +70,7 @@ export default class ActionShopMedkit extends AEntity {
   };
 
   private _onCollisionStart = (event: Matter.IEventCollision<Matter.Engine>) => {
-    const { LevelManager } = _game.MANAGERS;
+    const { LevelManager, UIManager } = _game.MANAGERS;
 
     for (const pair of event.pairs) {
       const other =
@@ -79,10 +83,14 @@ export default class ActionShopMedkit extends AEntity {
       const currency = LevelManager.getCurrency();
       if (currency < this.PRICE) this._indicatorEntity.setNegative();
       else this._indicatorEntity.setPositive();
+
+      UIManager.showShopUI();
+
+      this.alpha = 0.65;
     }
   };
   private _onCollisionEnd = (event: Matter.IEventCollision<Matter.Engine>) => {
-    const { LevelManager } = _game.MANAGERS;
+    const { LevelManager, UIManager } = _game.MANAGERS;
 
     for (const pair of event.pairs) {
       const other =
@@ -92,7 +100,10 @@ export default class ActionShopMedkit extends AEntity {
       const entity = other.plugin?.entity;
       if (entity !== LevelManager.player) continue;
 
+      UIManager.hideShopUI();
+
       this._indicatorEntity.setNeutral();
+      this.alpha = 1;
     }
   };
 }

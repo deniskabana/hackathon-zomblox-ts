@@ -49,7 +49,7 @@ export default class InteractiveIndicator extends AEntity<IndicatorState, Instan
           id: IndicatorState.NEGATIVE,
           loop: true,
           frameCount: 4,
-          assetVariants: [AssetManager.getImageAsset("UIHighlightObjNegative")!],
+          assetVariants: [AssetManager.getImageAsset("UIHighlightObj")!],
         },
       ],
     };

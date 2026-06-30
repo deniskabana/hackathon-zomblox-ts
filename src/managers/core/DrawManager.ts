@@ -117,7 +117,7 @@ export default class DrawManager extends AManager {
     this.clearCanvas();
     this.gameInstance.update(deltaTime * speedScale, deltaTime); // This could be decoupled in the future
     this.renderDrawQueue();
-    UIManager.draw(this.fps);
+    UIManager.draw(this.fps, deltaTime);
     VFXManager.draw(deltaTime);
     LevelManager.drawEntities();
     BuildModeManager.draw();

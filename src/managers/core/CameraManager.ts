@@ -132,6 +132,9 @@ export default class CameraManager extends AManager {
   public getTargetWorldWidth(): number {
     return this.targetWorldWidth;
   }
+  public getTargetWorldHeight(): number {
+    return this.targetWorldWidth * (this.viewportHeight / this.viewportWidth);
+  }
   public setZoomScale(zoom: number = 1) {
     this.zoomScale = zoom;
   }
