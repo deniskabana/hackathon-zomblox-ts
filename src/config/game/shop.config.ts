@@ -44,7 +44,7 @@ export const SHOP_ITEMS = {
     name: "Medkit",
     category: ItemCategory.CONSUMABLE,
     basePrice: 15,
-    priceStrategy: (basePrice, purchaseCount) => basePrice * purchaseCount * 2,
+    priceStrategy: (basePrice, purchaseCount) => basePrice + basePrice * purchaseCount,
     purchaseCount: 0,
     baseStock: Infinity,
     currentStock: Infinity,
@@ -52,7 +52,7 @@ export const SHOP_ITEMS = {
     renderItem: ({ x, y }, AssetManager, DrawManager, options) => {
       const alpha = options?.alpha ?? 1;
       const scale = options?.scale ?? 1;
-      const size = GRID_CONFIG.TILE_SIZE * scale * 0.65;
+      const size = GRID_CONFIG.TILE_SIZE * scale * 0.5;
       const sprite = AssetManager.getImageAsset("IShopMedkit")!;
       DrawManager.queueDraw(x - size / 2, y - size / 2, sprite, size, size, ZIndex.UI, 0, alpha);
     },

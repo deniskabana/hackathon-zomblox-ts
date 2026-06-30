@@ -48,7 +48,7 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
           id: IndicatorState.POSITIVE,
           loop: true,
           frameCount: 4,
-          assetVariants: [AssetManager.getImageAsset("UIHighlightObjPositive")!],
+          assetVariants: [AssetManager.getImageAsset("UIHighlightObjNegative")!],
         },
         {
           id: IndicatorState.NEGATIVE,
@@ -91,7 +91,7 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
       const { DrawManager, AssetManager } = _game.MANAGERS;
       this._animations?.drawActiveAnimations(this._getWorldPosition(), this._getSize() * 1.2, DrawManager, {
         zIndex: ZIndex.INDICATORS,
-        alpha: 0.8,
+        alpha: this._getState() === IndicatorState.NEUTRAL ? 0.5 : 0.75,
       });
       this.shopItem.renderItem(this._getWorldPosition(), AssetManager, DrawManager, { alpha: this.alpha });
     },
@@ -121,7 +121,7 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
   }
 
   private _onCollisionStart = (event: Matter.IEventCollision<Matter.Engine>) => {
-    const { LevelManager } = _game.MANAGERS;
+    const { LevelManager, UIManager } = _game.MANAGERS;
 
     for (const pair of event.pairs) {
       const other =
@@ -135,12 +135,14 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
       if (currency < this.getPrice()) this.setNegative();
       else this.setPositive();
 
-      this.alpha = 0.5;
+      UIManager.showShopUI(this.shopItem);
+
+      this.alpha = 0.7;
     }
   };
 
   private _onCollisionEnd = (event: Matter.IEventCollision<Matter.Engine>) => {
-    const { LevelManager } = _game.MANAGERS;
+    const { LevelManager, UIManager } = _game.MANAGERS;
 
     for (const pair of event.pairs) {
       const other =
@@ -149,6 +151,8 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
 
       const entity = other.plugin?.entity;
       if (entity !== LevelManager.player) continue;
+
+      UIManager.hideShopUI();
 
       this.setNeutral();
       this.alpha = 1;

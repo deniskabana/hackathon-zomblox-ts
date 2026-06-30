@@ -103,6 +103,7 @@ export const DEF_ASSETS_IMAGE = {
   UIHighlightObjNegative: "/images/ui/ui-higlight-negative.png",
   UIControlPanelBg: "/images/ui/hud/control-panel-bg.png",
   UIControlPanelBtnBig: "/images/ui/hud/control-panel-btn-big.png",
+  UIControlPanelBtnBigDisabled: "/images/ui/hud/control-panel-btn-big-disabled.png",
   UIControlPanelBtnSmall: "/images/ui/hud/control-panel-btn-small.png",
 
   // Icons
