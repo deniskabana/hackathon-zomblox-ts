@@ -213,8 +213,9 @@ export default class BuildModeManager extends AManager {
    */
   public setBlockType(type: BlockTypes): void {
     this.activeBlockType = type;
-    const sprite = this.getActiveBlockSprite();
-    if (sprite) this.gameInstance.MANAGERS.UIManager.setBuildModeState(sprite, 0);
+    // const sprite = this.getActiveBlockSprite();
+    // if (sprite) this.gameInstance.MANAGERS.UIManager.setBuildModeState(sprite, 0);
+    // TODO: Add proper setup
   }
 
   public nextBlockType(): void {

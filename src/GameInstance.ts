@@ -125,7 +125,6 @@ export default class GameInstance {
     GameManager.stateSetReady();
 
     UIManager._init();
-    UIManager.showStartGameContainer();
   }
 
   public startGame = (): void => {
@@ -154,11 +153,10 @@ export default class GameInstance {
     LightManager._init();
     SettingsManager._init();
     VFXManager._init();
+    UIManager._init();
 
     DrawManager.startRenderLoop();
 
-    UIManager.hideStartGameContainer();
-    UIManager.showUi();
     GameManager.stateSetPlaying();
 
     LevelManager.startGame();
