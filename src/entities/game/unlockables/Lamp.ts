@@ -21,18 +21,14 @@ export default class Lamp extends AEntity {
   }: EntityConstructorProps & { shopUnlockableId: ShopItemId }) {
     _game = gameInstance;
 
-    const width = GRID_CONFIG.TILE_SIZE * 0.5;
-    const height = GRID_CONFIG.TILE_SIZE;
+    const size = GRID_CONFIG.TILE_SIZE * 0.5;
 
     super({
       worldPos,
       entityId,
-      size: GRID_CONFIG.TILE_SIZE,
+      size,
       initialState: undefined,
-      collisionPoints: EntityCollisionShape.GetRectangle(
-        { x: -width / 2, y: -height / 2 },
-        { x: width / 2, y: height / 2 },
-      ),
+      collisionPoints: EntityCollisionShape.GetRectangle({ x: -size / 2, y: -size / 2 }, { x: size / 2, y: size / 2 }),
     });
 
     const { AssetManager } = _game.MANAGERS;
@@ -46,7 +42,7 @@ export default class Lamp extends AEntity {
       const { AssetManager, DrawManager, LevelManager, InventoryManager, LightManager } = _game.MANAGERS;
       const { x, y } = this._getWorldPosition();
 
-      const size = GRID_CONFIG.TILE_SIZE;
+      const size = GRID_CONFIG.TILE_SIZE * 1.5;
       const isUnlocked = InventoryManager.playerOwnsItem(LevelManager.player!._getEntityId(), this._shopUnlockableId);
 
       if (!this._isUnlocked && isUnlocked) {
@@ -70,8 +66,8 @@ export default class Lamp extends AEntity {
       }
 
       DrawManager.queueDrawSprite(
-        x - size / 2 + 12,
-        y - size - size / 2 - 8,
+        x - size / 4 + 1,
+        y - size - size / 2 - 16,
         this._spritesheet,
         isUnlocked ? 1 : 0,
         size * 0.5,

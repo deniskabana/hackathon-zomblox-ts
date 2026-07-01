@@ -263,6 +263,8 @@ export default class LevelManager extends AManager {
           shopItem: SHOP_ITEMS[5],
         }),
     );
+
+    this.updateBlockGrid();
   }
 
   public update(_deltaTime: number) {

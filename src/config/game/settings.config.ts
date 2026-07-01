@@ -67,7 +67,7 @@ export const DEFAULT_SETTINGS: Readonly<GameSettingsSpec> = {
     movementRestartSec: 0.5,
     dropsItems: true,
     facingDirThrottleSec: 0.25,
-    maxSpeed: 135,
+    maxSpeed: 125,
     maxHealth: 37,
     minDistanceFromPlayerPx: GRID_CONFIG.TILE_SIZE * 1,
     isHurtBySunlight: true,

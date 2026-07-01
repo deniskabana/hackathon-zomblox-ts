@@ -57,8 +57,6 @@ export default class UIManager extends AManager {
   }
 
   public drawDebug(fps: number) {
-    if (!this._gameInstance.isDev) return;
-
     const { DrawManager, CameraManager } = this._gameInstance.MANAGERS;
     const zoom = CameraManager.getZoomScale();
     const textX = CameraManager.x - CameraManager.getTargetWorldWidth() / 2 / zoom + 8;
