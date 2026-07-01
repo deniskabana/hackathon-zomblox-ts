@@ -86,7 +86,7 @@ export default class InteractiveOwnedWeapon extends AEntity<IndicatorState, Inst
     draw: () => {
       const { DrawManager, AssetManager } = _game.MANAGERS;
       this._animations?.drawActiveAnimations(this._getWorldPosition(), this._getSize() * 1.2, DrawManager, {
-        zIndex: ZIndex.INDICATORS,
+        zIndex: ZIndex.INTERACTIVE,
         alpha: this._getState() === IndicatorState.NEUTRAL ? 0.45 : 1,
       });
       this.shopItem.renderItem(this._getWorldPosition(), AssetManager, DrawManager, { alpha: this.alpha });

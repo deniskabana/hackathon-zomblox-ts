@@ -130,15 +130,19 @@ export default class DrawManager extends AManager {
   // ==================================================
 
   private renderDrawQueue(): void {
+    const { LightManager } = this.gameInstance.MANAGERS;
+
     Object.entries(this.drawQueue)
       .sort(([a], [b]) => Number(a) - Number(b))
-      .forEach(([_zIndex, commands]) => {
+      .forEach(([zIndex, commands]) => {
+        if (zIndex === String(ZIndex.LIGHT)) LightManager.drawNightLighting();
+
         for (const cmd of commands) {
           this.drawCommand(cmd);
         }
       });
 
-    this.drawQueue = {};
+    this.drawQueue = { [ZIndex.LIGHT]: [] };
   }
 
   private drawCommand(cmd: DrawCommand): void {

@@ -95,16 +95,20 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
     },
 
     draw: () => {
-      const { DrawManager, AssetManager } = _game.MANAGERS;
+      const { DrawManager, AssetManager, LevelManager } = _game.MANAGERS;
+      if (!LevelManager.getIsDay()) return;
+
       this._animations?.drawActiveAnimations(this._getWorldPosition(), this._getSize() * 1.2, DrawManager, {
-        zIndex: ZIndex.INDICATORS,
+        zIndex: ZIndex.INTERACTIVE,
         alpha: this._getState() === IndicatorState.NEUTRAL ? 0.45 : 1,
       });
       this.shopItem.renderItem(this._getWorldPosition(), AssetManager, DrawManager, { alpha: this.alpha });
     },
 
     drawShadow: () => {
-      const { DrawManager, AssetManager } = _game.MANAGERS;
+      const { DrawManager, AssetManager, LevelManager } = _game.MANAGERS;
+      if (!LevelManager.getIsDay()) return;
+
       const { x, y } = this._getWorldPosition();
       const shadowSprite = AssetManager.getImageAsset("IFXEntityShadow");
       const size = this._getSize() * 0.85;
@@ -125,6 +129,7 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
 
   private _onCollisionStart = (event: Matter.IEventCollision<Matter.Engine>) => {
     const { LevelManager, UIManager, ShopManager, EntityManager } = _game.MANAGERS;
+    if (!LevelManager.getIsDay()) return;
 
     for (const pair of event.pairs) {
       const other =

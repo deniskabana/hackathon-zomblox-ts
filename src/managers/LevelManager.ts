@@ -257,13 +257,6 @@ export default class LevelManager extends AManager {
 
     EntityManager.draw();
     this.drawMapLayers("above", SettingsManager.getSettings().rules.debugDrawFlowFieldGrid ? 0.4 : 1);
-
-    if (!this.getIsDay() && this.player) {
-      this.gameInstance.MANAGERS.LightManager.drawNightLighting(
-        [this.player._getWorldPosition()],
-        this.player.getFacingDirection(),
-      );
-    }
   }
 
   private createMapTileImages(): void {
