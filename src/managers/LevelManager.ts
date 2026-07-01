@@ -444,7 +444,9 @@ export default class LevelManager extends AManager {
 
   public startNight(): void {
     if (!this.levelState) return;
-    const { EntityManager } = this.gameInstance.MANAGERS;
+    const { EntityManager, ShopManager } = this.gameInstance.MANAGERS;
+
+    ShopManager.onWaveStart(this.levelState.daysCounter);
 
     this.gameInstance.MANAGERS.BuildModeManager.setBuildMode(false);
     this.retreatFlowFields = undefined;

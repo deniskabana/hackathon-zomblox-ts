@@ -372,7 +372,8 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     },
 
     onDestroy: () => {
-      const { EntityManager } = _game.MANAGERS;
+      const { EntityManager, LevelManager } = _game.MANAGERS;
+      if (LevelManager.levelState) LevelManager.levelState.zombiesKillCounter++;
       EntityManager.destroyEntity(this._entityId);
     },
   };

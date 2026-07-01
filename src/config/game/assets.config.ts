@@ -32,6 +32,7 @@ export const DEF_ASSETS_AUDIO = {
   AFXCoinCollected: "/audio/drop-coin-384921.mp3", // https://pixabay.com/users/freesound_crunchpixstudio-49769582/
   AFXMorningRooster: "/audio/rooster-233738.mp3", // https://pixabay.com/users/stefan_grace-8153913/
   AFXUiClick: "/audio/computer-mouse-click-352734.mp3", // https://pixabay.com/users/universfield-28281460/
+  AFXUiEquip: "/audio/arunangshubanerjee-cassette-recorder-stop-button-mechanical-click-sound-359987.mp3", // https://pixabay.com/users/arunangshubanerjee-29054022/
   // Music
   AMusicBackgroundNight: "/audio/horror-scary-dark-music-413504.mp3", // https://pixabay.com/users/lnplusmusic-47631836/
   AMusicBackgroundDay: "/audio/early-morning-muse-full-version-peaceful-flute-harp-strings-371629.mp3", // https://pixabay.com/users/kaazoom-448850/

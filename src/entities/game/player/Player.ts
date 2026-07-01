@@ -236,7 +236,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       }
 
       this.getShootingInput();
-      this.getShopBuyInput();
+      this.getInteractionInput();
       this.getBuildingModeInput(_deltaTime);
     },
 
@@ -597,15 +597,17 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     }
   }
 
-  private getShopBuyInput(): void {
+  private getInteractionInput(): void {
     const { InputManager, ShopManager, UIManager } = _game.MANAGERS;
 
     if (!InputManager.wasPressed(GameControls.ACTION_INTERACT)) return;
     InputManager.consumeAction(GameControls.ACTION_INTERACT);
 
     const shopItem = UIManager.getShopUiItem();
-    if (shopItem === null) return;
-    ShopManager.purchase(shopItem.id, this._getEntityId());
+    if (shopItem !== null) ShopManager.purchase(shopItem.id, this._getEntityId());
+
+    const equipItem = UIManager.getEquipUiItem();
+    if (equipItem !== null) this.equipWeapon(equipItem.name);
   }
 
   private reloadWeapon(): void {
@@ -668,10 +670,17 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     return angle;
   }
 
-  public setWeapon(weaponName: string): void {
+  public getCurrentWeapon(): Weapon {
+    return this._instance.currentWeapon;
+  }
+  public equipWeapon(weaponName: string): void {
+    const { AssetManager } = _game.MANAGERS;
+
     const weapon = DEF_WEAPONS[weaponName as Instance["currentWeapon"]];
-    if (!weapon) return;
+    if (!weapon || this.getCurrentWeapon() === weaponName) return;
     this._instance.currentWeapon = weaponName as Instance["currentWeapon"];
     this._instance.currentAmmo = DEF_WEAPONS[this._instance.currentWeapon].capacity;
+
+    AssetManager.playAudioAsset("AFXUiEquip", "sound");
   }
 }

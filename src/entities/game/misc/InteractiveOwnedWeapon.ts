@@ -2,13 +2,11 @@ import { GRID_CONFIG } from "../../../config/core/grid.config";
 import type GameInstance from "../../../GameInstance";
 import { ZIndex } from "../../../types/lib/ZIndex";
 import SpriteSheet from "../../../utils/classes/SpriteSheet";
-import AEntity, { type AEntityEngineBody, type EntityConstructorProps } from "../../engine/AEntity";
+import AEntity, { type AEntityEngineBody, type AnyEntity, type EntityConstructorProps } from "../../engine/AEntity";
 import type { EntityAnimationsSpecs } from "../../engine/systems/EntityAnimation";
 import { EntityCollisionShape } from "../../engine/systems/EntityCollisionPoints";
-import { ItemCategory, type ShopItem } from "../../../config/game/shop.config";
+import { type ShopItem } from "../../../config/game/shop.config";
 import Matter from "matter-js";
-import { EntityType } from "../../../types/engine/EntityType";
-import InteractiveOwnedWeapon from "./InteractiveOwnedWeapon";
 import type { Weapon } from "../../../config/game/weapons.config";
 
 /** `this.gameInstance` */ let _game: GameInstance;
@@ -16,7 +14,6 @@ import type { Weapon } from "../../../config/game/weapons.config";
 enum IndicatorState {
   NEUTRAL = "NEUTRAL",
   POSITIVE = "POSITIVE",
-  NEGATIVE = "NEGATIVE",
 }
 
 interface Instance {
@@ -24,11 +21,18 @@ interface Instance {
   coinSpritesheet: SpriteSheet;
 }
 
-export default class InteractiveShopEntity extends AEntity<IndicatorState, Instance> {
+export default class InteractiveOwnedWeapon extends AEntity<IndicatorState, Instance> {
+  private weapon: Weapon;
   private shopItem: ShopItem;
   private alpha: number = 1;
 
-  constructor({ gameInstance, entityId, worldPos, shopItem }: EntityConstructorProps & { shopItem: ShopItem }) {
+  constructor({
+    gameInstance,
+    entityId,
+    worldPos,
+    shopItem,
+    weapon,
+  }: EntityConstructorProps & { shopItem: ShopItem; weapon: Weapon }) {
     _game = gameInstance;
     const { AssetManager, EntityManager } = _game.MANAGERS;
     const size = GRID_CONFIG.TILE_SIZE;
@@ -48,13 +52,7 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
           id: IndicatorState.POSITIVE,
           loop: true,
           frameCount: 4,
-          assetVariants: [AssetManager.getImageAsset("UIHighlightObjPositive")!],
-        },
-        {
-          id: IndicatorState.NEGATIVE,
-          loop: true,
-          frameCount: 4,
-          assetVariants: [AssetManager.getImageAsset("UIHighlightObjNegative")!],
+          assetVariants: [AssetManager.getImageAsset("UIHighlightObj")!],
         },
       ],
     };
@@ -74,6 +72,7 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
 
     this._animations?.setActiveAnimations([this._getState()]);
     this.shopItem = shopItem;
+    this.weapon = weapon;
 
     Matter.Events.on(EntityManager._physicsEngine, "collisionStart", this._onCollisionStart);
     Matter.Events.on(EntityManager._physicsEngine, "collisionEnd", this._onCollisionEnd);
@@ -81,13 +80,7 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
 
   public _engine: AEntityEngineBody = {
     updateBefore: (_deltaTime) => {
-      const { ShopManager } = _game.MANAGERS;
-
       this._animations?.setActiveAnimations([this._getState()]);
-
-      if (this._getState() === IndicatorState.NEUTRAL && ShopManager.canAfford(this.shopItem.id)) {
-        this._setState(IndicatorState.POSITIVE);
-      }
     },
 
     draw: () => {
@@ -119,54 +112,32 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
     },
   };
 
-  public setPositive() {
+  private setPositive() {
     this._setState(IndicatorState.POSITIVE);
   }
-  public setNegative() {
-    this._setState(IndicatorState.NEGATIVE);
-  }
-  public setNeutral() {
+  private setNeutral() {
     this._setState(IndicatorState.NEUTRAL);
   }
 
   private _onCollisionStart = (event: Matter.IEventCollision<Matter.Engine>) => {
-    const { LevelManager, UIManager, ShopManager, EntityManager } = _game.MANAGERS;
+    const { LevelManager, UIManager } = _game.MANAGERS;
 
     for (const pair of event.pairs) {
       const other =
         pair.bodyA === this._physicsBody ? pair.bodyB : pair.bodyB === this._physicsBody ? pair.bodyA : null;
       if (!other) continue;
 
-      const entity = other.plugin?.entity;
-      if (entity !== LevelManager.player) continue;
+      const entity = other.plugin?.entity as AnyEntity | undefined;
+      if (!entity || entity !== LevelManager.player) continue;
 
-      if (!ShopManager.canAfford(this.shopItem.id)) this.setNegative();
-      else this.setPositive();
-
-      UIManager.showShopUI(this.shopItem);
-
-      if (this.shopItem.category === ItemCategory.WEAPON) {
-        ShopManager.setOnPurchaseCallback(() => {
-          EntityManager.createEntity(EntityType.SENSOR, (entityId) => {
-            ShopManager.setOnPurchaseCallback(null);
-            this._destructor();
-            return new InteractiveOwnedWeapon({
-              gameInstance: _game,
-              entityId,
-              worldPos: this._getWorldPosition(),
-              weapon: this.shopItem.name as Weapon,
-              shopItem: this.shopItem,
-            });
-          });
-        });
-      }
-
+      UIManager.showEquipUI(this.shopItem);
+      this.setPositive();
       this.alpha = 0.5;
     }
   };
 
   private _onCollisionEnd = (event: Matter.IEventCollision<Matter.Engine>) => {
-    const { LevelManager, UIManager, ShopManager } = _game.MANAGERS;
+    const { LevelManager, UIManager } = _game.MANAGERS;
 
     for (const pair of event.pairs) {
       const other =
@@ -176,11 +147,14 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
       const entity = other.plugin?.entity;
       if (entity !== LevelManager.player) continue;
 
-      UIManager.hideShopUI();
-      ShopManager.setOnPurchaseCallback(null);
-
+      UIManager.hideEquipUI();
       this.setNeutral();
       this.alpha = 1;
     }
   };
+
+  public equipWeapon(): void {
+    const { LevelManager } = _game.MANAGERS;
+    LevelManager.player?.equipWeapon(this.weapon);
+  }
 }

@@ -5,6 +5,8 @@ import { AManager } from "./abstract/AManager";
 export default class ShopManager extends AManager {
   private _gameInstance: GameInstance;
 
+  private onPurchaseCallback: VoidFunction | null;
+
   private _state: Map<ShopItemId, ShopItemState>; // keyed by itemId
   private _history: ShopPurchaseEvent[];
   private _totalSpent: number;
@@ -15,6 +17,7 @@ export default class ShopManager extends AManager {
     super(gameInstance);
     this._gameInstance = gameInstance;
 
+    this.onPurchaseCallback = null;
     this._state = new Map();
     this._history = [];
     this._totalSpent = 0;
@@ -86,6 +89,8 @@ export default class ShopManager extends AManager {
     InventoryManager.onShopPurchase(event);
     AssetManager.playAudioAsset("AFXShopPurchase", "sound");
 
+    this.onPurchaseCallback?.();
+
     return true;
   }
 
@@ -97,6 +102,10 @@ export default class ShopManager extends AManager {
       if (!shopDefinition) continue;
       item.currentStock = shopDefinition.stockRule(item.currentStock, waveNumber);
     }
+  }
+
+  public setOnPurchaseCallback(callback: typeof this.onPurchaseCallback): void {
+    this.onPurchaseCallback = callback;
   }
 }
 

@@ -72,7 +72,7 @@ export default class InventoryManager extends AManager {
 
       case ItemCategory.WEAPON:
         inventory.weapons.add(item.id);
-        LevelManager.player?.setWeapon(item.name);
+        LevelManager.player?.equipWeapon(item.name);
         break;
 
       case ItemCategory.CONSTRUCTION:

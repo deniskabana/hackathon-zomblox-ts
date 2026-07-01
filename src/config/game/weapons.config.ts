@@ -29,7 +29,7 @@ export const DEF_WEAPONS = {
     displayName: "Shotgun",
     shots: 3,
     radius: 19,
-    cooldown: 1.4,
+    cooldown: 1.1,
     damage: 18,
     reloadTimeSec: 4,
     maxDistance: 6,
