@@ -66,6 +66,8 @@ export default class ShopManager extends AManager {
     if (this.getItemStock(id) < 1) return false;
     if (!this.canAfford(id)) return false;
 
+    const pricePaid = stateShopItem.currentPrice;
+
     stateShopItem.currentStock -= 1;
     stateShopItem.purchaseCount += 1;
     stateShopItem.currentPrice = shopDefinition.priceStrategy(
@@ -74,7 +76,6 @@ export default class ShopManager extends AManager {
       this._waveNumber,
     );
 
-    const pricePaid = stateShopItem.currentPrice;
     LevelManager.addCurrency(pricePaid * -1);
     this._totalSpent += pricePaid;
 
