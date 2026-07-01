@@ -97,9 +97,19 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
       const { DrawManager, AssetManager } = _game.MANAGERS;
       this._animations?.drawActiveAnimations(this._getWorldPosition(), this._getSize() * 1.2, DrawManager, {
         zIndex: ZIndex.INDICATORS,
-        alpha: this._getState() === IndicatorState.NEUTRAL ? 0.5 : 0.75,
+        alpha: this._getState() === IndicatorState.NEUTRAL ? 0.45 : 1,
       });
       this.shopItem.renderItem(this._getWorldPosition(), AssetManager, DrawManager, { alpha: this.alpha });
+    },
+
+    drawShadow: () => {
+      const { DrawManager, AssetManager } = _game.MANAGERS;
+      const { x, y } = this._getWorldPosition();
+      const shadowSprite = AssetManager.getImageAsset("IFXEntityShadow");
+      const size = this._getSize() * 0.85;
+
+      if (!shadowSprite) return;
+      DrawManager.queueDraw(x - size / 2, y - size * 0.5, shadowSprite, size, size, ZIndex.GROUND_EFFECTS, 0, 0.85);
     },
 
     drawDebug: () => {},

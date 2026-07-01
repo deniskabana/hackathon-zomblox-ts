@@ -54,7 +54,7 @@ export class DebugPanel {
   private _buildControlsFolder(): void {
     const { LevelManager, EntityManager } = this._gameInstance.MANAGERS;
     const gui = new GUI({ title: MENU_TITLE + "Game Controls", autoPlace: true, injectStyles: true });
-    gui.root.domElement.style = 'width: 300px; right: 0; font-family: "Syne Mono", monospace;';
+    gui.root.domElement.style = 'width: 300px; right: 0; font-family: "Jersey 10", monospace;';
     this._guis.push(gui);
 
     const levelFolder = gui.addFolder("Level");

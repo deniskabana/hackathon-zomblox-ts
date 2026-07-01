@@ -1,6 +1,7 @@
 import { GRID_CONFIG } from "../config/core/grid.config";
 import type { ShopItem } from "../config/game/shop.config";
 import type GameInstance from "../GameInstance";
+import { FONT_MONO } from "../styles/styles.config";
 import { ZIndex } from "../types/lib/ZIndex";
 import lerp from "../utils/math/lerp";
 import { AManager } from "./abstract/AManager";
@@ -22,14 +23,17 @@ export default class UIManager extends AManager {
   public _init(): void {}
 
   public draw(_fps: number, _deltaTime: number): void {
+    this.shopAlpha = lerp(this.shopAlpha, this.isShopUiVisible ? 1 : 0, _deltaTime * 15);
+    if (this.shopAlpha !== 0) this.drawShopUi();
+  }
+
+  private drawShopUi(): void {
     const { AssetManager, DrawManager, CameraManager, ShopManager } = this._gameInstance.MANAGERS;
     const zoom = CameraManager.getZoomScale();
     const width = (146 * 2) / zoom;
     const height = (84 * 2) / zoom;
 
-    this.shopAlpha = lerp(this.shopAlpha, this.isShopUiVisible ? 1 : 0, _deltaTime * 20);
-
-    if (this.shopAlpha === 0 || !this.activeShopItem) return;
+    if (!this.activeShopItem) return;
 
     // Background
     DrawManager.queueDraw(
@@ -63,8 +67,8 @@ export default class UIManager extends AManager {
       CameraManager.x - 8 / zoom - width / 2 + CameraManager.getTargetWorldWidth() / zoom / 2,
       CameraManager.y - 23 / zoom - CameraManager.getTargetWorldHeight() / zoom / 2 + height,
       "#ffffff",
-      21 / zoom,
-      "Courier",
+      23 / zoom,
+      FONT_MONO,
       "center",
       this.shopAlpha,
       true,
@@ -88,7 +92,7 @@ export default class UIManager extends AManager {
       },
       AssetManager,
       DrawManager,
-      { alpha: this.shopAlpha, scale: 2.25 },
+      { alpha: this.shopAlpha, scale: 2.25 / zoom },
     );
 
     // Coin
@@ -106,10 +110,10 @@ export default class UIManager extends AManager {
     DrawManager.drawText(
       String(this.activeShopItem ? ShopManager.getItemPrice(this.activeShopItem.id) : "?"),
       CameraManager.x - 32 / zoom + CameraManager.getTargetWorldWidth() / zoom / 2 - 30 / zoom,
-      CameraManager.y - CameraManager.getTargetWorldHeight() / zoom / 2 + 80 / zoom,
+      CameraManager.y - CameraManager.getTargetWorldHeight() / zoom / 2 + 79 / zoom,
       "#ffffff",
-      38 / zoom,
-      "Courier",
+      40 / zoom,
+      FONT_MONO,
       "right",
       this.shopAlpha,
       true,
@@ -127,7 +131,7 @@ export default class UIManager extends AManager {
       CameraManager.y - CameraManager.getTargetWorldHeight() / zoom / 2 + 70 / zoom + GRID_CONFIG.TILE_SIZE / zoom / 2,
       "#ffffff",
       26 / zoom,
-      "Courier",
+      FONT_MONO,
       "right",
       this.shopAlpha,
       true,

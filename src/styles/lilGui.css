@@ -1,7 +1,7 @@
 .lil-gui {
-  --font-family: "Syne Mono", monospace;
-  --font-family-mono: "Syne Mono", monospace;
-  --font-size: 12px;
+  --font-family: "Jersey 10", monospace;
+  --font-family-mono: "Jersey 10", monospace;
+  --font-size: 14px;
   --focus-color: #993535;
   --hover-color: #6e2d2d;
   --number-color: #ffffffa0;
@@ -18,7 +18,7 @@
 }
 
 .lil-gui .lil-title {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 900;
 }
 
@@ -27,7 +27,7 @@
   text-transform: uppercase;
   background: var(--focus-color);
   color: white;
-  font-size: 16px;
+  font-size: 18px;
 }
 
 .lil-gui .lil-children .lil-children {
