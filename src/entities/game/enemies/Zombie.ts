@@ -525,7 +525,10 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     const targetDirection = Math.atan2(normalizedVector.y, normalizedVector.x);
     this._instance.movementDirection = lerpAngle(movementDirection, targetDirection, _deltaTime * 8.5);
 
-    if (this.getIsNextToPlayer()) {
+    if (
+      this.getIsNextToPlayer() &&
+      (this._getState() === ZombieState.CHASING || this._getState() === ZombieState.IDLE)
+    ) {
       this.startAttacking();
       this._timers.movementRestart.reset(settings.movementRestartSec);
       return;

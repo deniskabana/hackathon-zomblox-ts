@@ -69,7 +69,7 @@ export const SHOP_ITEMS: Record<number, ShopItem> = {
     id: 2,
     name: "Submachine",
     category: ItemCategory.WEAPON,
-    basePrice: 135,
+    basePrice: 125,
     priceStrategy: (basePrice) => basePrice,
     baseStock: 1,
     stockRule: (currentStock) => currentStock,
@@ -86,7 +86,7 @@ export const SHOP_ITEMS: Record<number, ShopItem> = {
     id: 3,
     name: "Unlockable_Lamp_1",
     category: ItemCategory.UNLOCKABLE,
-    basePrice: 20,
+    basePrice: 30,
     priceStrategy: (basePrice) => basePrice,
     baseStock: 1,
     stockRule: (currentStock) => currentStock,
@@ -109,6 +109,81 @@ export const SHOP_ITEMS: Record<number, ShopItem> = {
         0,
         alpha,
       );
+    },
+  },
+  4: {
+    id: 4,
+    name: "Unlockable_Lamp_2",
+    category: ItemCategory.UNLOCKABLE,
+    basePrice: 40,
+    priceStrategy: (basePrice) => basePrice,
+    baseStock: 1,
+    stockRule: (currentStock) => currentStock,
+    renderItem: ({ x, y }, AssetManager, DrawManager, options) => {
+      const alpha = options?.alpha ?? 1;
+      const zIndex = options?.zIndex ?? ZIndex.INTERACTIVE;
+
+      if (zIndex !== ZIndex.UI) return;
+      const scale = zIndex === ZIndex.UI ? 0.75 : (options?.scale ?? 1);
+      const size = GRID_CONFIG.TILE_SIZE * scale;
+      const spritesheet = SpriteSheet.fromGrid(AssetManager.getImageAsset("IUnlockableLamp")!, 32, 128, 2);
+      DrawManager.queueDrawSprite(
+        x - size / 2 + 12,
+        y - size - size / 2 + (zIndex === ZIndex.UI ? 16 : 0),
+        spritesheet,
+        zIndex === ZIndex.UI ? 1 : 0,
+        size * 0.5,
+        size * 2,
+        zIndex,
+        0,
+        alpha,
+      );
+    },
+  },
+  5: {
+    id: 5,
+    name: "Unlockable_Lamp_3",
+    category: ItemCategory.UNLOCKABLE,
+    basePrice: 50,
+    priceStrategy: (basePrice) => basePrice,
+    baseStock: 1,
+    stockRule: (currentStock) => currentStock,
+    renderItem: ({ x, y }, AssetManager, DrawManager, options) => {
+      const alpha = options?.alpha ?? 1;
+      const zIndex = options?.zIndex ?? ZIndex.INTERACTIVE;
+
+      if (zIndex !== ZIndex.UI) return;
+      const scale = zIndex === ZIndex.UI ? 0.75 : (options?.scale ?? 1);
+      const size = GRID_CONFIG.TILE_SIZE * scale;
+      const spritesheet = SpriteSheet.fromGrid(AssetManager.getImageAsset("IUnlockableLamp")!, 32, 128, 2);
+      DrawManager.queueDrawSprite(
+        x - size / 2 + 12,
+        y - size - size / 2 + (zIndex === ZIndex.UI ? 16 : 0),
+        spritesheet,
+        zIndex === ZIndex.UI ? 1 : 0,
+        size * 0.5,
+        size * 2,
+        zIndex,
+        0,
+        alpha,
+      );
+    },
+  },
+  6: {
+    id: 6,
+    name: "Revolver",
+    category: ItemCategory.WEAPON,
+    basePrice: 65,
+    priceStrategy: (basePrice) => basePrice,
+    baseStock: 0,
+    stockRule: (currentStock) => currentStock,
+    renderItem: ({ x, y }, AssetManager, DrawManager, options) => {
+      const alpha = options?.alpha ?? 1;
+      const scale = options?.scale ?? 1;
+      const zIndex = options?.zIndex ?? ZIndex.INTERACTIVE;
+      const size = GRID_CONFIG.TILE_SIZE * scale;
+      const spritesheet = SpriteSheet.fromGrid(AssetManager.getImageAsset("SPlayerWeapons")!, 32, 32, 12)!;
+      DrawManager.queueDrawSprite(x - size / 2, y - size / 2, spritesheet, 2, size, size, zIndex, 0, alpha);
     },
   },
 };

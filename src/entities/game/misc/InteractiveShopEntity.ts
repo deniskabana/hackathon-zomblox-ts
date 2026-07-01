@@ -53,7 +53,7 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
         {
           id: IndicatorState.NEGATIVE,
           loop: true,
-          frameCount: 1,
+          frameCount: 4,
           assetVariants: [AssetManager.getImageAsset("UIHighlightObjNegative")!],
         },
       ],

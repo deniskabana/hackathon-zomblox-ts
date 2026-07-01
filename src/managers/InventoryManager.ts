@@ -33,13 +33,13 @@ export default class InventoryManager extends AManager {
     for (const itemId of this.getWeapons(entityId) ?? []) {
       if (shopItemId === itemId) return SHOP_ITEMS[shopItemId];
     }
+    for (const itemId of this.getUnlockables(entityId) ?? []) {
+      if (shopItemId === itemId) return SHOP_ITEMS[shopItemId];
+    }
     for (const itemId of this.getConsumables(entityId) ?? []) {
       if (shopItemId === itemId) return SHOP_ITEMS[shopItemId];
     }
     for (const [itemId] of this.getConstruction(entityId) ?? []) {
-      if (shopItemId === itemId) return SHOP_ITEMS[shopItemId];
-    }
-    for (const itemId of this.getUnlockables(entityId) ?? []) {
       if (shopItemId === itemId) return SHOP_ITEMS[shopItemId];
     }
     return null;
@@ -48,7 +48,7 @@ export default class InventoryManager extends AManager {
   public createPlayerInventory(entityId: EntityID): void {
     if (this._inventoryByPlayer.has(entityId)) return;
     this._inventoryByPlayer.set(entityId, {
-      weapons: new Set(),
+      weapons: new Set([6]), // Revolver default
       consumables: new Set(),
       construction: new Map(),
       unlockables: new Set(),

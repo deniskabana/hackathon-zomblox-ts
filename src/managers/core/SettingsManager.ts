@@ -53,6 +53,8 @@ export class SettingsManager extends AManager {
   }
 
   private getFromStorage(): GameSettingsSpec | undefined {
+    if (!this.gameInstance.isDev) return undefined;
+
     try {
       const settings = JSON.parse(localStorage.getItem(KEY_SETTINGS) || "");
       return settings;

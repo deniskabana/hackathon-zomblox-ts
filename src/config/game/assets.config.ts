@@ -85,6 +85,7 @@ export const DEF_ASSETS_IMAGE = {
   IFXAnimFire2: "/images/fx/anim_fire_2.png", // https://devkidd.itch.io/pixel-fire-asset-pack-2
   IFXAnimFire3: "/images/fx/anim_fire_3.png", // https://devkidd.itch.io/pixel-fire-asset-pack-2
   IFXAnimFire4: "/images/fx/anim_fire_4.png", // https://devkidd.itch.io/pixel-fire-asset-pack-2
+  IFXLightSource: "/images/fx/light-glow-fx.png",
   IUnlockableLamp: "/images/craftland/lamp.png",
   // Shop
   ICoinSingle: "/images/coin-single.png",

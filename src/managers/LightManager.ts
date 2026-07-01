@@ -1,7 +1,7 @@
 import { GRID_CONFIG, type WorldPosition } from "../config/core/grid.config";
 import type GameInstance from "../GameInstance";
 import type { ScreenPosition } from "../types/engine/ScreenPosition";
-import radialLerp from "../utils/math/radialLerp";
+import { lerpAngle } from "../utils/math/radialLerp";
 import { AManager } from "./abstract/AManager";
 
 export default class LightManager extends AManager {
@@ -60,7 +60,7 @@ export default class LightManager extends AManager {
   /**
    * Draws a lightning radius around the player
    */
-  public drawNightLighting(): void {
+  public drawNightLighting(_deltaTime: number): void {
     const { CameraManager, DrawManager, SettingsManager, LevelManager } = this.gameInstance.MANAGERS;
     const allSettings = SettingsManager.getSettings();
     this.playerLightRadius = allSettings.player.lightRadius;
@@ -84,7 +84,7 @@ export default class LightManager extends AManager {
       const facingAngle = player.getFacingDirection();
       const lightScreenPos = CameraManager.worldToScreen(playerPos);
       this.drawRadialLight(lightScreenPos, this.playerLightRadius);
-      this.drawLightCone(lightScreenPos, facingAngle, zoom);
+      this.drawLightCone(lightScreenPos, facingAngle, zoom, _deltaTime);
     }
 
     for (const lightSource of this.lightSources.values()) {
@@ -133,7 +133,7 @@ export default class LightManager extends AManager {
 
   private _facingAngle: number = -1;
 
-  private drawLightCone(lightScreenPos: ScreenPosition, facingAngle: number, zoom: number): void {
+  private drawLightCone(lightScreenPos: ScreenPosition, facingAngle: number, zoom: number, _deltaTime: number): void {
     if (!this.ctx) return;
     const coneLength = this.playerLightConeLen * zoom;
     const startWidth = GRID_CONFIG.TILE_SIZE * 2 * zoom;
@@ -141,7 +141,7 @@ export default class LightManager extends AManager {
 
     this.ctx.save();
     this.ctx.translate(lightScreenPos.x, lightScreenPos.y);
-    this._facingAngle = radialLerp(this._facingAngle, facingAngle, 0.4);
+    this._facingAngle = lerpAngle(this._facingAngle, facingAngle, _deltaTime * 10);
     this.ctx.rotate(this._facingAngle);
 
     const gradient = this.ctx.createLinearGradient(0, 0, coneLength, 0);

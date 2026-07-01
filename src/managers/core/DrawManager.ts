@@ -116,7 +116,7 @@ export default class DrawManager extends AManager {
 
     this.clearCanvas();
     this.gameInstance.update(deltaTime * speedScale, deltaTime); // This could be decoupled in the future
-    this.renderDrawQueue();
+    this.renderDrawQueue(deltaTime * speedScale);
     UIManager.draw(this.fps, deltaTime);
     VFXManager.draw(deltaTime);
     LevelManager.drawEntities();
@@ -129,13 +129,13 @@ export default class DrawManager extends AManager {
   // Draw queue
   // ==================================================
 
-  private renderDrawQueue(): void {
+  private renderDrawQueue(_deltaTime: number): void {
     const { LightManager } = this.gameInstance.MANAGERS;
 
     Object.entries(this.drawQueue)
       .sort(([a], [b]) => Number(a) - Number(b))
       .forEach(([zIndex, commands]) => {
-        if (zIndex === String(ZIndex.LIGHT)) LightManager.drawNightLighting();
+        if (zIndex === String(ZIndex.LIGHT)) LightManager.drawNightLighting(_deltaTime);
 
         for (const cmd of commands) {
           this.drawCommand(cmd);

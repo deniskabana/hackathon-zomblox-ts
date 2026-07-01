@@ -12,6 +12,7 @@ import BlockBarrelFire from "../entities/game/blocks/BlockBarrelFire";
 import BlockWood from "../entities/game/blocks/BlockWood";
 import Coin from "../entities/game/collectables/Coin";
 import Zombie from "../entities/game/enemies/Zombie";
+import InteractiveOwnedWeapon from "../entities/game/misc/InteractiveOwnedWeapon";
 import InteractiveShopEntity from "../entities/game/misc/InteractiveShopEntity";
 import Player from "../entities/game/player/Player";
 import Lamp from "../entities/game/unlockables/Lamp";
@@ -153,11 +154,12 @@ export default class LevelManager extends AManager {
     EntityManager.createEntity(
       EntityType.SENSOR,
       (entityId) =>
-        new InteractiveShopEntity({
+        new InteractiveOwnedWeapon({
           gameInstance: this.gameInstance,
-          worldPos: gridToWorld({ x: 8, y: 4 }, { center: true }),
+          worldPos: gridToWorld({ x: 6, y: 3 }, { center: true }),
           entityId,
-          shopItem: SHOP_ITEMS[0],
+          shopItem: SHOP_ITEMS[6],
+          weapon: "Revolver",
         }),
     );
     EntityManager.createEntity(
@@ -165,7 +167,7 @@ export default class LevelManager extends AManager {
       (entityId) =>
         new InteractiveShopEntity({
           gameInstance: this.gameInstance,
-          worldPos: gridToWorld({ x: 10, y: 4 }, { center: true }),
+          worldPos: gridToWorld({ x: 8, y: 3 }, { center: true }),
           entityId,
           shopItem: SHOP_ITEMS[1],
         }),
@@ -175,9 +177,19 @@ export default class LevelManager extends AManager {
       (entityId) =>
         new InteractiveShopEntity({
           gameInstance: this.gameInstance,
-          worldPos: gridToWorld({ x: 8, y: 6 }, { center: true }),
+          worldPos: gridToWorld({ x: 10, y: 3 }, { center: true }),
           entityId,
           shopItem: SHOP_ITEMS[2],
+        }),
+    );
+    EntityManager.createEntity(
+      EntityType.SENSOR,
+      (entityId) =>
+        new InteractiveShopEntity({
+          gameInstance: this.gameInstance,
+          worldPos: gridToWorld({ x: 5, y: 25 }, { center: true }),
+          entityId,
+          shopItem: SHOP_ITEMS[0],
         }),
     );
     EntityManager.createEntity(
@@ -187,6 +199,7 @@ export default class LevelManager extends AManager {
           gameInstance: this.gameInstance,
           worldPos: gridToWorld({ x: 17, y: 14 }, { center: true }),
           entityId,
+          shopUnlockableId: 3,
         }),
     );
     EntityManager.createEntity(
@@ -197,6 +210,46 @@ export default class LevelManager extends AManager {
           worldPos: gridToWorld({ x: 17, y: 14 }, { center: true }),
           entityId,
           shopItem: SHOP_ITEMS[3],
+        }),
+    );
+    EntityManager.createEntity(
+      EntityType.BLOCK,
+      (entityId) =>
+        new Lamp({
+          gameInstance: this.gameInstance,
+          worldPos: gridToWorld({ x: 16, y: 26 }, { center: true }),
+          entityId,
+          shopUnlockableId: 4,
+        }),
+    );
+    EntityManager.createEntity(
+      EntityType.SENSOR,
+      (entityId) =>
+        new InteractiveShopEntity({
+          gameInstance: this.gameInstance,
+          worldPos: gridToWorld({ x: 16, y: 26 }, { center: true }),
+          entityId,
+          shopItem: SHOP_ITEMS[4],
+        }),
+    );
+    EntityManager.createEntity(
+      EntityType.BLOCK,
+      (entityId) =>
+        new Lamp({
+          gameInstance: this.gameInstance,
+          worldPos: gridToWorld({ x: 7, y: 9 }, { center: true }),
+          entityId,
+          shopUnlockableId: 5,
+        }),
+    );
+    EntityManager.createEntity(
+      EntityType.SENSOR,
+      (entityId) =>
+        new InteractiveShopEntity({
+          gameInstance: this.gameInstance,
+          worldPos: gridToWorld({ x: 7, y: 9 }, { center: true }),
+          entityId,
+          shopItem: SHOP_ITEMS[5],
         }),
     );
   }
