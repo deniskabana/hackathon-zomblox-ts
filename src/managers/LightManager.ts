@@ -66,7 +66,7 @@ export default class LightManager extends AManager {
     this.playerLightRadius = allSettings.player.lightRadius;
     this.nightOverlayAlpha = allSettings.rules.nightOverlayAlpha;
 
-    const zoom = CameraManager.zoom;
+    const zoom = CameraManager.getZoom();
     if (!this.ctx || !this.lightMaskCanvas) return;
 
     this.ctx.clearRect(0, 0, this.lightMaskCanvas.width, this.lightMaskCanvas.height);
@@ -101,7 +101,7 @@ export default class LightManager extends AManager {
 
   private drawRadialLight(lightScreenPos: ScreenPosition, strength: number = 1, alpha: number = 1): void {
     if (!this.ctx) return;
-    const zoom = this.gameInstance.MANAGERS.CameraManager.zoom;
+    const zoom = this.gameInstance.MANAGERS.CameraManager.getZoom();
 
     this.ctx.save();
 

@@ -16,7 +16,7 @@ export interface AEntityEngineBody {
   updateAfter?: (_deltaTime: number, _unscaledDeltaTime: number) => void;
 
   /** Returning `false` will exit without modifying health. */
-  onDamage?: (amount: number) => boolean | void;
+  onDamage?: (amount: number) => boolean;
   onDeath?: () => void;
   onDestroy?: () => void;
 }

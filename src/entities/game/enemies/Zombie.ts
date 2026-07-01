@@ -143,7 +143,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
 
     const colliderWidth = settings.worldSize * 0.45;
     const colliderHeight = TILE_SIZE * 1;
-    const colliderOffsetY = -TILE_SIZE * 0.2;
+    const colliderOffsetY = 0;
 
     super({
       worldPos,
@@ -349,6 +349,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
       }
 
       this._timers.movementRestart.reset(settings.movementRestartSec);
+      return true;
     },
 
     onDeath: () => {

@@ -102,8 +102,8 @@ export default class VFXManager extends AManager {
           0,
           0,
           bloodSprite,
-          this.gameInstance.MANAGERS.CameraManager.viewportWidth,
-          this.gameInstance.MANAGERS.CameraManager.viewportHeight,
+          this.gameInstance.MANAGERS.CameraManager.getTargetWorldWidth(),
+          this.gameInstance.MANAGERS.CameraManager.getTargetWorldHeight(),
           0,
           alpha,
         );

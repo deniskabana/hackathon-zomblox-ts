@@ -12,10 +12,10 @@ export default class CameraManager extends AManager {
   public x: number = 0;
   public y: number = 0;
 
-  public viewportWidth: number = window.innerWidth;
-  public viewportHeight: number = window.innerHeight;
+  private viewportWidth: number = window.innerWidth;
+  private viewportHeight: number = window.innerHeight;
 
-  public zoom: number = 1;
+  private zoom: number = 1;
   private targetZoom: number = 1;
   private zoomScale: number = 1;
   private targetWorldWidth: number = 1000;
@@ -123,6 +123,9 @@ export default class CameraManager extends AManager {
     window.removeEventListener("resize", this.onResize);
   }
 
+  public getZoom(): number {
+    return this.zoom;
+  }
   public getZoomScale(): number {
     return this.zoomScale;
   }

@@ -153,12 +153,12 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
           AssetManager.getImageAsset("UIActionBubble")!,
           bubbleSize,
           bubbleSize,
-          ZIndex.INDICATORS,
+          ZIndex.UI,
           0,
         );
 
         const icons = SpriteSheet.fromGrid(AssetManager.getImageAsset("SIcoWarfare")!, 16, 16, 64, 8);
-        DrawManager.queueDrawSprite(x - 16, y - bubbleSize / 2 - size + 16 + 4, icons, 9, 32, 32, ZIndex.INDICATORS);
+        DrawManager.queueDrawSprite(x - 16, y - bubbleSize / 2 - size + 16 + 4, icons, 9, 32, 32, ZIndex.UI);
       }
     },
 
@@ -267,6 +267,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       }
 
       if (settings.debugIsInvincible) return false;
+      return true;
     },
 
     onDeath: () => {

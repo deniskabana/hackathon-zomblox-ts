@@ -192,6 +192,8 @@ export default class LevelManager extends AManager {
       this.playerLastGridPos = this.player._getGridPosition();
       this.updatePathFindingGrid();
     }
+    // Hot updating
+    this.updatePathFindingGrid();
 
     if (!this.getIsDay() && !!this.player) {
       this.nightEndCounter -= _deltaTime;
@@ -535,7 +537,7 @@ export default class LevelManager extends AManager {
 
   private updatePathFindingGrid(): void {
     if (!this.player || !this.levelGrid) return;
-    this.flowField = generateFlowField(this.levelGrid, this.blockGrid, this.player._getGridPosition());
+    this.flowField = generateFlowField(this.levelGrid, this.blockGrid, this.enemyGrid, this.player._getGridPosition());
   }
 
   public getCurrency(): number {

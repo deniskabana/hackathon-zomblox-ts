@@ -34,12 +34,29 @@ export default class UIManager extends AManager {
 
   public _init(): void {}
 
-  public draw(_fps: number, _deltaTime: number): void {
+  public draw(fps: number, _deltaTime: number): void {
     this.shopAlpha = lerp(this.shopAlpha, this.isShopUiVisible ? 1 : 0, _deltaTime * 17);
     if (this.shopAlpha !== 0) this.drawShopUi();
 
     this.equipAlpha = lerp(this.equipAlpha, this.isEquipUiVisible ? 1 : 0, _deltaTime * 17);
     if (this.equipAlpha !== 0) this.drawEquipUi();
+
+    this.drawDebug(fps);
+  }
+
+  public drawDebug(fps: number) {
+    if (!this._gameInstance.isDev) return;
+
+    const { DrawManager, CameraManager } = this._gameInstance.MANAGERS;
+    const zoom = CameraManager.getZoomScale();
+    const textX = CameraManager.x - CameraManager.getTargetWorldWidth() / 2 / zoom;
+    const textY = CameraManager.y + CameraManager.getTargetWorldHeight() / 2 / zoom;
+
+    DrawManager.drawText(`${fps} FPS`, textX - 1, textY - 1, "#fff", 20 / zoom, FONT_MONO, "left", 1, true);
+    DrawManager.drawText(`${fps} FPS`, textX + 1, textY + 1, "#fff", 20 / zoom, FONT_MONO, "left", 1, true);
+    DrawManager.drawText(`${fps} FPS`, textX + 1, textY - 1, "#fff", 20 / zoom, FONT_MONO, "left", 1, true);
+    DrawManager.drawText(`${fps} FPS`, textX - 1, textY + 1, "#fff", 20 / zoom, FONT_MONO, "left", 1, true);
+    DrawManager.drawText(`${fps} FPS`, textX, textY, "#aa1c2f", 20 / zoom, FONT_MONO, "left", 1, true);
   }
 
   public _destroy(): void {}

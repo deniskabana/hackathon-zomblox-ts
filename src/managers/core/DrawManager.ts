@@ -148,7 +148,7 @@ export default class DrawManager extends AManager {
     this.ctx.imageSmoothingEnabled = false;
 
     const { CameraManager } = this.gameInstance.MANAGERS;
-    const zoom = (Math.ceil(CameraManager.zoom * 10) / 10) * 1.005; // Fixes tile gap
+    const zoom = (Math.ceil(CameraManager.getZoom() * 10) / 10) * 1.005; // Fixes tile gap
 
     const width = Math.ceil(cmd.width * zoom * 10) / 10;
     const height = Math.ceil(cmd.height * zoom * 10) / 10;
@@ -266,9 +266,9 @@ export default class DrawManager extends AManager {
 
     this.ctx.save();
     this.ctx.strokeStyle = color;
-    this.ctx.lineWidth = lineWidth * CameraManager.zoom;
+    this.ctx.lineWidth = lineWidth * CameraManager.getZoom();
     const screenPos = this.gameInstance.MANAGERS.CameraManager.worldToScreen({ x, y });
-    this.ctx.strokeRect(screenPos.x, screenPos.y, width * CameraManager.zoom, height * CameraManager.zoom);
+    this.ctx.strokeRect(screenPos.x, screenPos.y, width * CameraManager.getZoom(), height * CameraManager.getZoom());
     this.ctx.restore();
   }
 
@@ -280,7 +280,7 @@ export default class DrawManager extends AManager {
     if (typeof alpha !== "undefined") this.ctx.globalAlpha = alpha;
     this.ctx.fillStyle = color;
     const screenPos = this.gameInstance.MANAGERS.CameraManager.worldToScreen({ x, y });
-    this.ctx.fillRect(screenPos.x, screenPos.y, width * CameraManager.zoom, height * CameraManager.zoom);
+    this.ctx.fillRect(screenPos.x, screenPos.y, width * CameraManager.getZoom(), height * CameraManager.getZoom());
     this.ctx.restore();
   }
 
@@ -344,7 +344,7 @@ export default class DrawManager extends AManager {
 
     this.ctx.save();
     this.ctx.strokeStyle = color;
-    this.ctx.lineWidth = Math.max(1, lineWidth * CameraManager.zoom);
+    this.ctx.lineWidth = Math.max(1, lineWidth * CameraManager.getZoom());
     this.ctx.beginPath();
     const screenPos1 = CameraManager.worldToScreen({ x: x1, y: y1 });
     this.ctx.moveTo(screenPos1.x, screenPos1.y);
@@ -372,7 +372,7 @@ export default class DrawManager extends AManager {
     this.ctx.save();
     this.ctx.globalAlpha = alpha;
     this.ctx.fillStyle = color;
-    this.ctx.font = `${bold ? "bolder " : ""}${fontSize * CameraManager.zoom}px ${fontFamily}`;
+    this.ctx.font = `${bold ? "bolder " : ""}${fontSize * CameraManager.getZoom()}px ${fontFamily}`;
     this.ctx.textAlign = align;
     const screenPos = this.gameInstance.MANAGERS.CameraManager.worldToScreen({ x, y });
     this.ctx.fillText(text, screenPos.x, screenPos.y);

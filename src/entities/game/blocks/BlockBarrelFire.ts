@@ -86,6 +86,7 @@ export default class BlockBarrelFire extends AEntity<undefined, Instance> {
     onDamage: () => {
       const { AssetManager } = _game.MANAGERS;
       AssetManager.playAudioAsset("ABlockWoodDamaged", "sound", 0.5);
+      return true;
     },
 
     onDeath: () => {

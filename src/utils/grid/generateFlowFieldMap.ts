@@ -15,6 +15,7 @@ export type FlowField = FlowFieldCell[][];
 export default function generateFlowField(
   levelGrid: GridTileState[][],
   blockGrid: (AnyEntity[] | null)[][] | undefined,
+  enemyGrid: (AnyEntity[] | null)[][] | undefined,
   ...startPoints: GridPosition[]
 ): FlowField {
   const grid: FlowField = [];
@@ -59,6 +60,8 @@ export default function generateFlowField(
         if (grid[nx][ny].weight === Infinity) {
           grid[nx][ny].distanceWeight = cell.distanceWeight + 1;
           grid[nx][ny].weight = grid[nx][ny].distanceWeight;
+
+          grid[nx][ny].weight += enemyGrid?.[nx]?.[ny]?.length ?? 0;
 
           queue.push({ x: nx, y: ny });
         }
