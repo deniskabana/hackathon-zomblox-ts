@@ -102,6 +102,8 @@ export default class GameInstance {
     const { InputManager, LevelManager, GameManager, CameraManager, AssetManager, EntityManager } = this.MANAGERS;
     if (!GameManager.isPlaying() && !AssetManager.getIsReady()) return;
 
+    const _ceiledDeltaTime = Math.min(1, _deltaTime);
+
     if (this.isDev) {
       if (InputManager.wasPressed(GameControls.DEBUG_MENU)) {
         InputManager.consumeAction(GameControls.DEBUG_MENU);
@@ -109,16 +111,16 @@ export default class GameInstance {
       }
     }
 
-    InputManager.updateBefore(_deltaTime);
-    EntityManager.updateBefore(_deltaTime, _unscaledDeltaTime);
+    InputManager.updateBefore(_ceiledDeltaTime);
+    EntityManager.updateBefore(_ceiledDeltaTime, _unscaledDeltaTime);
 
     const player = this.MANAGERS.LevelManager.player;
-    if (player) CameraManager.followPlayer(_deltaTime, player._getWorldPosition());
+    if (player) CameraManager.followPlayer(_ceiledDeltaTime, player._getWorldPosition());
 
-    LevelManager.update(_deltaTime);
-    CameraManager.update(_deltaTime);
+    LevelManager.update(_ceiledDeltaTime);
+    CameraManager.update(_ceiledDeltaTime);
 
-    EntityManager.updateAfter(_deltaTime, _unscaledDeltaTime);
+    EntityManager.updateAfter(_ceiledDeltaTime, _unscaledDeltaTime);
   }
 
   private async loadAndPrepareGame(): Promise<void> {

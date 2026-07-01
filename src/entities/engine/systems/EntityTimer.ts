@@ -11,7 +11,7 @@ export class EntityTimer<_OptionalDescription extends string | undefined = undef
   }
 
   public _tick(deltaTime: number): void {
-    if (this._active) this._value += deltaTime;
+    if (this._active && this._value < 0) this._value += deltaTime;
   }
 
   public reset(value: number = this._initialValue): void {
@@ -34,7 +34,7 @@ export class EntityTimer<_OptionalDescription extends string | undefined = undef
     return this._active;
   }
   public getIsDone(): boolean {
-    return this._active && this._value >= 0;
+    return this._value >= 0;
   }
   public get value(): number {
     return this._value;
