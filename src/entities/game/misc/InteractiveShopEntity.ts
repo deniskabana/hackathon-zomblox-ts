@@ -42,7 +42,7 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
           id: IndicatorState.NEUTRAL,
           loop: true,
           frameCount: 1,
-          assetVariants: [AssetManager.getImageAsset("UIHighlightObjNegative")!],
+          assetVariants: [AssetManager.getImageAsset("UIHighlightObj")!],
         },
         {
           id: IndicatorState.POSITIVE,
@@ -53,7 +53,7 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
         {
           id: IndicatorState.NEGATIVE,
           loop: true,
-          frameCount: 4,
+          frameCount: 1,
           assetVariants: [AssetManager.getImageAsset("UIHighlightObjNegative")!],
         },
       ],
@@ -85,12 +85,13 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
 
       this._animations?.setActiveAnimations([this._getState()]);
 
-      if (ShopManager.canAfford(this.shopItem.id)) {
+      if (ShopManager.getItemStock(this.shopItem.id) > 0 && !ShopManager.canAfford(this.shopItem.id)) {
+        this._setState(IndicatorState.NEGATIVE);
+      } else if (ShopManager.getItemStock(this.shopItem.id) > 0 && ShopManager.canAfford(this.shopItem.id)) {
         this._setState(IndicatorState.POSITIVE);
+      } else {
+        this._setState(IndicatorState.NEGATIVE);
       }
-
-      if (!ShopManager.canAfford(this.shopItem.id)) this.setNeutral();
-      else this.setPositive();
     },
 
     draw: () => {
@@ -121,16 +122,6 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
       EntityManager.destroyEntity(this._entityId);
     },
   };
-
-  public setPositive() {
-    this._setState(IndicatorState.POSITIVE);
-  }
-  public setNegative() {
-    this._setState(IndicatorState.NEGATIVE);
-  }
-  public setNeutral() {
-    this._setState(IndicatorState.NEUTRAL);
-  }
 
   private _onCollisionStart = (event: Matter.IEventCollision<Matter.Engine>) => {
     const { LevelManager, UIManager, ShopManager, EntityManager } = _game.MANAGERS;
@@ -178,12 +169,6 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
 
       UIManager.hideShopUI();
       ShopManager.setOnPurchaseCallback(null);
-
-      if (ShopManager.canAfford(this.shopItem.id)) {
-        this._setState(IndicatorState.POSITIVE);
-      } else {
-        this._setState(IndicatorState.NEUTRAL);
-      }
 
       this.alpha = 1;
     }

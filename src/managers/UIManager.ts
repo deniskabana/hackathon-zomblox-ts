@@ -108,8 +108,12 @@ export default class UIManager extends AManager {
     const { width, height } = this._drawActionUiBg(zoom, alpha);
 
     // Button
-    const btnText = ShopManager.canAfford(this.activeShopItem.id) ? "Purchase [E]" : "Not enough money";
-    const btnDisabled = !ShopManager.canAfford(this.activeShopItem.id);
+    let btnText = "Purchase [E]";
+    if (!ShopManager.canAfford(this.activeShopItem.id)) btnText = "Not enough money";
+    if (!ShopManager.getItemStock(this.activeShopItem.id)) btnText = "Sold out";
+
+    const btnDisabled =
+      !ShopManager.canAfford(this.activeShopItem.id) || ShopManager.getItemStock(this.activeShopItem.id) <= 0;
     this._drawActionUiBigBtn({ text: btnText, width, height, zoom, disabled: btnDisabled, alpha });
 
     // Coin
