@@ -42,6 +42,7 @@ export default class UIManager extends AManager {
     if (this.equipAlpha !== 0) this.drawEquipUi();
 
     this.drawDebug(fps);
+    this.drawHealthbars();
   }
 
   public drawDebug(fps: number) {
@@ -112,6 +113,35 @@ export default class UIManager extends AManager {
     const shopItemY = CameraManager.y - CameraManager.getTargetWorldHeight() / zoom / 2 + 40 / zoom + size / zoom / 2;
 
     return { screenPos: { x: shopItemX, y: shopItemY }, scale: 2.25 / zoom };
+  }
+
+  private drawHealthbars(): void {
+    const { LevelManager, AssetManager, DrawManager, CameraManager } = this._gameInstance.MANAGERS;
+    const zoom = CameraManager.getZoomScale();
+
+    const barSprite = AssetManager.getImageAsset("UIHealthBar")!;
+    const barX = CameraManager.x - CameraManager.getTargetWorldWidth() / 2 + 48 / zoom - 6 / zoom;
+    const barY = CameraManager.y - CameraManager.getTargetWorldHeight() / 2 + 16 / 2 / zoom;
+    DrawManager.queueDraw(barX, barY, barSprite, 144 / zoom, 32 / zoom, ZIndex.UI);
+
+    const signSprite = AssetManager.getImageAsset("UIHealthSign")!;
+    const signX = CameraManager.x - CameraManager.getTargetWorldWidth() / 2;
+    const signY = CameraManager.y - CameraManager.getTargetWorldHeight() / 2;
+    DrawManager.queueDraw(signX, signY, signSprite, 48 / zoom, 48 / zoom, ZIndex.UI);
+
+    if (!LevelManager.player) return;
+    const maxHealth = LevelManager.player._getMaxHealth();
+    const health = LevelManager.player._getHealth();
+    const ratio = health / maxHealth;
+
+    const maxWidth = (144 - 8) / zoom;
+    DrawManager.drawRectFilled(
+      barX + 8 / zoom,
+      barY + 6 / zoom,
+      (maxWidth * ratio) / zoom - 6 / zoom,
+      (32 - 12) / zoom,
+      "#aa1c2f",
+    );
   }
 
   private drawShopUi(): void {
