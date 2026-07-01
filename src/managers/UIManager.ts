@@ -18,6 +18,9 @@ export default class UIManager extends AManager {
   private isEquipUiVisible: boolean;
   private equipAlpha: number;
   private activeEquipItem: ShopItem | null;
+  // Sleep UI
+  private isSleepUiVisible: boolean;
+  private sleepAlpha: number;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
@@ -30,16 +33,24 @@ export default class UIManager extends AManager {
     this.isEquipUiVisible = false;
     this.equipAlpha = 0;
     this.activeEquipItem = null;
+
+    this.isSleepUiVisible = false;
+    this.sleepAlpha = 0;
   }
 
   public _init(): void {}
 
   public draw(fps: number, _deltaTime: number): void {
-    this.shopAlpha = lerp(this.shopAlpha, this.isShopUiVisible ? 1 : 0, _deltaTime * 17);
-    if (this.shopAlpha !== 0) this.drawShopUi();
+    const animSpeed = 17;
 
-    this.equipAlpha = lerp(this.equipAlpha, this.isEquipUiVisible ? 1 : 0, _deltaTime * 17);
-    if (this.equipAlpha !== 0) this.drawEquipUi();
+    this.shopAlpha = lerp(this.shopAlpha, this.isShopUiVisible ? 1 : 0, _deltaTime * animSpeed);
+    if (this.equipAlpha > 0.01) this.drawShopUi();
+
+    this.equipAlpha = lerp(this.equipAlpha, this.isEquipUiVisible ? 1 : 0, _deltaTime * animSpeed);
+    if (this.sleepAlpha > 0.01) this.drawEquipUi();
+
+    this.sleepAlpha = lerp(this.sleepAlpha, this.isSleepUiVisible ? 1 : 0, _deltaTime * animSpeed);
+    if (this.sleepAlpha > 0.01) this.drawSleepUi();
 
     this.drawDebug(fps);
     this.drawHUD();
@@ -257,10 +268,45 @@ export default class UIManager extends AManager {
     });
   }
 
+  private drawSleepUi(): void {
+    const { AssetManager, DrawManager, CameraManager } = this._gameInstance.MANAGERS;
+    const zoom = CameraManager.getZoomScale();
+    const alpha = this.sleepAlpha;
+
+    // Background
+    const { width, height } = this._drawActionUiBg(zoom, alpha);
+
+    // Button
+    this._drawActionUiBigBtn({ text: "Rest until night [E]", width, height, zoom, alpha });
+
+    // Right text (instead of price)
+    const rightText = "Sleep?";
+    const rightTextX = CameraManager.x - 32 / zoom + CameraManager.getTargetWorldWidth() / zoom / 2 + 4 / zoom;
+    const rightTextY = CameraManager.y - CameraManager.getTargetWorldHeight() / zoom / 2 + 78 / zoom + 1 / zoom;
+    DrawManager.drawText(rightText, rightTextX, rightTextY, "#fff", 40 / zoom, FONT_MONO, "right", alpha, true);
+
+    // Bed icon
+    const avatarProps = this._getItemAvatarProps(width, GRID_CONFIG.TILE_SIZE, zoom);
+    const bedSprite = AssetManager.getImageAsset("UISleepBedIcon")!;
+    const bedSize = GRID_CONFIG.TILE_SIZE;
+    DrawManager.queueDraw(
+      avatarProps.screenPos.x - bedSize * 0.5,
+      avatarProps.screenPos.y - bedSize * 0.75,
+      bedSprite,
+      bedSize,
+      bedSize * 1.4375,
+      ZIndex.UI,
+      0,
+      this.sleepAlpha,
+    );
+  }
+
+  // Shop
   public showShopUI(shopItem: ShopItem): void {
     this.activeShopItem = shopItem;
     this.isShopUiVisible = true;
     this.isEquipUiVisible = false;
+    this.isSleepUiVisible = false;
   }
   public hideShopUI(): void {
     this.isShopUiVisible = false;
@@ -270,15 +316,12 @@ export default class UIManager extends AManager {
     return this.activeShopItem;
   }
 
+  // Equip
   public showEquipUI(shopItem: ShopItem): void {
     this.activeEquipItem = shopItem;
     this.isEquipUiVisible = true;
-
-    if (this.isShopUiVisible) {
-      this.isShopUiVisible = false;
-      this.shopAlpha = 0;
-      this.equipAlpha = 1;
-    }
+    this.isShopUiVisible = false;
+    this.isSleepUiVisible = false;
   }
   public hideEquipUI(): void {
     this.isEquipUiVisible = false;
@@ -288,10 +331,29 @@ export default class UIManager extends AManager {
     return this.activeEquipItem;
   }
 
+  // Sleep
+  public showSleepUI(): void {
+    this.isSleepUiVisible = true;
+    this.isShopUiVisible = false;
+    this.isEquipUiVisible = false;
+  }
+  public hideSleepUI(): void {
+    this.isSleepUiVisible = false;
+  }
+  public getIsSleepUiVisible(): boolean {
+    return this.isSleepUiVisible;
+  }
+
   public showGameOverScreen(): void {
     alert("YOU DED");
     window.location.reload();
   }
 
   public hideGameOverScreen(): void {}
+
+  public hideUI(): void {
+    this.hideShopUI();
+    this.hideEquipUI();
+    this.hideSleepUI();
+  }
 }

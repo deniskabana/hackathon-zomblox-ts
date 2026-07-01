@@ -14,6 +14,7 @@ import Coin from "../entities/game/collectables/Coin";
 import Zombie from "../entities/game/enemies/Zombie";
 import InteractiveOwnedWeapon from "../entities/game/misc/InteractiveOwnedWeapon";
 import InteractiveShopEntity from "../entities/game/misc/InteractiveShopEntity";
+import InteractiveStartNight from "../entities/game/misc/InteractiveStartNight";
 import Player from "../entities/game/player/Player";
 import Lamp from "../entities/game/unlockables/Lamp";
 import type GameInstance from "../GameInstance";
@@ -150,6 +151,16 @@ export default class LevelManager extends AManager {
         this.mapSpawnPoints.push({ x: xRight, y });
       }
     }
+
+    EntityManager.createEntity(
+      EntityType.SENSOR,
+      (entityId) =>
+        new InteractiveStartNight({
+          gameInstance: this.gameInstance,
+          worldPos: gridToWorld({ x: 29, y: 5 }),
+          entityId,
+        }),
+    );
 
     EntityManager.createEntity(
       EntityType.SENSOR,
@@ -466,7 +477,7 @@ export default class LevelManager extends AManager {
     if (!SettingsManager.getSettings().rules.autospawn) return;
 
     this.isSpawningZombies = true;
-    this.zombieSpawnsLeft = 100;
+    this.zombieSpawnsLeft = 30 + (this.levelState?.daysCounter ?? 0);
   }
 
   public stopSpawningZombies(): void {
@@ -479,7 +490,7 @@ export default class LevelManager extends AManager {
     const settings = SettingsManager.getSettings().rules;
 
     if (this.isSpawningZombies) this.spawnTimer += _deltaTime;
-    if (this.spawnTimer >= settings.zombieSpawnIntervalSec) {
+    if (this.spawnTimer >= settings.zombieSpawnIntervalSec - (this.levelState?.daysCounter ?? 0) * 0.15) {
       this.spawnTimer = 0;
 
       if (this.zombieSpawnsLeft <= 0) return;
@@ -518,12 +529,12 @@ export default class LevelManager extends AManager {
     this.retreatFlowFields = undefined;
     this.levelState.phase = "night";
 
-    UIManager.hideShopUI();
+    UIManager.hideUI();
 
     for (const zombie of EntityManager.getEnemies()) zombie.startChasingPlayer();
 
     const gameSettings = this.gameInstance.MANAGERS.SettingsManager.getSettings().rules;
-    this.nightEndCounter = gameSettings.nightDurationSec;
+    this.nightEndCounter = gameSettings.nightDurationSec + this.levelState.daysCounter;
     this.startSpawningZombies();
 
     if (!this.musicNight.length) {

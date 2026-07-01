@@ -84,7 +84,10 @@ export default class InteractiveOwnedWeapon extends AEntity<IndicatorState, Inst
     },
 
     draw: () => {
-      const { DrawManager, AssetManager } = _game.MANAGERS;
+      const { DrawManager, AssetManager, LevelManager } = _game.MANAGERS;
+
+      if (!LevelManager.getIsDay()) return;
+
       this._animations?.drawActiveAnimations(this._getWorldPosition(), this._getSize() * 1.2, DrawManager, {
         zIndex: ZIndex.INTERACTIVE,
         alpha: this._getState() === IndicatorState.NEUTRAL ? 0.45 : 1,
@@ -93,11 +96,12 @@ export default class InteractiveOwnedWeapon extends AEntity<IndicatorState, Inst
     },
 
     drawShadow: () => {
-      const { DrawManager, AssetManager } = _game.MANAGERS;
+      const { DrawManager, AssetManager, LevelManager } = _game.MANAGERS;
       const { x, y } = this._getWorldPosition();
       const shadowSprite = AssetManager.getImageAsset("IFXEntityShadow");
       const size = this._getSize() * 0.85;
 
+      if (!LevelManager.getIsDay()) return;
       if (!shadowSprite) return;
       DrawManager.queueDraw(x - size / 2, y - size * 0.5, shadowSprite, size, size, ZIndex.GROUND_EFFECTS, 0, 0.85);
     },
@@ -121,6 +125,8 @@ export default class InteractiveOwnedWeapon extends AEntity<IndicatorState, Inst
 
   private _onCollisionStart = (event: Matter.IEventCollision<Matter.Engine>) => {
     const { LevelManager, UIManager } = _game.MANAGERS;
+
+    if (!LevelManager.getIsDay()) return;
 
     for (const pair of event.pairs) {
       const other =
@@ -155,6 +161,7 @@ export default class InteractiveOwnedWeapon extends AEntity<IndicatorState, Inst
 
   public equipWeapon(): void {
     const { LevelManager } = _game.MANAGERS;
+    if (!LevelManager.getIsDay()) return;
     LevelManager.player?.equipWeapon(this.weapon);
   }
 }

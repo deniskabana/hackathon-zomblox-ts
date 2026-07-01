@@ -111,6 +111,7 @@ export const DEF_ASSETS_IMAGE = {
   UIHealthSign: "/images/ui/hud/hud-health-sign-2.png",
   UIHealthBar: "/images/ui/hud/hud-health-bar.png",
   UICoinsBg: "/images/ui/hud/hud-health-bg-coins.png",
+  UISleepBedIcon: "/images/ui/bed.png",
 
   // Icons
   SIcoWarfare: "/images/icons/Icons_Warfare.png", // https://nikoichu.itch.io/pixel-icons

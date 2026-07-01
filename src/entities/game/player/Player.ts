@@ -621,7 +621,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
   }
 
   private getInteractionInput(): void {
-    const { InputManager, ShopManager, UIManager } = _game.MANAGERS;
+    const { InputManager, ShopManager, UIManager, LevelManager } = _game.MANAGERS;
 
     if (!InputManager.wasPressed(GameControls.ACTION_INTERACT)) return;
     InputManager.consumeAction(GameControls.ACTION_INTERACT);
@@ -631,6 +631,9 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
 
     const equipItem = UIManager.getEquipUiItem();
     if (equipItem !== null) this.equipWeapon(equipItem.name);
+
+    const isSleepUiVisible = UIManager.getIsSleepUiVisible();
+    if (isSleepUiVisible) LevelManager.startNight();
   }
 
   private reloadWeapon(): void {
