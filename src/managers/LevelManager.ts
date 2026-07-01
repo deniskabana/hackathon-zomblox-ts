@@ -14,6 +14,7 @@ import Coin from "../entities/game/collectables/Coin";
 import Zombie from "../entities/game/enemies/Zombie";
 import InteractiveShopEntity from "../entities/game/misc/InteractiveShopEntity";
 import Player from "../entities/game/player/Player";
+import Lamp from "../entities/game/unlockables/Lamp";
 import type GameInstance from "../GameInstance";
 import MapTilesetManager from "../map/MapTilesetManager";
 import type { GameMap } from "../map/parseJsonMap";
@@ -177,6 +178,25 @@ export default class LevelManager extends AManager {
           worldPos: gridToWorld({ x: 8, y: 6 }, { center: true }),
           entityId,
           shopItem: SHOP_ITEMS[2],
+        }),
+    );
+    EntityManager.createEntity(
+      EntityType.BLOCK,
+      (entityId) =>
+        new Lamp({
+          gameInstance: this.gameInstance,
+          worldPos: gridToWorld({ x: 17, y: 14 }, { center: true }),
+          entityId,
+        }),
+    );
+    EntityManager.createEntity(
+      EntityType.SENSOR,
+      (entityId) =>
+        new InteractiveShopEntity({
+          gameInstance: this.gameInstance,
+          worldPos: gridToWorld({ x: 17, y: 14 }, { center: true }),
+          entityId,
+          shopItem: SHOP_ITEMS[3],
         }),
     );
   }
@@ -439,13 +459,13 @@ export default class LevelManager extends AManager {
 
   public startNight(): void {
     if (!this.levelState) return;
-    const { EntityManager, ShopManager } = this.gameInstance.MANAGERS;
-
-    ShopManager.onWaveStart(this.levelState.daysCounter);
+    const { EntityManager, UIManager } = this.gameInstance.MANAGERS;
 
     this.gameInstance.MANAGERS.BuildModeManager.setBuildMode(false);
     this.retreatFlowFields = undefined;
     this.levelState.phase = "night";
+
+    UIManager.hideShopUI();
 
     for (const zombie of EntityManager.getEnemies()) zombie.startChasingPlayer();
 
@@ -478,10 +498,13 @@ export default class LevelManager extends AManager {
   }
 
   public startDay(): void {
-    const { EntityManager } = this.gameInstance.MANAGERS;
+    const { EntityManager, ShopManager } = this.gameInstance.MANAGERS;
     if (!this.levelState || !this.levelGrid) return;
 
-    this.addCurrency(this.gameInstance.MANAGERS.SettingsManager.getSettings().rules.endNightReward);
+    if (this.levelState.daysCounter > 0) {
+      ShopManager.onWaveStart(this.levelState.daysCounter);
+      this.addCurrency(this.gameInstance.MANAGERS.SettingsManager.getSettings().rules.endNightReward);
+    }
 
     // this.retreatFlowFields = [];
     // const amount = Math.max(20, this.zombies.size);

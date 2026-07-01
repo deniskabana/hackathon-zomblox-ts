@@ -39,7 +39,7 @@ export default class InventoryManager extends AManager {
     for (const [itemId] of this.getConstruction(entityId) ?? []) {
       if (shopItemId === itemId) return SHOP_ITEMS[shopItemId];
     }
-    for (const itemId of this.getWeapons(entityId) ?? []) {
+    for (const itemId of this.getUnlockables(entityId) ?? []) {
       if (shopItemId === itemId) return SHOP_ITEMS[shopItemId];
     }
     return null;
@@ -103,6 +103,6 @@ export default class InventoryManager extends AManager {
   }
 
   public playerOwnsItem(entityId: EntityID, shopItemId: ShopItemId): boolean {
-    return !!this.getItem(entityId, shopItemId);
+    return null !== this.getItem(entityId, shopItemId);
   }
 }

@@ -85,6 +85,7 @@ export const DEF_ASSETS_IMAGE = {
   IFXAnimFire2: "/images/fx/anim_fire_2.png", // https://devkidd.itch.io/pixel-fire-asset-pack-2
   IFXAnimFire3: "/images/fx/anim_fire_3.png", // https://devkidd.itch.io/pixel-fire-asset-pack-2
   IFXAnimFire4: "/images/fx/anim_fire_4.png", // https://devkidd.itch.io/pixel-fire-asset-pack-2
+  IUnlockableLamp: "/images/craftland/lamp.png",
   // Shop
   ICoinSingle: "/images/coin-single.png",
   IShopMedkit: "/images/medkit.png",
@@ -108,6 +109,7 @@ export const DEF_ASSETS_IMAGE = {
   UIControlPanelBtnSmall: "/images/ui/hud/control-panel-btn-small.png",
   UIHealthSign: "/images/ui/hud/hud-health-sign-2.png",
   UIHealthBar: "/images/ui/hud/hud-health-bar.png",
+  UICoinsBg: "/images/ui/hud/hud-health-bg-coins.png",
 
   // Icons
   SIcoWarfare: "/images/icons/Icons_Warfare.png", // https://nikoichu.itch.io/pixel-icons

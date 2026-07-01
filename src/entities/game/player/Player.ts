@@ -18,6 +18,8 @@ import type { EntityID } from "../../../managers/engine/EntityManager";
 import { GridTileState } from "../../../utils/grid/generateMapBlockGrid";
 import raycastAABB from "../../../utils/raycastAABB";
 import getShotSpreadDirections from "../../../utils/getShotSpreadDirections";
+import lerp from "../../../utils/math/lerp";
+import type { ShopItemId } from "../../../managers/ShopManager";
 
 /** `this.gameInstance` */ let _game: GameInstance;
 
@@ -45,6 +47,7 @@ interface Instance {
   facingDirection: Direction;
   weaponSprites: SpriteSheet | undefined;
   currentAmmo: number;
+  bubbleAlpha: number;
   /** For visually communicating player's actions */
   currentAction: null | "reloading" | "building";
 }
@@ -89,6 +92,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     const instance: Instance = {
       currentWeapon: defaultWeapon,
       prevGridPos: undefined,
+      bubbleAlpha: 0,
       isFacingLeft: false,
       speed: 0,
       maxSpeed: movementSpeed,
@@ -144,21 +148,33 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       const weaponSize = GRID_CONFIG.TILE_SIZE * 1.5;
       this.drawWeapon(weaponSize);
 
-      // Action bubble
-      if (this._instance.currentAction === "reloading") {
-        const bubbleSize = GRID_CONFIG.TILE_SIZE * 1.35;
+      const bubbleSize = GRID_CONFIG.TILE_SIZE * 1.35;
+      if (this._instance.bubbleAlpha > 0)
         DrawManager.queueDraw(
           x - bubbleSize / 2,
-          y - bubbleSize / 2 - size + 6,
+          y - bubbleSize / 2 - size + 6 + 10 * (1 - this._instance.bubbleAlpha),
           AssetManager.getImageAsset("UIActionBubble")!,
           bubbleSize,
           bubbleSize,
           ZIndex.UI,
           0,
+          this._instance.bubbleAlpha,
         );
 
+      // Action bubble
+      if (this._instance.currentAction === "reloading") {
         const icons = SpriteSheet.fromGrid(AssetManager.getImageAsset("SIcoWarfare")!, 16, 16, 64, 8);
-        DrawManager.queueDrawSprite(x - 16, y - bubbleSize / 2 - size + 16 + 4, icons, 9, 32, 32, ZIndex.UI);
+        DrawManager.queueDrawSprite(
+          x - 16,
+          y - bubbleSize / 2 - size + 16 + 4 + 10 * (1 - this._instance.bubbleAlpha),
+          icons,
+          9,
+          32,
+          32,
+          ZIndex.UI,
+          0,
+          this._instance.bubbleAlpha,
+        );
       }
     },
 
@@ -214,6 +230,12 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
 
     updateBefore: (_deltaTime: number) => {
       const state = this._getState();
+
+      this._instance.bubbleAlpha = lerp(
+        this._instance.bubbleAlpha,
+        this._instance.currentAction !== null ? 1 : 0,
+        _deltaTime * 12,
+      );
 
       switch (state) {
         case PlayerState.IDLE:
@@ -683,5 +705,11 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     this._instance.currentAmmo = DEF_WEAPONS[this._instance.currentWeapon].capacity;
 
     AssetManager.playAudioAsset("AFXUiEquip", "sound");
+  }
+
+  /** Call when consumables are purchased or consumed */
+  public onConsumableApply(itemId: ShopItemId): void {
+    // Medkit
+    if (itemId === 0) this._setHealth(this._getMaxHealth());
   }
 }

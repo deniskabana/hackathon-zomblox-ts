@@ -141,7 +141,23 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
 
       UIManager.showShopUI(this.shopItem);
 
-      if (this.shopItem.category === ItemCategory.WEAPON) {
+      const category = this.shopItem.category;
+
+      if (category === ItemCategory.UNLOCKABLE) {
+        ShopManager.setOnPurchaseCallback(() => {
+          UIManager.hideShopUI();
+          this._destructor();
+        });
+      }
+
+      if (category === ItemCategory.CONSUMABLE) {
+        ShopManager.setOnPurchaseCallback(() => {
+          UIManager.hideShopUI();
+          LevelManager.player?.onConsumableApply(this.shopItem.id);
+        });
+      }
+
+      if (category === ItemCategory.WEAPON) {
         ShopManager.setOnPurchaseCallback(() => {
           EntityManager.createEntity(EntityType.SENSOR, (entityId) => {
             ShopManager.setOnPurchaseCallback(null);

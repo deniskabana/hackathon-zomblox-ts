@@ -1,5 +1,5 @@
 import { GRID_CONFIG } from "../config/core/grid.config";
-import type { ShopItem } from "../config/game/shop.config";
+import { ItemCategory, type ShopItem } from "../config/game/shop.config";
 import type GameInstance from "../GameInstance";
 import { FONT_MONO } from "../styles/styles.config";
 import type { ScreenPosition } from "../types/engine/ScreenPosition";
@@ -42,7 +42,7 @@ export default class UIManager extends AManager {
     if (this.equipAlpha !== 0) this.drawEquipUi();
 
     this.drawDebug(fps);
-    this.drawHealthbars();
+    this.drawHUD();
   }
 
   public drawDebug(fps: number) {
@@ -50,8 +50,8 @@ export default class UIManager extends AManager {
 
     const { DrawManager, CameraManager } = this._gameInstance.MANAGERS;
     const zoom = CameraManager.getZoomScale();
-    const textX = CameraManager.x - CameraManager.getTargetWorldWidth() / 2 / zoom;
-    const textY = CameraManager.y + CameraManager.getTargetWorldHeight() / 2 / zoom;
+    const textX = CameraManager.x - CameraManager.getTargetWorldWidth() / 2 / zoom + 8;
+    const textY = CameraManager.y + CameraManager.getTargetWorldHeight() / 2 / zoom - 8;
 
     DrawManager.drawText(`${fps} FPS`, textX - 1, textY - 1, "#fff", 20 / zoom, FONT_MONO, "left", 1, true);
     DrawManager.drawText(`${fps} FPS`, textX + 1, textY + 1, "#fff", 20 / zoom, FONT_MONO, "left", 1, true);
@@ -115,32 +115,61 @@ export default class UIManager extends AManager {
     return { screenPos: { x: shopItemX, y: shopItemY }, scale: 2.25 / zoom };
   }
 
-  private drawHealthbars(): void {
+  private drawHUD(): void {
     const { LevelManager, AssetManager, DrawManager, CameraManager } = this._gameInstance.MANAGERS;
     const zoom = CameraManager.getZoomScale();
 
+    // Health sign
+    const signSprite = AssetManager.getImageAsset("UIHealthSign")!;
+    const signX = CameraManager.x - CameraManager.getTargetWorldWidth() / 2 + 8 / zoom;
+    const signY = CameraManager.y - CameraManager.getTargetWorldHeight() / 2 + 8 / zoom;
+    DrawManager.queueDraw(signX, signY, signSprite, 64 / zoom, 64 / zoom, ZIndex.UI);
+
+    // Health bar
     const barSprite = AssetManager.getImageAsset("UIHealthBar")!;
-    const barX = CameraManager.x - CameraManager.getTargetWorldWidth() / 2 + 48 / zoom - 6 / zoom;
-    const barY = CameraManager.y - CameraManager.getTargetWorldHeight() / 2 + 16 / 2 / zoom;
+    const barX = CameraManager.x - CameraManager.getTargetWorldWidth() / 2 + 8 / zoom + 64 / zoom - 6 / zoom;
+    const barY = CameraManager.y - CameraManager.getTargetWorldHeight() / 2 + 8 / zoom + 10 / 2 / zoom;
     DrawManager.queueDraw(barX, barY, barSprite, 144 / zoom, 32 / zoom, ZIndex.UI);
 
-    const signSprite = AssetManager.getImageAsset("UIHealthSign")!;
-    const signX = CameraManager.x - CameraManager.getTargetWorldWidth() / 2;
-    const signY = CameraManager.y - CameraManager.getTargetWorldHeight() / 2;
-    DrawManager.queueDraw(signX, signY, signSprite, 48 / zoom, 48 / zoom, ZIndex.UI);
+    // Health
+    if (LevelManager.player) {
+      const maxHealth = LevelManager.player._getMaxHealth();
+      const health = LevelManager.player._getHealth();
+      const ratio = health / maxHealth;
 
-    if (!LevelManager.player) return;
-    const maxHealth = LevelManager.player._getMaxHealth();
-    const health = LevelManager.player._getHealth();
-    const ratio = health / maxHealth;
+      const maxWidth = (144 - 7) / zoom;
+      DrawManager.drawRectFilled(
+        barX + 8 / zoom,
+        barY + 6 / zoom,
+        (maxWidth * ratio) / zoom - 6 / zoom,
+        (32 - 12) / zoom,
+        "#aa1c2f",
+      );
+    }
 
-    const maxWidth = (144 - 8) / zoom;
-    DrawManager.drawRectFilled(
-      barX + 8 / zoom,
-      barY + 6 / zoom,
-      (maxWidth * ratio) / zoom - 6 / zoom,
-      (32 - 12) / zoom,
-      "#aa1c2f",
+    // Coins
+    const coinBgSprite = AssetManager.getImageAsset("UICoinsBg")!;
+    const coinBgX = signX + 60 / zoom;
+    const coinBgY = CameraManager.y - CameraManager.getTargetWorldHeight() / 2 + 8 / zoom + 72 / 2 / zoom;
+    DrawManager.queueDraw(coinBgX, coinBgY, coinBgSprite, (100 * 0.75) / zoom, (32 * 0.75) / zoom, ZIndex.UI);
+
+    const coinSprite = AssetManager.getImageAsset("ICoinSingle")!;
+    const coinX = coinBgX + (100 * 0.75) / zoom - (28 * 0.6) / zoom - 4 / zoom;
+    const coinY = coinBgY + 3 / zoom;
+    DrawManager.queueDraw(coinX, coinY, coinSprite, (28 * 0.6) / zoom, (28 * 0.6) / zoom, ZIndex.UI);
+
+    const coinTextX = coinBgX + 10 / zoom;
+    const coinTextY = coinBgY + 17 / zoom;
+    DrawManager.drawText(
+      String(LevelManager.getCurrency()),
+      coinTextX,
+      coinTextY,
+      "#fff",
+      20,
+      FONT_MONO,
+      "left",
+      1,
+      true,
     );
   }
 
@@ -181,7 +210,10 @@ export default class UIManager extends AManager {
     this.activeShopItem?.renderItem(avatarProps.screenPos, AssetManager, DrawManager, {
       alpha,
       scale: avatarProps.scale,
+      zIndex: ZIndex.UI,
     });
+
+    if (this.activeShopItem.category === ItemCategory.UNLOCKABLE) return;
 
     // Stock amount
     const stock = `${ShopManager.getItemStock(this.activeShopItem.id)}x`;
@@ -221,6 +253,7 @@ export default class UIManager extends AManager {
     this.activeEquipItem?.renderItem(avatarProps.screenPos, AssetManager, DrawManager, {
       alpha,
       scale: avatarProps.scale,
+      zIndex: ZIndex.UI,
     });
   }
 
