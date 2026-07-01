@@ -42,7 +42,7 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
           id: IndicatorState.NEUTRAL,
           loop: true,
           frameCount: 1,
-          assetVariants: [AssetManager.getImageAsset("UIHighlightObj")!],
+          assetVariants: [AssetManager.getImageAsset("UIHighlightObjNegative")!],
         },
         {
           id: IndicatorState.POSITIVE,
@@ -85,9 +85,12 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
 
       this._animations?.setActiveAnimations([this._getState()]);
 
-      if (this._getState() === IndicatorState.NEUTRAL && ShopManager.canAfford(this.shopItem.id)) {
+      if (ShopManager.canAfford(this.shopItem.id)) {
         this._setState(IndicatorState.POSITIVE);
       }
+
+      if (!ShopManager.canAfford(this.shopItem.id)) this.setNeutral();
+      else this.setPositive();
     },
 
     draw: () => {
@@ -140,9 +143,6 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
       const entity = other.plugin?.entity;
       if (entity !== LevelManager.player) continue;
 
-      if (!ShopManager.canAfford(this.shopItem.id)) this.setNegative();
-      else this.setPositive();
-
       UIManager.showShopUI(this.shopItem);
 
       if (this.shopItem.category === ItemCategory.WEAPON) {
@@ -161,7 +161,7 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
         });
       }
 
-      this.alpha = 0.5;
+      this.alpha = 0.75;
     }
   };
 
@@ -179,7 +179,12 @@ export default class InteractiveShopEntity extends AEntity<IndicatorState, Insta
       UIManager.hideShopUI();
       ShopManager.setOnPurchaseCallback(null);
 
-      this.setNeutral();
+      if (ShopManager.canAfford(this.shopItem.id)) {
+        this._setState(IndicatorState.POSITIVE);
+      } else {
+        this._setState(IndicatorState.NEUTRAL);
+      }
+
       this.alpha = 1;
     }
   };
