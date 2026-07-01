@@ -6,7 +6,6 @@ export default function raycastAABB(
   direction: Vector,
   maxDistance: number,
   hitboxes: AABB[],
-  // { left, top, right, bottom }: AABB,
 ): { distance: number; point: Vector } | null {
   const EPSILON = 1e-10;
 

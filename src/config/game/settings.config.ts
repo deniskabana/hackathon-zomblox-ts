@@ -47,7 +47,7 @@ export const DEFAULT_SETTINGS: Readonly<GameSettingsSpec> = {
   },
   rules: {
     nightOverlayAlpha: 0.9,
-    startingCurrency: 0,
+    startingCurrency: 10,
     autospawn: true,
     incomeScale: 1,
     zombieSpawnIntervalSec: 3,

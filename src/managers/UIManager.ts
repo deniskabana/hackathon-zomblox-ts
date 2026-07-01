@@ -44,10 +44,10 @@ export default class UIManager extends AManager {
     const animSpeed = 17;
 
     this.shopAlpha = lerp(this.shopAlpha, this.isShopUiVisible ? 1 : 0, _deltaTime * animSpeed);
-    if (this.equipAlpha > 0.01) this.drawShopUi();
+    if (this.shopAlpha > 0.01) this.drawShopUi();
 
     this.equipAlpha = lerp(this.equipAlpha, this.isEquipUiVisible ? 1 : 0, _deltaTime * animSpeed);
-    if (this.sleepAlpha > 0.01) this.drawEquipUi();
+    if (this.equipAlpha > 0.01) this.drawEquipUi();
 
     this.sleepAlpha = lerp(this.sleepAlpha, this.isSleepUiVisible ? 1 : 0, _deltaTime * animSpeed);
     if (this.sleepAlpha > 0.01) this.drawSleepUi();
@@ -303,10 +303,9 @@ export default class UIManager extends AManager {
 
   // Shop
   public showShopUI(shopItem: ShopItem): void {
-    this.activeShopItem = shopItem;
+    this.hideUI();
     this.isShopUiVisible = true;
-    this.isEquipUiVisible = false;
-    this.isSleepUiVisible = false;
+    this.activeShopItem = shopItem;
   }
   public hideShopUI(): void {
     this.isShopUiVisible = false;
@@ -318,10 +317,9 @@ export default class UIManager extends AManager {
 
   // Equip
   public showEquipUI(shopItem: ShopItem): void {
-    this.activeEquipItem = shopItem;
+    this.hideUI();
     this.isEquipUiVisible = true;
-    this.isShopUiVisible = false;
-    this.isSleepUiVisible = false;
+    this.activeEquipItem = shopItem;
   }
   public hideEquipUI(): void {
     this.isEquipUiVisible = false;
@@ -333,9 +331,8 @@ export default class UIManager extends AManager {
 
   // Sleep
   public showSleepUI(): void {
+    this.hideUI();
     this.isSleepUiVisible = true;
-    this.isShopUiVisible = false;
-    this.isEquipUiVisible = false;
   }
   public hideSleepUI(): void {
     this.isSleepUiVisible = false;
