@@ -5,8 +5,8 @@ import { AManager } from "./abstract/AManager";
 export default class ShopManager extends AManager {
   private _gameInstance: GameInstance;
 
-  private _state: Map<ItemId, ShopItemState>; // keyed by itemId
-  private _history: PurchaseEvent[];
+  private _state: Map<ShopItemId, ShopItemState>; // keyed by itemId
+  private _history: ShopPurchaseEvent[];
   private _totalSpent: number;
 
   private _waveNumber: number;
@@ -39,22 +39,22 @@ export default class ShopManager extends AManager {
 
   _destroy() {}
 
-  public getItemPrice(id: ItemId): number {
+  public getItemPrice(id: ShopItemId): number {
     return this._state.get(id)?.currentPrice ?? 0;
   }
 
-  public getItemStock(id: ItemId): number {
+  public getItemStock(id: ShopItemId): number {
     return this._state.get(id)?.currentStock ?? 0;
   }
 
-  public canAfford(id: ItemId): boolean {
+  public canAfford(id: ShopItemId): boolean {
     const { LevelManager } = this._gameInstance.MANAGERS;
     const money = LevelManager.getCurrency();
     return this.getItemPrice(id) <= money;
   }
 
-  public purchase(id: ItemId, playerId: number): boolean {
-    const { LevelManager, AssetManager } = this._gameInstance.MANAGERS;
+  public purchase(id: ShopItemId, playerId: number): boolean {
+    const { LevelManager, AssetManager, InventoryManager } = this._gameInstance.MANAGERS;
     const stateShopItem = this._state.get(id);
     const shopDefinition = SHOP_ITEMS[id];
 
@@ -75,14 +75,15 @@ export default class ShopManager extends AManager {
     LevelManager.addCurrency(pricePaid * -1);
     this._totalSpent += pricePaid;
 
-    this._history.push({
+    const event: ShopPurchaseEvent = {
       itemId: id,
       playerId: playerId,
       pricePaid,
       waveNumber: 0,
       timestamp: 0,
-    });
-
+    };
+    this._history.push(event);
+    InventoryManager.onShopPurchase(event);
     AssetManager.playAudioAsset("AFXShopPurchase", "sound");
 
     return true;
@@ -99,16 +100,16 @@ export default class ShopManager extends AManager {
   }
 }
 
-type ItemId = number;
+export type ShopItemId = number;
 
 interface ShopItemState {
-  id: ItemId;
+  id: ShopItemId;
   currentStock: number;
   currentPrice: number;
   purchaseCount: number;
 }
 
-interface PurchaseEvent {
+export interface ShopPurchaseEvent {
   itemId: number;
   playerId: number;
   pricePaid: number;

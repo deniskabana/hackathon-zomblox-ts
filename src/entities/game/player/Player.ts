@@ -236,7 +236,6 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
       }
 
       this.getShootingInput();
-      this.getWeaponCycleInput();
       this.getShopBuyInput();
       this.getBuildingModeInput(_deltaTime);
     },
@@ -609,19 +608,6 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     ShopManager.purchase(shopItem.id, this._getEntityId());
   }
 
-  private getWeaponCycleInput(): void {
-    const { InputManager } = _game.MANAGERS;
-    const allWeaponsDef = Object.keys(DEF_WEAPONS) as Weapon[];
-
-    if (this._instance.currentAction !== null) return;
-    if (!InputManager.wasReleased(GameControls.PLAYER_CHANGE_WEAPON)) return;
-    InputManager.consumeAction(GameControls.PLAYER_CHANGE_WEAPON);
-
-    const currentIndex = allWeaponsDef.findIndex((n) => n === this._instance.currentWeapon);
-    this._instance.currentWeapon = allWeaponsDef[(currentIndex + 1) % allWeaponsDef.length];
-    this._instance.currentAmmo = DEF_WEAPONS[this._instance.currentWeapon].capacity;
-  }
-
   private reloadWeapon(): void {
     const { AssetManager } = _game.MANAGERS;
     const weaponDef = DEF_WEAPONS[this._instance.currentWeapon];
@@ -680,5 +666,12 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     }
 
     return angle;
+  }
+
+  public setWeapon(weaponName: string): void {
+    const weapon = DEF_WEAPONS[weaponName as Instance["currentWeapon"]];
+    if (!weapon) return;
+    this._instance.currentWeapon = weaponName as Instance["currentWeapon"];
+    this._instance.currentAmmo = DEF_WEAPONS[this._instance.currentWeapon].capacity;
   }
 }

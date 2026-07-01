@@ -74,7 +74,7 @@ export default class LevelManager extends AManager {
   }
 
   public _init(): void {
-    const { SettingsManager, EntityManager } = this.gameInstance.MANAGERS;
+    const { SettingsManager, EntityManager, InventoryManager } = this.gameInstance.MANAGERS;
     const settings = SettingsManager.getSettings();
 
     const { map, config } = parseJsonMap();
@@ -88,10 +88,10 @@ export default class LevelManager extends AManager {
     this.tileset = new MapTilesetManager(tilesetImage, config.TILE_SIZE);
     this.tileLayers = map.tileLayers;
 
-    this.player = this.gameInstance.MANAGERS.EntityManager.createEntity<Player>(
-      EntityType.PLAYER,
-      (entityId) => new Player({ worldPos: gridToWorld(map.spawn), entityId, gameInstance: this.gameInstance }),
-    );
+    this.player = this.gameInstance.MANAGERS.EntityManager.createEntity<Player>(EntityType.PLAYER, (entityId) => {
+      InventoryManager.createPlayerInventory(entityId);
+      return new Player({ worldPos: gridToWorld(map.spawn), entityId, gameInstance: this.gameInstance });
+    });
 
     this.levelState = {
       phase: "day",
@@ -101,6 +101,7 @@ export default class LevelManager extends AManager {
       currency: settings.rules.startingCurrency,
       totalTimeCounter: 0,
     };
+
     this.mapLayerBelowPlayer.width = GRID_CONFIG.GRID_WIDTH * GRID_CONFIG.TILE_SIZE;
     this.mapLayerBelowPlayer.height = GRID_CONFIG.GRID_HEIGHT * GRID_CONFIG.TILE_SIZE;
     this.mapLayerAbovePlayer.width = GRID_CONFIG.GRID_WIDTH * GRID_CONFIG.TILE_SIZE;

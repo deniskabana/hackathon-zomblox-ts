@@ -65,7 +65,7 @@ export const SHOP_ITEMS: Record<number, ShopItem> = {
   },
   2: {
     id: 2,
-    name: "SMG",
+    name: "Submachine",
     category: ItemCategory.WEAPON,
     basePrice: 135,
     priceStrategy: (basePrice) => basePrice,

@@ -23,7 +23,7 @@ export default class UIManager extends AManager {
   public _init(): void {}
 
   public draw(_fps: number, _deltaTime: number): void {
-    this.shopAlpha = lerp(this.shopAlpha, this.isShopUiVisible ? 1 : 0, _deltaTime * 15);
+    this.shopAlpha = lerp(this.shopAlpha, this.isShopUiVisible ? 1 : 0, _deltaTime * 17);
     if (this.shopAlpha !== 0) this.drawShopUi();
   }
 
