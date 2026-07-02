@@ -73,7 +73,7 @@ export const DEFAULT_SETTINGS: Readonly<GameSettingsSpec> = {
     isHurtBySunlight: true,
     sunlightDamageIntensity: 4.5,
     movementSeparationWeight: 0.45,
-    movementDensityWeight: 0.75,
+    movementDensityWeight: 0.65,
     debugDrawState: false,
     debugDrawWireframe: false,
     debugDrawFlowFieldVector: false,

@@ -520,10 +520,10 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     const normalizedVector = mag > 0 ? { x: combined.x / mag, y: combined.y / mag } : { x: 0, y: 0 };
 
     const targetSpeed = desiredVelocity * lerp(1, 1 - settings.movementDensityWeight, movementGridDensity);
-    this._instance.movementVelocity = lerp(movementVelocity, targetSpeed, _deltaTime * 4);
+    this._instance.movementVelocity = lerp(movementVelocity, targetSpeed, _deltaTime * 6);
 
     const targetDirection = Math.atan2(normalizedVector.y, normalizedVector.x);
-    this._instance.movementDirection = lerpAngle(movementDirection, targetDirection, _deltaTime * 8.5);
+    this._instance.movementDirection = lerpAngle(movementDirection, targetDirection, _deltaTime * 11);
 
     if (
       this.getIsNextToPlayer() &&

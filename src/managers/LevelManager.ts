@@ -675,9 +675,8 @@ export default class LevelManager extends AManager {
     }
 
     for (const zombie of EntityManager.getEnemies()) {
-      for (const { x: zx, y: zy } of zombie._getSpanningGridTiles()) {
-        grid?.[zx]?.[zy]?.push(zombie);
-      }
+      const { x: gx, y: gy } = zombie._getGridPosition();
+      grid?.[gx]?.[gy]?.push(zombie);
     }
 
     this.enemyGrid = grid;
