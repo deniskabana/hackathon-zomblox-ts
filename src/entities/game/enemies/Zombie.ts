@@ -15,6 +15,7 @@ import { EntityType } from "../../../types/engine/EntityType";
 import SensorAttackSlash from "../sensors/SensorAttackSlash";
 import radiansToVector from "../../../utils/math/radiansToVector";
 import getDirectionalAngle from "../../../utils/math/getDirectionalAngle";
+import type { FlowField } from "../../../utils/grid/generateFlowFieldMap";
 
 /** `this.gameInstance` */ let _game: GameInstance;
 
@@ -43,6 +44,7 @@ interface Instance {
 
   maxSpeed: number;
   desiredVelocity: number;
+  speedCoeficient: number;
   movementDirection: number;
   movementVelocity: number;
 
@@ -131,6 +133,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
 
     const instance: Instance = {
       maxSpeed: settings.maxSpeed,
+      speedCoeficient: 1,
       movementDirection: 0,
       movementVelocity: 0,
       desiredVelocity: 0,
@@ -274,8 +277,10 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     },
 
     updateBefore: (_deltaTime) => {
+      const { LevelManager } = _game.MANAGERS;
       const state = this._getState();
 
+      if (LevelManager.getIsDay()) this._setState(ZombieState.RETREATING);
       if (this._getIsDead()) this._setState(ZombieState.DEAD);
 
       switch (state) {
@@ -285,7 +290,6 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
             this._setState(ZombieState.CHASING);
           }
           if (this.getIsNextToPlayer()) this.startAttacking();
-
           break;
 
         case ZombieState.CHASING:
@@ -299,7 +303,6 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
 
         case ZombieState.ATTACKING:
           this._animations?.setActiveAnimations(["idle"]);
-          // TODO: add attack animation
           if (this._timers.attack.getIsDone()) {
             this._setState(ZombieState.IDLE);
             this._timers.attackCooldown.reset();
@@ -386,13 +389,13 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
 
   public startChasingPlayer(): void {
     this._setState(ZombieState.CHASING);
+    this._instance.speedCoeficient = 1;
     this._instance.desiredVelocity = this._instance.maxSpeed;
   }
 
   public startRetreating(): void {
-    return;
     this._setState(ZombieState.RETREATING);
-    this._instance.desiredVelocity = this._instance.maxSpeed * 3.25;
+    this._instance.speedCoeficient = 2.5;
   }
 
   private startAttacking(): void {
@@ -477,7 +480,11 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     if (this._getState() !== ZombieState.CHASING && this._getState() !== ZombieState.RETREATING) return;
 
     const { LevelManager } = _game.MANAGERS;
-    const { flowField } = LevelManager;
+
+    let flowField: FlowField | undefined = undefined;
+    if (this._getState() === ZombieState.CHASING) flowField = LevelManager.flowField;
+    if (this._getState() === ZombieState.RETREATING) flowField = LevelManager.retreatFlowField;
+    if (!flowField) return;
 
     const vectors: Vector[] = [];
     const flowFieldVector: Vector = { x: 0, y: 0 };
@@ -501,7 +508,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
   private applyMovement(_deltaTime: number): void {
     if (this._getState() !== ZombieState.CHASING && this._getState() !== ZombieState.RETREATING) return;
 
-    const { SettingsManager } = _game.MANAGERS;
+    const { SettingsManager, LevelManager } = _game.MANAGERS;
     const settings = SettingsManager.getSettings().zombie;
     const {
       movementFlowFieldVector,
@@ -519,7 +526,10 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     const mag = Math.hypot(combined.x, combined.y);
     const normalizedVector = mag > 0 ? { x: combined.x / mag, y: combined.y / mag } : { x: 0, y: 0 };
 
-    const targetSpeed = desiredVelocity * lerp(1, 1 - settings.movementDensityWeight, movementGridDensity);
+    const targetSpeed =
+      desiredVelocity *
+      this._instance.speedCoeficient *
+      lerp(1, 1 - settings.movementDensityWeight, movementGridDensity);
     this._instance.movementVelocity = lerp(movementVelocity, targetSpeed, _deltaTime * 6);
 
     const targetDirection = Math.atan2(normalizedVector.y, normalizedVector.x);
@@ -527,7 +537,8 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
 
     if (
       this.getIsNextToPlayer() &&
-      (this._getState() === ZombieState.CHASING || this._getState() === ZombieState.IDLE)
+      (this._getState() === ZombieState.CHASING || this._getState() === ZombieState.IDLE) &&
+      !LevelManager.getIsDay()
     ) {
       this.startAttacking();
       this._timers.movementRestart.reset(settings.movementRestartSec);

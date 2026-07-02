@@ -103,8 +103,8 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     };
 
     const colliderWidth = worldSize * 0.22;
-    const colliderHeight = worldSize * 0.3;
-    const colliderOffsetY = -TILE_SIZE * 0.2;
+    const colliderHeight = worldSize * 0.4;
+    const colliderOffsetY = -worldSize * 0.05;
 
     super({
       worldPos,

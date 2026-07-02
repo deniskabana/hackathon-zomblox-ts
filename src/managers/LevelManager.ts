@@ -42,7 +42,7 @@ export default class LevelManager extends AManager {
   public levelGrid?: GridTileState[][];
   public flowField?: FlowField;
   public weightedFlowField?: FlowField;
-  public retreatFlowFields?: FlowField[];
+  public retreatFlowField?: FlowField;
   private enemyGrid?: (AnyEntity[] | null)[][];
   private blockGrid?: (AnyEntity[] | null)[][];
 
@@ -112,7 +112,7 @@ export default class LevelManager extends AManager {
     this.createMapTileImages();
 
     this.levelGrid = getMapBlockGrid(config, map.objects);
-    this.updatePathFindingGrid();
+    this.updatePathFinding();
 
     EntityManager.addPhysicsStaticMap(this.levelGrid);
 
@@ -276,10 +276,10 @@ export default class LevelManager extends AManager {
 
     if (!this.playerLastGridPos || !areVectorsEqual(this.playerLastGridPos, this.player._getGridPosition())) {
       this.playerLastGridPos = this.player._getGridPosition();
-      this.updatePathFindingGrid();
+      this.updatePathFinding();
     }
     // Hot updating
-    this.updatePathFindingGrid();
+    this.updatePathFinding();
 
     if (!this.getIsDay() && !!this.player) {
       this.nightEndCounter -= _deltaTime;
@@ -291,6 +291,7 @@ export default class LevelManager extends AManager {
     const { DrawManager, CameraManager, SettingsManager, EntityManager } = this.gameInstance.MANAGERS;
 
     this.drawMapLayers("below", SettingsManager.getSettings().rules.debugDrawFlowFieldGrid ? 0.4 : 1);
+    const flowField = this.getIsDay() ? this.retreatFlowField : this.flowField;
 
     if (SettingsManager.getSettings().rules.debugDrawFlowFieldGrid) {
       const size = GRID_CONFIG.TILE_SIZE;
@@ -304,8 +305,8 @@ export default class LevelManager extends AManager {
             DrawManager.drawRectFilled(x * size, y * size, size, size, "#500", 0.3);
           else DrawManager.drawRectOutline(x * size, y * size, size, size, "#fff", 0.1);
 
-          if (this.flowField?.[x]?.[y]) {
-            const currentFieldCell = this.flowField[x][y];
+          if (flowField?.[x]?.[y]) {
+            const currentFieldCell = flowField[x][y];
             const weight = currentFieldCell.weight;
             const vector = currentFieldCell.normalizedVector;
             if (weight === Infinity) continue;
@@ -365,8 +366,8 @@ export default class LevelManager extends AManager {
     if (!this.tileLayers || !this.tileset) return;
 
     this.gameInstance.MANAGERS.DrawManager.queueDraw(
-      0,
-      0,
+      -4,
+      -4,
       position === "above" ? this.mapLayerAbovePlayer : this.mapLayerBelowPlayer,
       GRID_CONFIG.GRID_WIDTH * GRID_CONFIG.TILE_SIZE,
       GRID_CONFIG.GRID_HEIGHT * GRID_CONFIG.TILE_SIZE,
@@ -459,14 +460,14 @@ export default class LevelManager extends AManager {
       return entity;
     });
 
-    this.updatePathFindingGrid();
+    this.updatePathFinding();
     this.updateBlockGrid();
   }
 
   public destroyBlock(): void {
     if (!this.levelGrid) return;
     this.updateBlockGrid();
-    this.updatePathFindingGrid();
+    this.updatePathFinding();
   }
 
   public spawnCoin(worldPos: WorldPosition): void {
@@ -534,7 +535,7 @@ export default class LevelManager extends AManager {
     const { EntityManager, UIManager } = this.gameInstance.MANAGERS;
 
     this.gameInstance.MANAGERS.BuildModeManager.setBuildMode(false);
-    this.retreatFlowFields = undefined;
+    this.retreatFlowField = undefined;
     this.levelState.phase = "night";
 
     UIManager.hideUI();
@@ -578,19 +579,7 @@ export default class LevelManager extends AManager {
       this.addCurrency(this.gameInstance.MANAGERS.SettingsManager.getSettings().rules.endNightReward);
     }
 
-    // this.retreatFlowFields = [];
-    // const amount = Math.max(20, this.zombies.size);
-    // for (let i = 0; i < amount; i++) {
-    //   this.retreatFlowFields.push(
-    //     generateFlowField(
-    //       this.levelGrid,
-    //       this.zombies,
-    //       ...this.getRandomEdgePositions(),
-    //       ...this.getRandomEdgePositions(),
-    //     ),
-    //   );
-    // }
-    //
+    this.updateRetreatFlowField();
     this.levelState.phase = "day";
     this.stopSpawningZombies();
 
@@ -623,9 +612,33 @@ export default class LevelManager extends AManager {
   // Grid
   // ==================================================
 
-  private updatePathFindingGrid(): void {
+  private updatePathFinding(): void {
     if (!this.player || !this.levelGrid) return;
-    this.flowField = generateFlowField(this.levelGrid, this.blockGrid, this.enemyGrid, this.player._getGridPosition());
+    this.flowField = generateFlowField(
+      this.levelGrid,
+      this.blockGrid,
+      this.enemyGrid,
+      [this.player._getGridPosition()],
+      { model: "chase" },
+    );
+  }
+
+  private updateRetreatFlowField(): void {
+    if (!this.player || !this.levelGrid) return;
+
+    const startPoints: GridPosition[] = [];
+    const threshold = 0;
+
+    for (let x = 0 + threshold; x < GRID_CONFIG.GRID_WIDTH - threshold; x++) {
+      startPoints.push({ x, y: threshold });
+      startPoints.push({ x, y: GRID_CONFIG.GRID_HEIGHT - 1 - threshold });
+    }
+    for (let y = 0 + threshold; y < GRID_CONFIG.GRID_HEIGHT - threshold; y++) {
+      startPoints.push({ x: threshold, y });
+      startPoints.push({ x: GRID_CONFIG.GRID_WIDTH - threshold, y });
+    }
+
+    this.retreatFlowField = generateFlowField(this.levelGrid, this.blockGrid, this.enemyGrid, startPoints);
   }
 
   public getCurrency(): number {

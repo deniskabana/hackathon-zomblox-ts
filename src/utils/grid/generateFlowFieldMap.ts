@@ -16,7 +16,19 @@ export default function generateFlowField(
   levelGrid: GridTileState[][],
   blockGrid: (AnyEntity[] | null)[][] | undefined,
   enemyGrid: (AnyEntity[] | null)[][] | undefined,
-  ...startPoints: GridPosition[]
+  startPoints: GridPosition[],
+  options?: { model?: "chase" | "flee" },
+): FlowField {
+  const bfsGrid = breadthFirstSearch(levelGrid, blockGrid, enemyGrid, startPoints);
+  const vectorGrid = getVectorField(bfsGrid, options?.model ?? "chase");
+  return vectorGrid;
+}
+
+function breadthFirstSearch(
+  levelGrid: GridTileState[][],
+  blockGrid: (AnyEntity[] | null)[][] | undefined,
+  enemyGrid: (AnyEntity[] | null)[][] | undefined,
+  startPoints: GridPosition[],
 ): FlowField {
   const grid: FlowField = [];
   for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
@@ -69,12 +81,17 @@ export default function generateFlowField(
     }
   }
 
+  return grid;
+}
+
+function getVectorField(grid: FlowField, model: "chase" | "flee"): FlowField {
   // Calculate normalized vectors based on distances
   for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
     for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
       if (!grid?.[x]?.[y]) continue;
 
       let lowestWeight = Infinity;
+      let highestWeight = -Infinity;
       let directionVector = { x: 0, y: 0 };
 
       const sortedNeighborVectors: Vector[] = [
@@ -96,17 +113,27 @@ export default function generateFlowField(
         if (!neighbor) continue;
 
         const neighborWeight = neighbor.weight;
-        if (neighborWeight === Infinity || neighborWeight > lowestWeight) continue;
+        if (neighborWeight === Infinity) continue;
+
+        if (model === "chase" && neighborWeight > lowestWeight) continue;
+        if (model === "flee" && neighborWeight < highestWeight) continue;
 
         // Disallows corner cutting around obstacles
         if (dx !== 0 && dy !== 0) {
           const field1Weight = grid?.[x]?.[y + dy]?.weight;
           const field2Weight = grid?.[x + dx]?.[y]?.weight;
-          if (field1Weight === Infinity || field2Weight === Infinity) continue;
+          if (
+            field1Weight === Infinity ||
+            field2Weight === Infinity ||
+            field1Weight === -Infinity ||
+            field2Weight === -Infinity
+          )
+            continue;
         }
 
         directionVector = neighborVector;
         lowestWeight = neighbor.weight;
+        highestWeight = neighbor.weight;
       }
 
       grid[x][y].normalizedVector = directionVector;
