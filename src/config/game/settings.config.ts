@@ -83,7 +83,7 @@ export const DEFAULT_SETTINGS: Readonly<GameSettingsSpec> = {
   },
   player: {
     worldSize: GRID_CONFIG.TILE_SIZE * 1.75,
-    startHealth: 200,
+    startHealth: 210,
     movementSpeed: 350,
     defaultWeapon: "Revolver",
     lightRadius: 4.5,

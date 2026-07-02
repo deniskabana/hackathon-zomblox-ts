@@ -420,14 +420,20 @@ export default class LevelManager extends AManager {
   // ==================================================
 
   public destroyPlayer(): void {
-    const { AssetManager, EntityManager } = this.gameInstance.MANAGERS;
+    const { LightManager, AssetManager, EntityManager, UIManager, VFXManager } = this.gameInstance.MANAGERS;
+
+    this.updateStats();
+    LightManager._destroy();
+    UIManager.hideHUD();
 
     for (const track of this.musicDay) track.pause();
     for (const track of this.musicNight) track.pause();
 
     AssetManager.playAudioAsset("AMusicBackgroundDead", "music");
-    this.player = undefined;
+    UIManager.showGameOverScreen();
+    VFXManager.drawBloodOnScreen(600);
     for (const zombie of EntityManager.getEnemies()) zombie.startWaiting();
+    this.player = undefined;
   }
 
   public spawnBlock(pos: GridPosition, type: BlockTypes = BlockTypes.Wood): void {
@@ -565,7 +571,7 @@ export default class LevelManager extends AManager {
 
   public startDay(): void {
     const { EntityManager, ShopManager } = this.gameInstance.MANAGERS;
-    if (!this.levelState || !this.levelGrid) return;
+    if (!this.levelState || !this.levelGrid || !this.player) return;
 
     if (this.levelState.daysCounter > 0) {
       ShopManager.onWaveStart(this.levelState.daysCounter);
@@ -628,7 +634,7 @@ export default class LevelManager extends AManager {
   public addCurrency(amount: number = 1): void {
     if (!this.levelState) return;
     this.levelState.currency += amount;
-    this.levelState.currencyTotalCounter += amount;
+    this.levelState.currencyTotalCounter += Math.max(0, amount);
   }
 
   public getTileset(): MapTilesetManager | undefined {
@@ -692,4 +698,33 @@ export default class LevelManager extends AManager {
 
     return entities;
   }
+
+  private _stats: Stats | undefined = undefined;
+  public getStats(): Stats {
+    return this._stats ?? this.updateStats();
+  }
+  public updateStats(): Stats {
+    const { ShopManager, InventoryManager } = this.gameInstance.MANAGERS;
+
+    const update = {
+      zombiesKilled: this.levelState?.zombiesKillCounter ?? 0,
+      daysSurvived: this.levelState?.daysCounter ?? 0,
+      totalIncome: this.levelState?.currencyTotalCounter ?? 0,
+      totalSpent: ShopManager.getStatTotalSpent(),
+      unlockablesUsed: this.player ? InventoryManager.getUnlockables(this.player._getEntityId())?.size : 0,
+      medkitsUsed: ShopManager.getPurchaseCount(0),
+    };
+
+    this._stats = update;
+    return update;
+  }
+}
+
+export interface Stats {
+  zombiesKilled: number;
+  daysSurvived: number;
+  totalIncome: number;
+  totalSpent: number;
+  unlockablesUsed: number | undefined;
+  medkitsUsed: number;
 }

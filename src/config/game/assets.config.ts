@@ -108,6 +108,7 @@ export const DEF_ASSETS_IMAGE = {
   UIControlPanelBtnBig: "/images/ui/hud/control-panel-btn-big.png",
   UIControlPanelBtnBigDisabled: "/images/ui/hud/control-panel-btn-big-disabled.png",
   UIControlPanelBtnSmall: "/images/ui/hud/control-panel-btn-small.png",
+  UIGameOverBg: "/images/ui/hud/game-over-bg.png",
   UIHealthSign: "/images/ui/hud/hud-health-sign-2.png",
   UIHealthBar: "/images/ui/hud/hud-health-bar.png",
   UICoinsBg: "/images/ui/hud/hud-health-bg-coins.png",

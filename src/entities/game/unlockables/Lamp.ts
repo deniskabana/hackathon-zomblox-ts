@@ -41,9 +41,9 @@ export default class Lamp extends AEntity {
     draw: () => {
       const { AssetManager, DrawManager, LevelManager, InventoryManager, LightManager } = _game.MANAGERS;
       const { x, y } = this._getWorldPosition();
-
       const size = GRID_CONFIG.TILE_SIZE * 1.5;
-      const isUnlocked = InventoryManager.playerOwnsItem(LevelManager.player!._getEntityId(), this._shopUnlockableId);
+      if (!LevelManager.player) return;
+      const isUnlocked = InventoryManager.playerOwnsItem(LevelManager.player._getEntityId(), this._shopUnlockableId);
 
       if (!this._isUnlocked && isUnlocked) {
         this._isUnlocked = isUnlocked;
@@ -51,17 +51,15 @@ export default class Lamp extends AEntity {
       }
 
       if (this._isUnlocked) {
-        const glowSize = this._getSize() * 2;
+        const glowSize = this._getSize() * 3;
         const sprite = AssetManager.getImageAsset("IFXLightSource")!;
         DrawManager.queueDraw(
           x - glowSize / 2 - 4,
-          y - glowSize / 2 - size - 20,
+          y - glowSize / 2 - size - 30,
           sprite,
           glowSize,
           glowSize,
           ZIndex.EFFECTS,
-          0,
-          0.8,
         );
       }
 

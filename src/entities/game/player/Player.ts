@@ -293,14 +293,12 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     },
 
     onDeath: () => {
-      const { UIManager, VFXManager, AssetManager, LevelManager } = _game.MANAGERS;
+      const { AssetManager, LevelManager } = _game.MANAGERS;
       this._setState(PlayerState.DEAD);
 
-      UIManager.showGameOverScreen(); // TODO: Move to LevelManager
-
-      VFXManager.drawBloodOnScreen(600);
       AssetManager.playAudioAsset("APlayerDie", "sound");
       LevelManager.destroyPlayer();
+      this._destructor();
     },
 
     onDestroy: () => {

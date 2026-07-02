@@ -3,6 +3,7 @@ import { ItemCategory, type ShopItem } from "../config/game/shop.config";
 import type GameInstance from "../GameInstance";
 import { FONT_MONO } from "../styles/styles.config";
 import type { ScreenPosition } from "../types/engine/ScreenPosition";
+import { GameControls } from "../types/GameControls";
 import { ZIndex } from "../types/lib/ZIndex";
 import lerp from "../utils/math/lerp";
 import { AManager } from "./abstract/AManager";
@@ -10,6 +11,7 @@ import { AManager } from "./abstract/AManager";
 export default class UIManager extends AManager {
   private _gameInstance: GameInstance;
 
+  private isHudVisible: boolean;
   // Shop UI
   private isShopUiVisible: boolean;
   private shopAlpha: number;
@@ -21,10 +23,15 @@ export default class UIManager extends AManager {
   // Sleep UI
   private isSleepUiVisible: boolean;
   private sleepAlpha: number;
+  // Game over
+  private isGameOverVisible: boolean;
+  private gameOverAlpha: number;
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
     this._gameInstance = gameInstance;
+
+    this.isHudVisible = true;
 
     this.isShopUiVisible = false;
     this.shopAlpha = 0;
@@ -36,6 +43,9 @@ export default class UIManager extends AManager {
 
     this.isSleepUiVisible = false;
     this.sleepAlpha = 0;
+
+    this.isGameOverVisible = false;
+    this.gameOverAlpha = 0;
   }
 
   public _init(): void {}
@@ -51,6 +61,9 @@ export default class UIManager extends AManager {
 
     this.sleepAlpha = lerp(this.sleepAlpha, this.isSleepUiVisible ? 1 : 0, _deltaTime * animSpeed);
     if (this.sleepAlpha > 0.01) this.drawSleepUi();
+
+    this.gameOverAlpha = lerp(this.gameOverAlpha, this.isGameOverVisible ? 1 : 0, (_deltaTime * animSpeed) / 20);
+    if (this.gameOverAlpha > 0.01) this.drawGameOverScreen();
 
     this.drawDebug(fps);
     this.drawHUD();
@@ -69,7 +82,23 @@ export default class UIManager extends AManager {
     DrawManager.drawText(`${fps} FPS`, textX, textY, "#aa1c2f", 20 / zoom, FONT_MONO, "left", 1, true);
   }
 
-  public _destroy(): void {}
+  public _destroy(): void {
+    this.isHudVisible = true;
+
+    this.isShopUiVisible = false;
+    this.shopAlpha = 0;
+    this.activeShopItem = null;
+
+    this.isEquipUiVisible = false;
+    this.equipAlpha = 0;
+    this.activeEquipItem = null;
+
+    this.isSleepUiVisible = false;
+    this.sleepAlpha = 0;
+
+    this.isGameOverVisible = false;
+    this.gameOverAlpha = 0;
+  }
 
   private _drawActionUiBg(zoom: number, alpha: number) {
     const { AssetManager, DrawManager, CameraManager } = this._gameInstance.MANAGERS;
@@ -127,6 +156,7 @@ export default class UIManager extends AManager {
   private drawHUD(): void {
     const { LevelManager, AssetManager, DrawManager, CameraManager } = this._gameInstance.MANAGERS;
     const zoom = CameraManager.getZoomScale();
+    if (!this.isHudVisible) return;
 
     // Health sign
     const signSprite = AssetManager.getImageAsset("UIHealthSign")!;
@@ -278,7 +308,7 @@ export default class UIManager extends AManager {
     this._drawActionUiBigBtn({ text: "Rest until night [E]", width, height, zoom, alpha });
 
     // Right text (instead of price)
-    const rightText = "Sleep?";
+    const rightText = "Sleep";
     const rightTextX = CameraManager.x - 32 / zoom + CameraManager.getTargetWorldWidth() / zoom / 2 + 4 / zoom;
     const rightTextY = CameraManager.y - CameraManager.getTargetWorldHeight() / zoom / 2 + 78 / zoom + 1 / zoom;
     DrawManager.drawText(rightText, rightTextX, rightTextY, "#fff", 40 / zoom, FONT_MONO, "right", alpha, true);
@@ -297,6 +327,132 @@ export default class UIManager extends AManager {
       0,
       this.sleepAlpha,
     );
+  }
+
+  private drawGameOverScreen() {
+    this.handleRestartInput();
+
+    const { LevelManager, AssetManager, DrawManager, CameraManager } = this._gameInstance.MANAGERS;
+    const zoom = CameraManager.getZoomScale();
+    const width = (320 * 2) / zoom;
+    const height = (178 * 2) / zoom;
+    const alpha = this.gameOverAlpha;
+
+    const bgX = CameraManager.x - width / 2;
+    const bgY = CameraManager.y - height / 2;
+    const bgSprite = AssetManager.getImageAsset("UIGameOverBg")!;
+
+    DrawManager.queueDraw(bgX, bgY, bgSprite, width, height, ZIndex.UI, 0, alpha);
+
+    const textYouAreDead = "You are dead!";
+    DrawManager.drawText(
+      textYouAreDead,
+      CameraManager.x - 2,
+      CameraManager.y - height / 2 + 70 / zoom - 2,
+      "#aa1c2f",
+      60 / zoom,
+      FONT_MONO,
+      "center",
+      alpha,
+      true,
+    );
+    DrawManager.drawText(
+      textYouAreDead,
+      CameraManager.x + 2,
+      CameraManager.y - height / 2 + 70 / zoom + 2,
+      "#000",
+      60 / zoom,
+      FONT_MONO,
+      "center",
+      alpha,
+      true,
+    );
+    DrawManager.drawText(
+      textYouAreDead,
+      CameraManager.x,
+      CameraManager.y - height / 2 + 70 / zoom,
+      "#fff",
+      60 / zoom,
+      FONT_MONO,
+      "center",
+      alpha,
+      true,
+    );
+
+    const stats = LevelManager.getStats();
+    const statFontSize = 34;
+
+    DrawManager.drawText(
+      `Zombies killed: ${stats.zombiesKilled}`,
+      CameraManager.x - 50 / zoom,
+      CameraManager.y - 40 / zoom,
+      "#fff",
+      statFontSize / zoom,
+      FONT_MONO,
+      "right",
+      alpha,
+    );
+    DrawManager.drawText(
+      `Coins collected: ${stats.totalIncome}`,
+      CameraManager.x - 50 / zoom,
+      CameraManager.y + 10 / zoom,
+      "#fff",
+      statFontSize / zoom,
+      FONT_MONO,
+      "right",
+      alpha,
+    );
+    DrawManager.drawText(
+      `Days surived: ${stats.daysSurvived}`,
+      CameraManager.x + 220 / zoom,
+      CameraManager.y - 40 / zoom,
+      "#fff",
+      statFontSize / zoom,
+      FONT_MONO,
+      "right",
+      alpha,
+    );
+    DrawManager.drawText(
+      `Medkits used: ${stats.medkitsUsed}`,
+      CameraManager.x + 220 / zoom,
+      CameraManager.y + 10 / zoom,
+      "#fff",
+      statFontSize / zoom,
+      FONT_MONO,
+      "right",
+      alpha,
+    );
+    DrawManager.drawText(
+      `Money spent: ${stats.totalSpent}`,
+      CameraManager.x - 50 / zoom,
+      CameraManager.y + 60 / zoom,
+      "#fff",
+      statFontSize / zoom,
+      FONT_MONO,
+      "right",
+      alpha,
+    );
+    DrawManager.drawText(
+      `Unlocks bought: ${stats.unlockablesUsed}`,
+      CameraManager.x + 220 / zoom,
+      CameraManager.y + 60 / zoom,
+      "#fff",
+      statFontSize / zoom,
+      FONT_MONO,
+      "right",
+      alpha,
+    );
+
+    const btnWidth = (122 * 2) / zoom;
+    const btnHeight = (28 * 2) / zoom;
+    const btnX = CameraManager.x - btnWidth / 2;
+    const btnY = CameraManager.y + height / 2 - btnHeight - 16 / zoom;
+    const btnSprite = AssetManager.getImageAsset("UIControlPanelBtnBig")!;
+    DrawManager.queueDraw(btnX, btnY, btnSprite, btnWidth, btnHeight, ZIndex.UI, 0, alpha);
+
+    const btnTextX = btnX + btnWidth / 2;
+    const btnTextY = btnY + 34 / zoom;
+    DrawManager.drawText("Restart [R]", btnTextX, btnTextY, "#ffffff", 23 / zoom, FONT_MONO, "center", alpha, true);
   }
 
   // Shop
@@ -340,15 +496,27 @@ export default class UIManager extends AManager {
   }
 
   public showGameOverScreen(): void {
-    alert("YOU DED");
-    window.location.reload();
+    this.isGameOverVisible = true;
   }
 
-  public hideGameOverScreen(): void {}
+  public hideGameOverScreen(): void {
+    this.isGameOverVisible = false;
+  }
+
+  public hideHUD(): void {
+    this.isHudVisible = false;
+  }
 
   public hideUI(): void {
     this.hideShopUI();
     this.hideEquipUI();
     this.hideSleepUI();
+  }
+
+  private handleRestartInput(): void {
+    const { InputManager } = this._gameInstance.MANAGERS;
+    if (!InputManager.wasPressed(GameControls.GAME_RESTART)) return;
+    if (!this.isGameOverVisible) return;
+    this._gameInstance.restartGame();
   }
 }

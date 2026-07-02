@@ -108,6 +108,14 @@ export default class ShopManager extends AManager {
   public setOnPurchaseCallback(callback: typeof this.onPurchaseCallback): void {
     this.onPurchaseCallback = callback;
   }
+
+  public getStatTotalSpent(): number {
+    return this._totalSpent;
+  }
+
+  public getPurchaseCount(itemId: ShopItemId): number {
+    return this._state.get(itemId)?.purchaseCount ?? 0; // Medkit
+  }
 }
 
 export type ShopItemId = number;

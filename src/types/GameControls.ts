@@ -16,6 +16,7 @@ export enum GameControls {
 
   // Game flow controls
   GAME_PAUSE = "GAME_PAUSE",
+  GAME_RESTART = "GAME_RESTART",
 
   // Debug controls
   DEBUG_MENU = "DEBUG_MENU",
