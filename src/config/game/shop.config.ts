@@ -36,7 +36,7 @@ export const SHOP_ITEMS: Record<number, ShopItem> = {
     name: "Medkit",
     category: ItemCategory.CONSUMABLE,
     basePrice: 15,
-    priceStrategy: (basePrice, purchaseCount) => basePrice + basePrice * purchaseCount,
+    priceStrategy: (basePrice, purchaseCount) => basePrice + basePrice ** purchaseCount,
     baseStock: 1,
     stockRule: (currentStock) => currentStock + 1,
     renderItem: ({ x, y }, AssetManager, DrawManager, options) => {

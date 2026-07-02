@@ -61,7 +61,7 @@ export const DEFAULT_SETTINGS: Readonly<GameSettingsSpec> = {
   zombie: {
     worldSize: GRID_CONFIG.TILE_SIZE * 1.75,
     attackDurationSec: 0.4,
-    attackCooldownSec: 1.2,
+    attackCooldownSec: 1,
     hitStateDurationSec: 0.5,
     knockedStateDurationSec: 3,
     movementRestartSec: 0.5,
@@ -105,7 +105,7 @@ export const DEFAULT_SETTINGS: Readonly<GameSettingsSpec> = {
   },
   collectables: {
     autoCollect: false,
-    lifetimeCoin: 12,
+    lifetimeCoin: 20,
     emitLight: false,
     minDistanceFromPlayerPx: GRID_CONFIG.TILE_SIZE * 0.3,
     debugDrawWireframe: false,

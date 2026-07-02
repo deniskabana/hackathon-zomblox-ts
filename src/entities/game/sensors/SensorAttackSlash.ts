@@ -107,7 +107,7 @@ export default class SensorAttackSlash extends AEntity<undefined, undefined, Tim
     const { LevelManager } = _game.MANAGERS;
 
     this.isHot = false;
-    LevelManager.player?._handleDamage(6);
+    LevelManager.player?._handleDamage(8);
   }
 
   public setAngle(angle: number) {
