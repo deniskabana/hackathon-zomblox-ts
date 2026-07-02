@@ -309,7 +309,7 @@ export default class LevelManager extends AManager {
             const currentFieldCell = flowField[x][y];
             const weight = currentFieldCell.weight;
             const vector = currentFieldCell.normalizedVector;
-            if (weight === Infinity) continue;
+            if (weight === Infinity || !vector) continue;
 
             const cx = x * size + size / 2;
             const cy = y * size + size / 2;
@@ -614,13 +614,9 @@ export default class LevelManager extends AManager {
 
   private updatePathFinding(): void {
     if (!this.player || !this.levelGrid) return;
-    this.flowField = generateFlowField(
-      this.levelGrid,
-      this.blockGrid,
-      this.enemyGrid,
-      [this.player._getGridPosition()],
-      { model: "chase" },
-    );
+    this.flowField = generateFlowField(this.levelGrid, this.blockGrid, this.enemyGrid, [
+      this.player._getGridPosition(),
+    ]);
   }
 
   private updateRetreatFlowField(): void {
@@ -635,10 +631,11 @@ export default class LevelManager extends AManager {
     }
     for (let y = 0 + threshold; y < GRID_CONFIG.GRID_HEIGHT - threshold; y++) {
       startPoints.push({ x: threshold, y });
-      startPoints.push({ x: GRID_CONFIG.GRID_WIDTH - threshold, y });
+      startPoints.push({ x: GRID_CONFIG.GRID_WIDTH - 1 - threshold, y });
     }
 
-    this.retreatFlowField = generateFlowField(this.levelGrid, this.blockGrid, this.enemyGrid, startPoints);
+    const edgeField = generateFlowField(this.levelGrid, this.blockGrid, this.enemyGrid, startPoints);
+    this.retreatFlowField = edgeField;
   }
 
   public getCurrency(): number {

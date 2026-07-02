@@ -4,7 +4,6 @@ import type GameInstance from "../../../GameInstance";
 import type { Vector } from "../../../types/lib/Vector";
 import { ZIndex } from "../../../types/lib/ZIndex";
 import assertNever from "../../../utils/assertNever";
-import isInsideGrid from "../../../utils/grid/isInsideGrid";
 import lerp from "../../../utils/math/lerp";
 import { lerpAngle } from "../../../utils/math/radialLerp";
 import AEntity, { type AEntityEngineBody, type EntityConstructorProps } from "../../engine/AEntity";
@@ -330,12 +329,6 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     },
 
     updateAfter: (_deltaTime) => {
-      const { LevelManager, SettingsManager } = _game.MANAGERS;
-      const settings = SettingsManager.getSettings().zombie;
-
-      if (settings.isHurtBySunlight && isInsideGrid(this._getGridPosition()) && LevelManager.getIsDay())
-        this._handleDamage(_deltaTime * settings.sunlightDamageIntensity);
-
       this.applyMovement(_deltaTime);
     },
 

@@ -7,7 +7,7 @@ import { GridTileState } from "./generateMapBlockGrid";
 export interface FlowFieldCell {
   weight: number;
   distanceWeight: number;
-  normalizedVector: Vector;
+  normalizedVector?: Vector;
 }
 
 export type FlowField = FlowFieldCell[][];
@@ -17,10 +17,9 @@ export default function generateFlowField(
   blockGrid: (AnyEntity[] | null)[][] | undefined,
   enemyGrid: (AnyEntity[] | null)[][] | undefined,
   startPoints: GridPosition[],
-  options?: { model?: "chase" | "flee" },
 ): FlowField {
   const bfsGrid = breadthFirstSearch(levelGrid, blockGrid, enemyGrid, startPoints);
-  const vectorGrid = getVectorField(bfsGrid, options?.model ?? "chase");
+  const vectorGrid = getVectorField(bfsGrid);
   return vectorGrid;
 }
 
@@ -72,9 +71,7 @@ function breadthFirstSearch(
         if (grid[nx][ny].weight === Infinity) {
           grid[nx][ny].distanceWeight = cell.distanceWeight + 1;
           grid[nx][ny].weight = grid[nx][ny].distanceWeight;
-
           grid[nx][ny].weight += enemyGrid?.[nx]?.[ny]?.length ?? 0;
-
           queue.push({ x: nx, y: ny });
         }
       }
@@ -84,14 +81,13 @@ function breadthFirstSearch(
   return grid;
 }
 
-function getVectorField(grid: FlowField, model: "chase" | "flee"): FlowField {
+export function getVectorField(grid: FlowField): FlowField {
   // Calculate normalized vectors based on distances
   for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
     for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
       if (!grid?.[x]?.[y]) continue;
 
       let lowestWeight = Infinity;
-      let highestWeight = -Infinity;
       let directionVector = { x: 0, y: 0 };
 
       const sortedNeighborVectors: Vector[] = [
@@ -114,9 +110,7 @@ function getVectorField(grid: FlowField, model: "chase" | "flee"): FlowField {
 
         const neighborWeight = neighbor.weight;
         if (neighborWeight === Infinity) continue;
-
-        if (model === "chase" && neighborWeight > lowestWeight) continue;
-        if (model === "flee" && neighborWeight < highestWeight) continue;
+        if (neighborWeight > lowestWeight) continue;
 
         // Disallows corner cutting around obstacles
         if (dx !== 0 && dy !== 0) {
@@ -133,7 +127,6 @@ function getVectorField(grid: FlowField, model: "chase" | "flee"): FlowField {
 
         directionVector = neighborVector;
         lowestWeight = neighbor.weight;
-        highestWeight = neighbor.weight;
       }
 
       grid[x][y].normalizedVector = directionVector;

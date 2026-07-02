@@ -12,8 +12,6 @@ export interface GameSettingsZombie {
   maxHealth: number;
 
   minDistanceFromPlayerPx: number;
-  isHurtBySunlight: boolean;
-  sunlightDamageIntensity: number;
 
   movementSeparationWeight: number;
   movementDensityWeight: number;
