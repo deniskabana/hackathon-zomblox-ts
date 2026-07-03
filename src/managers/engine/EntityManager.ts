@@ -245,21 +245,43 @@ export class EntityManager extends AManager {
 
         // check if 3x3 grid around self is blocked or unavailable
         let areAllTilesBlocked = true;
+        let blockedX = 0;
+        let blockedY = 0;
+
         for (let gx = -1; gx <= 1; gx++) {
           for (let gy = -1; gy <= 1; gy++) {
             if (gx === 0 && gy === 0) continue;
             if (!levelGrid?.[x + gx]?.[y + gy]) continue;
-            if (levelGrid?.[x + gx]?.[y + gy] !== GridTileState.BLOCKED) areAllTilesBlocked = false;
+            if (levelGrid?.[x + gx]?.[y + gy] === GridTileState.BLOCKED) {
+              if (gx === 0) blockedY++;
+              if (gy === 0) blockedX++;
+              continue;
+            }
+
+            areAllTilesBlocked = false;
           }
         }
         if (areAllTilesBlocked) continue;
 
-        Matter.Composite.add(
-          this._physicsEngine.world,
-          Matter.Bodies.circle(x * TILE_SIZE + TILE_SIZE / 2, y * TILE_SIZE + TILE_SIZE / 2, TILE_SIZE / 2, {
-            isStatic: true,
-          }),
-        );
+        if (blockedX >= 2 || blockedY >= 2) {
+          Matter.Composite.add(
+            this._physicsEngine.world,
+            Matter.Bodies.rectangle(
+              x * TILE_SIZE + TILE_SIZE / 2,
+              y * TILE_SIZE + TILE_SIZE / 2,
+              TILE_SIZE,
+              TILE_SIZE,
+              { isStatic: true },
+            ),
+          );
+        } else {
+          Matter.Composite.add(
+            this._physicsEngine.world,
+            Matter.Bodies.circle(x * TILE_SIZE + TILE_SIZE / 2, y * TILE_SIZE + TILE_SIZE / 2, TILE_SIZE / 2, {
+              isStatic: true,
+            }),
+          );
+        }
       }
     }
   }
