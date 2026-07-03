@@ -74,6 +74,7 @@ export default class ShopManager extends AManager {
       shopDefinition.basePrice,
       stateShopItem.purchaseCount,
       this._waveNumber,
+      stateShopItem.currentPrice,
     );
 
     LevelManager.addCurrency(pricePaid * -1);

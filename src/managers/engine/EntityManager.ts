@@ -137,9 +137,26 @@ export class EntityManager extends AManager {
     const entity = createFactory(id);
     this._entities.set(id, entity);
 
-    const body = Matter.Bodies.rectangle(...entity._getPhysicsRect(), {
-      isStatic: type === EntityType.BLOCK,
-    });
+    let body: Matter.Body;
+
+    if (type === EntityType.ENEMY) {
+      body = Matter.Bodies.circle(entity._getWorldPosition().x, entity._getWorldPosition().y, entity._getSize() / 4, {
+        frictionAir: 0.6,
+        friction: 0,
+        frictionStatic: 0,
+        inertia: Infinity,
+        restitution: 0,
+      });
+    } else {
+      body = Matter.Bodies.rectangle(...entity._getPhysicsRect(), {
+        isStatic: type === EntityType.BLOCK,
+        frictionAir: 0.6,
+        friction: 0,
+        frictionStatic: 0,
+        inertia: Infinity,
+        restitution: 0,
+      });
+    }
 
     switch (type) {
       case EntityType.PLAYER:
@@ -163,7 +180,6 @@ export class EntityManager extends AManager {
     }
 
     Matter.Composite.add(this._physicsEngine.world, body);
-    Matter.Body.set(body, { inertia: Infinity, frictionAir: 0.6, restitution: 0 });
     body.plugin.offset = {
       x: (entity._collisionPoints[0].x + entity._collisionPoints[1].x) / 2,
       y: (entity._collisionPoints[0].y + entity._collisionPoints[2].y) / 2,
@@ -227,9 +243,20 @@ export class EntityManager extends AManager {
       for (let y = 0; y < GRID_HEIGHT; y++) {
         if (levelGrid?.[x]?.[y] !== GridTileState.BLOCKED) continue;
 
+        // check if 3x3 grid around self is blocked or unavailable
+        let areAllTilesBlocked = true;
+        for (let gx = -1; gx <= 1; gx++) {
+          for (let gy = -1; gy <= 1; gy++) {
+            if (gx === 0 && gy === 0) continue;
+            if (!levelGrid?.[x + gx]?.[y + gy]) continue;
+            if (levelGrid?.[x + gx]?.[y + gy] !== GridTileState.BLOCKED) areAllTilesBlocked = false;
+          }
+        }
+        if (areAllTilesBlocked) continue;
+
         Matter.Composite.add(
           this._physicsEngine.world,
-          Matter.Bodies.rectangle(x * TILE_SIZE + TILE_SIZE / 2, y * TILE_SIZE + TILE_SIZE / 2, TILE_SIZE, TILE_SIZE, {
+          Matter.Bodies.circle(x * TILE_SIZE + TILE_SIZE / 2, y * TILE_SIZE + TILE_SIZE / 2, TILE_SIZE / 2, {
             isStatic: true,
           }),
         );

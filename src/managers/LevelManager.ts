@@ -279,7 +279,7 @@ export default class LevelManager extends AManager {
       this.updatePathFinding();
     }
     // Hot updating
-    this.updatePathFinding();
+    // this.updatePathFinding();
 
     if (!this.getIsDay() && !!this.player) {
       this.nightEndCounter -= _deltaTime;
@@ -614,9 +614,7 @@ export default class LevelManager extends AManager {
 
   private updatePathFinding(): void {
     if (!this.player || !this.levelGrid) return;
-    this.flowField = generateFlowField(this.levelGrid, this.blockGrid, this.enemyGrid, [
-      this.player._getGridPosition(),
-    ]);
+    this.flowField = generateFlowField(this.levelGrid, this.blockGrid, undefined, [this.player._getGridPosition()]);
   }
 
   private updateRetreatFlowField(): void {
@@ -625,13 +623,13 @@ export default class LevelManager extends AManager {
     const startPoints: GridPosition[] = [];
     const threshold = 0;
 
-    for (let x = 0 + threshold; x < GRID_CONFIG.GRID_WIDTH - threshold; x++) {
-      startPoints.push({ x, y: threshold });
-      startPoints.push({ x, y: GRID_CONFIG.GRID_HEIGHT - 1 - threshold });
-    }
     for (let y = 0 + threshold; y < GRID_CONFIG.GRID_HEIGHT - threshold; y++) {
       startPoints.push({ x: threshold, y });
-      startPoints.push({ x: GRID_CONFIG.GRID_WIDTH - 1 - threshold, y });
+      startPoints.push({ x: GRID_CONFIG.GRID_WIDTH - threshold, y });
+    }
+    for (let x = 0 + threshold; x <= GRID_CONFIG.GRID_WIDTH - threshold; x++) {
+      startPoints.push({ x, y: threshold });
+      startPoints.push({ x, y: GRID_CONFIG.GRID_HEIGHT - threshold });
     }
 
     const edgeField = generateFlowField(this.levelGrid, this.blockGrid, this.enemyGrid, startPoints);

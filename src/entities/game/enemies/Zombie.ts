@@ -143,8 +143,8 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
       isFacingLeft: false,
     };
 
-    const colliderWidth = settings.worldSize * 0.45;
-    const colliderHeight = TILE_SIZE * 1;
+    const colliderWidth = TILE_SIZE * 0.75;
+    const colliderHeight = TILE_SIZE * 0.9;
     const colliderOffsetY = 0;
 
     super({
@@ -481,15 +481,12 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
 
     const vectors: Vector[] = [];
     const flowFieldVector: Vector = { x: 0, y: 0 };
-    for (const { x: gx, y: gy } of this._getSpanningGridTiles()) {
-      if (!flowField?.[gx]?.[gy]?.normalizedVector) continue;
-
+    const { x: gx, y: gy } = this._getGridPosition();
+    if (flowField?.[gx]?.[gy]?.normalizedVector) {
       vectors.push(flowFieldVector);
-      flowFieldVector.x += flowField[gx][gy].normalizedVector.x;
-      flowFieldVector.y += flowField[gx][gy].normalizedVector.y;
+      flowFieldVector.x = flowField[gx][gy].normalizedVector.x;
+      flowFieldVector.y = flowField[gx][gy].normalizedVector.y;
     }
-    flowFieldVector.x /= vectors.length || 1;
-    flowFieldVector.y /= vectors.length || 1;
 
     const { separation, density } = this.getNeighborData(flowFieldVector);
 
@@ -526,7 +523,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     this._instance.movementVelocity = lerp(movementVelocity, targetSpeed, _deltaTime * 6);
 
     const targetDirection = Math.atan2(normalizedVector.y, normalizedVector.x);
-    this._instance.movementDirection = lerpAngle(movementDirection, targetDirection, _deltaTime * 11);
+    this._instance.movementDirection = lerpAngle(movementDirection, targetDirection, _deltaTime * 14);
 
     if (
       this.getIsNextToPlayer() &&

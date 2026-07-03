@@ -41,38 +41,36 @@ function breadthFirstSearch(
     }
   }
 
-  // Breadth-first search from "startPoints"
-  // Creates a weighted distance map in integers
-  const queue: Vector[] = [];
   for (const from of startPoints) {
+    const queue: Vector[] = [];
     queue.push(from);
     const cell = grid[clamp(0, from.x, GRID_CONFIG.GRID_WIDTH - 1)][clamp(0, from.y, GRID_CONFIG.GRID_HEIGHT - 1)];
     cell.weight = 0;
     cell.distanceWeight = 0;
-  }
 
-  while (queue.length > 0) {
-    const currentVector = queue.shift()!;
-    const cell = grid?.[currentVector.x]?.[currentVector.y];
-    if (!cell) continue;
+    while (queue.length > 0) {
+      const currentVector = queue.shift()!;
+      const cell = grid?.[currentVector.x]?.[currentVector.y];
+      if (!cell) continue;
 
-    for (let dx = -1; dx <= 1; dx++) {
-      for (let dy = -1; dy <= 1; dy++) {
-        if (dx === 0 && dy === 0) continue; // Ignore self
+      for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+          if (dx === 0 && dy === 0) continue; // Ignore self
 
-        const nx = currentVector.x + dx;
-        const ny = currentVector.y + dy;
-        if (dx !== 0 && dy !== 0) continue;
+          const nx = currentVector.x + dx;
+          const ny = currentVector.y + dy;
+          if (dx !== 0 && dy !== 0) continue;
 
-        if (!levelGrid?.[nx]?.[ny]) continue;
-        if (levelGrid?.[nx]?.[ny] !== GridTileState.AVAILABLE) continue;
-        if ((blockGrid?.[nx]?.[ny]?.length ?? 0) > 0) continue;
+          if (!levelGrid?.[nx]?.[ny]) continue;
+          if (levelGrid?.[nx]?.[ny] !== GridTileState.AVAILABLE) continue;
+          if ((blockGrid?.[nx]?.[ny]?.length ?? 0) > 0) continue;
 
-        if (grid[nx][ny].weight === Infinity) {
-          grid[nx][ny].distanceWeight = cell.distanceWeight + 1;
-          grid[nx][ny].weight = grid[nx][ny].distanceWeight;
-          grid[nx][ny].weight += enemyGrid?.[nx]?.[ny]?.length ?? 0;
-          queue.push({ x: nx, y: ny });
+          if (grid[nx][ny].weight === Infinity) {
+            grid[nx][ny].distanceWeight = cell.distanceWeight + 1;
+            grid[nx][ny].weight = grid[nx][ny].distanceWeight;
+            grid[nx][ny].weight += enemyGrid?.[nx]?.[ny]?.length ?? 0;
+            queue.push({ x: nx, y: ny });
+          }
         }
       }
     }

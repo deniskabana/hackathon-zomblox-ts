@@ -17,7 +17,7 @@ export interface ShopItem {
   category: ItemCategory;
 
   basePrice: number;
-  priceStrategy: (basePrice: number, purchaseCount: number, waveNumber: number) => number;
+  priceStrategy: (basePrice: number, purchaseCount: number, waveNumber: number, currentPrice: number) => number;
 
   baseStock: number;
   stockRule: (currentStock: number, waveNumber: number) => number;
@@ -36,9 +36,9 @@ export const SHOP_ITEMS: Record<number, ShopItem> = {
     name: "Medkit",
     category: ItemCategory.CONSUMABLE,
     basePrice: 15,
-    priceStrategy: (basePrice, purchaseCount) => basePrice + basePrice ** purchaseCount,
+    priceStrategy: (_basePrice, _purchaseCount, _waveNumber, currentPrice) => currentPrice * 2,
     baseStock: 1,
-    stockRule: (currentStock) => currentStock + 1,
+    stockRule: (currentStock, waveNumber) => currentStock + (waveNumber % 4 === 0 ? 1 : 0),
     renderItem: ({ x, y }, AssetManager, DrawManager, options) => {
       const alpha = options?.alpha ?? 1;
       const scale = options?.scale ?? 1;

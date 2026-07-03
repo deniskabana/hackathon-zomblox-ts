@@ -70,7 +70,7 @@ export const DEFAULT_SETTINGS: Readonly<GameSettingsSpec> = {
     maxSpeed: 125,
     maxHealth: 37,
     minDistanceFromPlayerPx: GRID_CONFIG.TILE_SIZE * 1,
-    movementSeparationWeight: 0.45,
+    movementSeparationWeight: 0.4,
     movementDensityWeight: 0.65,
     debugDrawState: false,
     debugDrawWireframe: false,
