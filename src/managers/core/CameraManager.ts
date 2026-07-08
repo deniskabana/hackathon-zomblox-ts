@@ -66,7 +66,7 @@ export default class CameraManager extends AManager {
 
     const halfViewWidth = this.viewportWidth / 2 / this.zoom;
     const halfViewHeight = this.viewportHeight / 2 / this.zoom;
-    const threshold = GRID_CONFIG.TILE_SIZE * -1;
+    const threshold = GRID_CONFIG.TILE_SIZE * -1 * 0;
 
     const minX = halfViewWidth - threshold;
     const maxX = levelManager.worldWidth - halfViewWidth + threshold;

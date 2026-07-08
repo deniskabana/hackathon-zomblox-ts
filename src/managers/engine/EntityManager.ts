@@ -1,4 +1,4 @@
-import Matter from "matter-js";
+import Matter, { type IChamferableBodyDefinition } from "matter-js";
 import type { AnyEntity } from "../../entities/engine/AEntity";
 import type BlockBarrelFire from "../../entities/game/blocks/BlockBarrelFire";
 import type BlockWood from "../../entities/game/blocks/BlockWood";
@@ -104,13 +104,14 @@ export class EntityManager extends AManager {
       steps++;
     }
 
+    // Synchronize entity positions authoritatively with Matter
     for (const [id, entity] of this._entities) {
       const body = this._physicsBodies.get(id);
-      if (body)
-        entity._setWorldPosition({
-          x: body.position.x - (body.plugin?.offset?.x ?? 0),
-          y: body.position.y - (body.plugin?.offset?.y ?? 0),
-        });
+      if (!body) continue;
+      entity._setWorldPosition({
+        x: body.position.x - (body.plugin?.offset?.x ?? 0),
+        y: body.position.y - (body.plugin?.offset?.y ?? 0),
+      });
     }
   }
   public updateAfter(_deltaTime: number, _unscaledDeltaTime: number): void {
@@ -139,27 +140,43 @@ export class EntityManager extends AManager {
 
     let body: Matter.Body;
 
+    const bodySettings: IChamferableBodyDefinition = {
+      isStatic: type === EntityType.BLOCK,
+      frictionAir: 0.6,
+      friction: 0,
+      frictionStatic: 0,
+      inertia: Infinity,
+      restitution: 0,
+    };
+
     if (type === EntityType.ENEMY) {
-      body = Matter.Bodies.circle(entity._getWorldPosition().x, entity._getWorldPosition().y, entity._getSize() / 4, {
-        frictionAir: 0.6,
-        friction: 0,
-        frictionStatic: 0,
-        inertia: Infinity,
-        restitution: 0,
-      });
+      body = Matter.Bodies.circle(
+        entity._getWorldPosition().x,
+        entity._getWorldPosition().y,
+        entity._getSize() / 4,
+        bodySettings,
+      );
     } else {
-      body = Matter.Bodies.rectangle(...entity._getPhysicsRect(), {
-        isStatic: type === EntityType.BLOCK,
-        frictionAir: 0.6,
-        friction: 0,
-        frictionStatic: 0,
-        inertia: Infinity,
-        restitution: 0,
-      });
+      body = Matter.Bodies.rectangle(...entity._getPhysicsRect(), bodySettings);
     }
 
     switch (type) {
       case EntityType.PLAYER:
+        body = Matter.Body.create({
+          parts: [
+            body,
+            ...entity._hitboxesPoints.map((hitboxes) => {
+              const width = Math.abs(hitboxes[0].x) + hitboxes[1].x;
+              const height = Math.abs(hitboxes[1].y) + hitboxes[2].y;
+              const x = entity._getWorldPosition().x + hitboxes[0].x + width / 2;
+              const y = entity._getWorldPosition().y + hitboxes[0].y + height / 2;
+              const hitboxBody = Matter.Bodies.rectangle(x, y, width, height, { isSensor: true });
+              hitboxBody.plugin.entity = entity;
+              return hitboxBody;
+            }),
+          ],
+          ...bodySettings,
+        });
         this._players.add(id);
         break;
       case EntityType.ENEMY:
@@ -180,6 +197,7 @@ export class EntityManager extends AManager {
     }
 
     Matter.Composite.add(this._physicsEngine.world, body);
+    // Offsett physics bodies to match collider wireframes in game
     body.plugin.offset = {
       x: (entity._collisionPoints[0].x + entity._collisionPoints[1].x) / 2,
       y: (entity._collisionPoints[0].y + entity._collisionPoints[2].y) / 2,

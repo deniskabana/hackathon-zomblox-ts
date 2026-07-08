@@ -336,7 +336,9 @@ export default class LevelManager extends AManager {
               DrawManager.drawLine(x2, y2, wx, wy, "#00000080", 4);
               DrawManager.drawLine(x2, y2, wx, wy, "#6f9f6f", 2);
             }
-            DrawManager.drawText(`${weight}`, x * size + 6, y * size + 10, "#ffffffa0", 11, "Arial", "center");
+
+            DrawManager.drawText(`x: ${x}\ny: ${y}`, x * size, y * size + 10, "#ffffffa0", 10, "Arial", "left");
+            DrawManager.drawText(`${weight}`, x * size + 6, y * size + 40, "#ffffffa0", 11, "Arial", "center");
           }
         }
       }
@@ -618,18 +620,22 @@ export default class LevelManager extends AManager {
   }
 
   private updateRetreatFlowField(): void {
-    if (!this.player || !this.levelGrid) return;
+    if (!this.levelGrid) return;
 
     const startPoints: GridPosition[] = [];
     const threshold = 0;
 
-    for (let y = 0 + threshold; y < GRID_CONFIG.GRID_HEIGHT - threshold; y++) {
-      startPoints.push({ x: threshold, y });
-      startPoints.push({ x: GRID_CONFIG.GRID_WIDTH - threshold, y });
+    for (let y = 0 + threshold; y < GRID_CONFIG.GRID_HEIGHT - 1 - threshold; y++) {
+      const vec1 = { x: threshold, y };
+      const vec2 = { x: GRID_CONFIG.GRID_WIDTH - threshold, y };
+      if (this.levelGrid?.[vec1.x]?.[vec1.y] !== GridTileState.BLOCKED) startPoints.push(vec1);
+      if (this.levelGrid?.[vec2.x]?.[vec2.y] !== GridTileState.BLOCKED) startPoints.push(vec2);
     }
-    for (let x = 0 + threshold; x <= GRID_CONFIG.GRID_WIDTH - threshold; x++) {
-      startPoints.push({ x, y: threshold });
-      startPoints.push({ x, y: GRID_CONFIG.GRID_HEIGHT - threshold });
+    for (let x = 0 + threshold; x <= GRID_CONFIG.GRID_WIDTH - 1 - threshold; x++) {
+      const vec1 = { x, y: threshold };
+      const vec2 = { x, y: GRID_CONFIG.GRID_HEIGHT - threshold };
+      if (this.levelGrid?.[vec1.x]?.[vec1.y] !== GridTileState.BLOCKED) startPoints.push(vec1);
+      if (this.levelGrid?.[vec2.x]?.[vec2.y] !== GridTileState.BLOCKED) startPoints.push(vec2);
     }
 
     const edgeField = generateFlowField(this.levelGrid, this.blockGrid, this.enemyGrid, startPoints);
@@ -683,8 +689,9 @@ export default class LevelManager extends AManager {
     }
 
     for (const zombie of EntityManager.getEnemies()) {
-      const { x: gx, y: gy } = zombie._getGridPosition();
-      grid?.[gx]?.[gy]?.push(zombie);
+      for (const { x: gx, y: gy } of zombie._getSpanningGridTiles()) {
+        grid[gx]?.[gy]?.push(zombie);
+      }
     }
 
     this.enemyGrid = grid;

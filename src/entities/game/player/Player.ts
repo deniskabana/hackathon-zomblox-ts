@@ -530,29 +530,21 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
   private _raycast(origin: Vector, direction: Vector, maxDistance: number): RaycastHit | null {
     const { LevelManager } = _game.MANAGERS;
     const { TILE_SIZE } = GRID_CONFIG;
-    const step = TILE_SIZE / 12;
+    const step = TILE_SIZE / 16;
 
     const checkedEntities = new Set<EntityID>();
-    let distance = 0;
+    let distance = step * -8;
     let lastGridPos = { x: -1, y: -1 };
     let closestEntityHit: RaycastHit | null = null;
 
     while (distance <= maxDistance) {
-      const point = {
-        x: origin.x + direction.x * distance,
-        y: origin.y + direction.y * distance,
-      };
-
+      const point = { x: origin.x + direction.x * distance, y: origin.y + direction.y * distance };
       const gridX = Math.floor(point.x / TILE_SIZE);
       const gridY = Math.floor(point.y / TILE_SIZE);
       const isNewCell = gridX !== lastGridPos.x || gridY !== lastGridPos.y;
 
       if (isNewCell) {
         lastGridPos = { x: gridX, y: gridY };
-
-        if (LevelManager.levelGrid?.[gridX]?.[gridY] === GridTileState.BLOCKED) {
-          if (!closestEntityHit || distance < closestEntityHit.distance) return { type: "wall", point, distance };
-        }
 
         const entities = LevelManager.getEntitiesByGridTile({ x: gridX, y: gridY });
 
@@ -564,6 +556,10 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
           if (hit && (!closestEntityHit || hit.distance <= closestEntityHit.distance)) {
             if (!entity._getIsDead()) closestEntityHit = { type: "entity", entity, ...hit };
           }
+        }
+
+        if (LevelManager.levelGrid?.[gridX]?.[gridY] === GridTileState.BLOCKED) {
+          if (!closestEntityHit || distance < closestEntityHit.distance) return { type: "wall", point, distance };
         }
       }
 
