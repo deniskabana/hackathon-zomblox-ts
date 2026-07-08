@@ -1,6 +1,6 @@
 import Matter from "matter-js";
 import { GRID_CONFIG, type WorldPosition } from "../../../config/core/grid.config";
-import type GameInstance from "../../../GameInstance";
+import GameInstance from "../../../GameInstance";
 import type { Vector } from "../../../types/lib/Vector";
 import { ZIndex } from "../../../types/lib/ZIndex";
 import assertNever from "../../../utils/assertNever";
@@ -15,6 +15,7 @@ import SensorAttackSlash from "../sensors/SensorAttackSlash";
 import radiansToVector from "../../../utils/math/radiansToVector";
 import getDirectionalAngle from "../../../utils/math/getDirectionalAngle";
 import type { FlowField } from "../../../utils/grid/generateFlowFieldMap";
+import isInsideGrid from "../../../utils/grid/isInsideGrid";
 
 /** `this.gameInstance` */ let _game: GameInstance;
 
@@ -286,7 +287,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
         case ZombieState.IDLE:
           this._animations?.setActiveAnimations(["idle"]);
           if (this._timers.movementRestart.getIsDone() && !this.getIsNextToPlayer()) {
-            this._setState(ZombieState.CHASING);
+            this._setState(LevelManager.getIsDay() ? ZombieState.RETREATING : ZombieState.CHASING);
           }
           if (this.getIsNextToPlayer()) this.startAttacking();
           break;
@@ -329,7 +330,13 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     },
 
     updateAfter: (_deltaTime) => {
+      const { LevelManager } = _game.MANAGERS;
       this.applyMovement(_deltaTime);
+
+      if (!isInsideGrid(this._getGridPosition()) && this._getState() === ZombieState.RETREATING) {
+        LevelManager.addZombieToRespawn(this._getGridPosition());
+        this._destructor();
+      }
     },
 
     onDamage: (amount) => {
@@ -470,9 +477,8 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
   }
 
   private gatherMovementData(): void {
-    if (this._getState() !== ZombieState.CHASING && this._getState() !== ZombieState.RETREATING) return;
-
     const { LevelManager } = _game.MANAGERS;
+    if (this._getState() !== ZombieState.CHASING && this._getState() !== ZombieState.RETREATING) return;
 
     let flowField: FlowField | undefined = undefined;
     if (this._getState() === ZombieState.CHASING) flowField = LevelManager.flowField;
@@ -486,6 +492,14 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
       vectors.push(flowFieldVector);
       flowFieldVector.x = flowField[gx][gy].normalizedVector.x;
       flowFieldVector.y = flowField[gx][gy].normalizedVector.y;
+    }
+
+    if (!isInsideGrid(this._getGridPosition()) && this._getState() === ZombieState.CHASING) {
+      const { x, y } = this._getGridPosition();
+      if (x < 0) flowFieldVector.x = 1;
+      if (x > GRID_CONFIG.GRID_WIDTH - 1) flowFieldVector.x = -1;
+      if (y < 0) flowFieldVector.y = 1;
+      if (y > GRID_CONFIG.GRID_HEIGHT - 1) flowFieldVector.y = -1;
     }
 
     const { separation, density } = this.getNeighborData(flowFieldVector);
@@ -541,7 +555,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     Matter.Body.setVelocity(this._physicsBody, normalizedVector);
     Matter.Body.setSpeed(this._physicsBody, this._instance.movementVelocity / 50);
 
-    this._setState(ZombieState.CHASING);
+    this._setState(LevelManager.getIsDay() ? ZombieState.RETREATING : ZombieState.CHASING);
   }
 
   private changeFacingPosition(isFacingLeft: boolean): void {

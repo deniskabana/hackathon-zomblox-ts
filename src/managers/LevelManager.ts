@@ -51,7 +51,6 @@ export default class LevelManager extends AManager {
   private tileset?: MapTilesetManager;
   private mapLayerBelowPlayer!: HTMLCanvasElement;
   private mapLayerAbovePlayer!: HTMLCanvasElement;
-  private mapSpawnPoints: WorldPosition[];
 
   // Entities
   public player?: Player;
@@ -60,6 +59,8 @@ export default class LevelManager extends AManager {
   // Gameplay
   private isSpawningZombies: boolean = false;
   private zombieSpawnsLeft: number = 0;
+  private respawnZombies: GridPosition[] = [];
+  private spawnPoints: GridPosition[];
 
   // Music
   private musicDay: AudioControl[] = [];
@@ -73,7 +74,7 @@ export default class LevelManager extends AManager {
     super(gameInstance);
     this.mapLayerBelowPlayer = document.createElement("canvas");
     this.mapLayerAbovePlayer = document.createElement("canvas");
-    this.mapSpawnPoints = [];
+    this.spawnPoints = [];
   }
 
   public _init(): void {
@@ -113,44 +114,9 @@ export default class LevelManager extends AManager {
 
     this.levelGrid = getMapBlockGrid(config, map.objects);
     this.updatePathFinding();
+    this.updateSpawnPoints();
 
     EntityManager.addPhysicsStaticMap(this.levelGrid);
-
-    // Filter out spawn points that have BLOCKED neighboring cell
-    const yTop = 0;
-    const yBottom = GRID_CONFIG.GRID_HEIGHT - 1;
-    const xLeft = 0;
-    const xRight = GRID_CONFIG.GRID_WIDTH - 1;
-
-    for (let x = 0; x < GRID_CONFIG.GRID_WIDTH; x++) {
-      if (
-        this.levelGrid?.[x]?.[yTop + 1] === GridTileState.AVAILABLE &&
-        this.flowField?.[x]?.[yTop + 1]?.weight !== Infinity
-      ) {
-        this.mapSpawnPoints.push({ x, y: yTop });
-      }
-      if (
-        this.levelGrid?.[x]?.[yBottom - 1] === GridTileState.AVAILABLE &&
-        this.flowField?.[x]?.[yBottom - 2]?.weight !== Infinity
-      ) {
-        this.mapSpawnPoints.push({ x, y: yBottom });
-      }
-    }
-
-    for (let y = 0; y < GRID_CONFIG.GRID_HEIGHT; y++) {
-      if (
-        this.levelGrid?.[xLeft + 1]?.[y] === GridTileState.AVAILABLE &&
-        this.flowField?.[xLeft + 1]?.[y]?.weight !== Infinity
-      ) {
-        this.mapSpawnPoints.push({ x: xLeft, y });
-      }
-      if (
-        this.levelGrid?.[xRight - 1]?.[y] === GridTileState.AVAILABLE &&
-        this.flowField?.[xRight - 1]?.[y]?.weight !== Infinity
-      ) {
-        this.mapSpawnPoints.push({ x: xRight, y });
-      }
-    }
 
     EntityManager.createEntity(
       EntityType.SENSOR,
@@ -462,12 +428,14 @@ export default class LevelManager extends AManager {
       return entity;
     });
 
+    this.updateSpawnPoints();
     this.updatePathFinding();
     this.updateBlockGrid();
   }
 
   public destroyBlock(): void {
     if (!this.levelGrid) return;
+    this.updateSpawnPoints();
     this.updateBlockGrid();
     this.updatePathFinding();
   }
@@ -487,11 +455,16 @@ export default class LevelManager extends AManager {
     const { SettingsManager } = this.gameInstance.MANAGERS;
     if (!SettingsManager.getSettings().rules.autospawn) return;
 
+    this.updateSpawnPoints();
     this.isSpawningZombies = true;
-    this.zombieSpawnsLeft = 30 + (this.levelState?.daysCounter ?? 0);
+    this.zombieSpawnsLeft = 10 + (this.levelState?.daysCounter ?? 0);
+
+    this.respawnZombies.forEach((gridPos) => this.spawnZombie(gridPos));
+    this.respawnZombies = [];
   }
 
   public stopSpawningZombies(): void {
+    this.updateSpawnPoints();
     this.isSpawningZombies = false;
     this.zombieSpawnsLeft = 0;
   }
@@ -509,20 +482,18 @@ export default class LevelManager extends AManager {
     }
   }
 
-  public spawnZombie(): Zombie | undefined {
+  public spawnZombie(gridPos?: GridPosition): Zombie | undefined {
     const { EntityManager } = this.gameInstance.MANAGERS;
+    const worldPos = gridPos ? gridToWorld(gridPos, { center: false }) : this.getRandomZombieSpawnPosition();
 
     return EntityManager.createEntity(
       EntityType.ENEMY,
-      (entityId) =>
-        new Zombie({ gameInstance: this.gameInstance, entityId, worldPos: this.getRandomZombieSpawnPosition() }),
+      (entityId) => new Zombie({ gameInstance: this.gameInstance, entityId, worldPos }),
     );
   }
 
   private getRandomZombieSpawnPosition(): WorldPosition {
-    const spawnPoint = this.mapSpawnPoints[Math.floor(Math.random() * this.mapSpawnPoints.length)];
-    if (!spawnPoint) return { x: 0, y: 0 };
-    return gridToWorld(spawnPoint);
+    return gridToWorld(this.spawnPoints[Math.floor(Math.random() * (this.spawnPoints.length - 1))], { center: false });
   }
 
   // Day and night
@@ -619,9 +590,7 @@ export default class LevelManager extends AManager {
     this.flowField = generateFlowField(this.levelGrid, this.blockGrid, undefined, [this.player._getGridPosition()]);
   }
 
-  private updateRetreatFlowField(): void {
-    if (!this.levelGrid) return;
-
+  private updateSpawnPoints(): void {
     const startPoints: GridPosition[] = [];
     const threshold = 0;
 
@@ -658,7 +627,12 @@ export default class LevelManager extends AManager {
       }
     }
 
-    const edgeField = generateFlowField(this.levelGrid, this.blockGrid, undefined, startPoints);
+    this.spawnPoints = startPoints;
+  }
+
+  private updateRetreatFlowField(): void {
+    if (!this.levelGrid) return;
+    const edgeField = generateFlowField(this.levelGrid, this.blockGrid, undefined, this.spawnPoints);
     this.retreatFlowField = edgeField;
   }
 
@@ -751,6 +725,10 @@ export default class LevelManager extends AManager {
 
     this._stats = update;
     return update;
+  }
+
+  public addZombieToRespawn(gridPos: GridPosition): void {
+    this.respawnZombies.push(gridPos);
   }
 }
 

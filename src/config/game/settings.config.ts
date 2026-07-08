@@ -50,7 +50,7 @@ export const DEFAULT_SETTINGS: Readonly<GameSettingsSpec> = {
     startingCurrency: 10,
     autospawn: true,
     incomeScale: 1,
-    zombieSpawnIntervalSec: 3,
+    zombieSpawnIntervalSec: 4.5,
     endNightReward: 10,
     difficultyIncreaseCoef: 1.285,
     nightDurationSec: 55,
