@@ -1,6 +1,7 @@
 import { type GridPosition, GRID_CONFIG } from "../../config/core/grid.config";
 import type { AnyEntity } from "../../entities/engine/AEntity";
 import type { Vector } from "../../types/lib/Vector";
+import areVectorsEqual from "../math/areVectorsEqual";
 import { clamp } from "../math/clamp";
 import { GridTileState } from "./generateMapBlockGrid";
 
@@ -96,6 +97,19 @@ export function getVectorField(grid: FlowField): FlowField {
       let lowestWeight = Infinity;
       let directionVector = { x: 0, y: 0 };
 
+      // Check edges, if an edge with 0 weight, point outwards
+      if (grid?.[x]?.[y]?.distanceWeight === 0) {
+        if (x === 0) {
+          directionVector = { x: -1, y: 0 };
+        } else if (x === GRID_CONFIG.GRID_WIDTH - 1) {
+          directionVector = { x: 1, y: 0 };
+        } else if (y === 0) {
+          directionVector = { x: 0, y: -1 };
+        } else if (y === GRID_CONFIG.GRID_HEIGHT - 1) {
+          directionVector = { x: 0, y: 1 };
+        }
+      }
+
       const sortedNeighborVectors: Vector[] = [
         // Diagonals
         { x: -1, y: -1 },
@@ -109,30 +123,38 @@ export function getVectorField(grid: FlowField): FlowField {
         { x: -1, y: 0 },
       ];
 
-      for (const neighborVector of sortedNeighborVectors) {
-        const { x: dx, y: dy } = neighborVector;
-        const neighbor = grid?.[x + dx]?.[y + dy];
-        if (!neighbor) continue;
+      if (areVectorsEqual(directionVector, { x: 0, y: 0 })) {
+        for (const neighborVector of sortedNeighborVectors) {
+          const { x: dx, y: dy } = neighborVector;
+          const neighbor = grid?.[x + dx]?.[y + dy];
+          if (!neighbor) continue;
 
-        const neighborWeight = neighbor.weight;
-        if (neighborWeight === Infinity) continue;
-        if (neighborWeight > lowestWeight) continue;
+          const neighborWeight = neighbor.weight;
+          if (neighborWeight === Infinity) continue;
+          if (neighborWeight > lowestWeight) continue;
 
-        // Disallows corner cutting around obstacles
-        if (dx !== 0 && dy !== 0) {
-          const field1Weight = grid?.[x]?.[y + dy]?.weight;
-          const field2Weight = grid?.[x + dx]?.[y]?.weight;
-          if (
-            field1Weight === Infinity ||
-            field2Weight === Infinity ||
-            field1Weight === -Infinity ||
-            field2Weight === -Infinity
-          )
-            continue;
+          // Disallows corner cutting around obstacles
+          if (dx !== 0 && dy !== 0) {
+            const field1Weight = grid?.[x]?.[y + dy]?.weight;
+            const field2Weight = grid?.[x + dx]?.[y]?.weight;
+            if (
+              field1Weight === Infinity ||
+              field2Weight === Infinity ||
+              field1Weight === -Infinity ||
+              field2Weight === -Infinity
+            )
+              continue;
+          }
+
+          // If vectors would point to each other, cancel out
+          const normalizedVector = grid?.[x + dx]?.[y + dy]?.normalizedVector;
+          if (normalizedVector) {
+            if (x === x + dx + normalizedVector.x && y === y + dy + normalizedVector.y) continue;
+          }
+
+          directionVector = neighborVector;
+          lowestWeight = neighbor.weight;
         }
-
-        directionVector = neighborVector;
-        lowestWeight = neighbor.weight;
       }
 
       grid[x][y].normalizedVector = directionVector;

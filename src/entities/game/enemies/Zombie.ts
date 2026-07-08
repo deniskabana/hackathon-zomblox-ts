@@ -388,7 +388,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
 
   public startRetreating(): void {
     this._setState(ZombieState.RETREATING);
-    this._instance.speedCoeficient = 2.5;
+    this._instance.speedCoeficient = 3.5;
   }
 
   private startAttacking(): void {
@@ -523,7 +523,7 @@ export default class Zombie extends AEntity<ZombieState, Instance, Timers> {
     this._instance.movementVelocity = lerp(movementVelocity, targetSpeed, _deltaTime * 6);
 
     const targetDirection = Math.atan2(normalizedVector.y, normalizedVector.x);
-    this._instance.movementDirection = lerpAngle(movementDirection, targetDirection, _deltaTime * 14);
+    this._instance.movementDirection = lerpAngle(movementDirection, targetDirection, _deltaTime * 8);
 
     if (
       this.getIsNextToPlayer() &&

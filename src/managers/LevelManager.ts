@@ -658,9 +658,7 @@ export default class LevelManager extends AManager {
       }
     }
 
-    console.log(startPoints.length, startPoints);
-
-    const edgeField = generateFlowField(this.levelGrid, this.blockGrid, this.enemyGrid, startPoints);
+    const edgeField = generateFlowField(this.levelGrid, this.blockGrid, undefined, startPoints);
     this.retreatFlowField = edgeField;
   }
 
