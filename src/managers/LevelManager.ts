@@ -628,15 +628,37 @@ export default class LevelManager extends AManager {
     for (let y = 0 + threshold; y < GRID_CONFIG.GRID_HEIGHT - 1 - threshold; y++) {
       const vec1 = { x: threshold, y };
       const vec2 = { x: GRID_CONFIG.GRID_WIDTH - threshold, y };
-      if (this.levelGrid?.[vec1.x]?.[vec1.y] !== GridTileState.BLOCKED) startPoints.push(vec1);
-      if (this.levelGrid?.[vec2.x]?.[vec2.y] !== GridTileState.BLOCKED) startPoints.push(vec2);
+      if (
+        this.levelGrid?.[vec1.x]?.[vec1.y] !== GridTileState.BLOCKED &&
+        this.levelGrid?.[vec1.x + 1]?.[vec1.y] !== GridTileState.BLOCKED
+      ) {
+        startPoints.push(vec1);
+      }
+      if (
+        this.levelGrid?.[vec2.x]?.[vec2.y] !== GridTileState.BLOCKED &&
+        this.levelGrid?.[vec2.x - 1]?.[vec2.y] !== GridTileState.BLOCKED
+      ) {
+        startPoints.push(vec2);
+      }
     }
     for (let x = 0 + threshold; x <= GRID_CONFIG.GRID_WIDTH - 1 - threshold; x++) {
       const vec1 = { x, y: threshold };
       const vec2 = { x, y: GRID_CONFIG.GRID_HEIGHT - threshold };
-      if (this.levelGrid?.[vec1.x]?.[vec1.y] !== GridTileState.BLOCKED) startPoints.push(vec1);
-      if (this.levelGrid?.[vec2.x]?.[vec2.y] !== GridTileState.BLOCKED) startPoints.push(vec2);
+      if (
+        this.levelGrid?.[vec1.x]?.[vec1.y] !== GridTileState.BLOCKED &&
+        this.levelGrid?.[vec1.x]?.[vec1.y + 1] !== GridTileState.BLOCKED
+      ) {
+        startPoints.push(vec1);
+      }
+      if (
+        this.levelGrid?.[vec2.x]?.[vec2.y] !== GridTileState.BLOCKED &&
+        this.levelGrid?.[vec2.x]?.[vec2.y - 1] !== GridTileState.BLOCKED
+      ) {
+        startPoints.push(vec2);
+      }
     }
+
+    console.log(startPoints.length, startPoints);
 
     const edgeField = generateFlowField(this.levelGrid, this.blockGrid, this.enemyGrid, startPoints);
     this.retreatFlowField = edgeField;
