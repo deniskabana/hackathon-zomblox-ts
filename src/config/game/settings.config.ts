@@ -30,6 +30,7 @@ export interface GameSettingsSpec {
     debugSeeThroughNight: boolean;
     debugDrawFlowFieldGrid: boolean;
     debugDrawPhysics: boolean;
+    debugHideHud: boolean;
   };
 
   zombie: GameSettingsZombie;
@@ -57,6 +58,7 @@ export const DEFAULT_SETTINGS: Readonly<GameSettingsSpec> = {
     debugDrawFlowFieldGrid: false,
     debugSeeThroughNight: false,
     debugDrawPhysics: false,
+    debugHideHud: false,
   },
   zombie: {
     worldSize: GRID_CONFIG.TILE_SIZE * 1.75,
@@ -129,6 +131,7 @@ export const SettingsDebugControlSchema: SettingsDebugSchema = {
     debugSeeThroughNight: { type: "boolean" },
     debugDrawFlowFieldGrid: { type: "boolean" },
     debugDrawPhysics: { type: "boolean" },
+    debugHideHud: { type: "boolean" },
   },
   zombie: {
     worldSize: { type: "number", min: 0, max: GRID_CONFIG.TILE_SIZE * 10, step: GRID_CONFIG.TILE_SIZE / 10 },

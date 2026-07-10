@@ -229,6 +229,7 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
     },
 
     updateBefore: (_deltaTime: number) => {
+      const { BuildModeManager } = _game.MANAGERS;
       const state = this._getState();
 
       this._instance.bubbleAlpha = lerp(
@@ -257,17 +258,22 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
           assertNever(state);
       }
 
-      this.getShootingInput();
-      this.getInteractionInput();
       this.getBuildingModeInput(_deltaTime);
+
+      if (!BuildModeManager.isBuildModeActive) {
+        this.getShootingInput();
+        this.getInteractionInput();
+      }
     },
 
     updateAfter: (_deltaTime: number) => {
+      const { BuildModeManager } = _game.MANAGERS;
+
       if (this._getState() === PlayerState.KNOCKED && this._timers.stun.getIsDone()) {
         this._setState(PlayerState.IDLE);
       }
 
-      this.applyMovement(_deltaTime);
+      if (!BuildModeManager.isBuildModeActive) this.applyMovement(_deltaTime);
 
       if (this._instance.currentAction === "reloading" && this._timers.reloading.getIsDone()) {
         this._instance.currentAction = null;
@@ -642,10 +648,12 @@ export default class Player extends AEntity<PlayerState, Instance, Timers> {
   }
 
   private applyMovement(_deltaTime: number): void {
-    const { AssetManager, SettingsManager } = _game.MANAGERS;
+    const { AssetManager, SettingsManager, BuildModeManager } = _game.MANAGERS;
     const settings = SettingsManager.getSettings().player;
     const vector = this.getMovementInputVector();
     const speed = settings.movementSpeed;
+
+    if (BuildModeManager.isBuildModeActive) return;
 
     if (vector.x === 0 && vector.y === 0) {
       this._setState(PlayerState.IDLE);

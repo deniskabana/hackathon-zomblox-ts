@@ -154,20 +154,21 @@ export default class UIManager extends AManager {
   }
 
   private drawHUD(): void {
-    const { LevelManager, AssetManager, DrawManager, CameraManager } = this._gameInstance.MANAGERS;
+    const { LevelManager, AssetManager, DrawManager, CameraManager, SettingsManager } = this._gameInstance.MANAGERS;
     const zoom = CameraManager.getZoomScale();
-    if (!this.isHudVisible) return;
+
+    if (!this.isHudVisible || SettingsManager.getSettings().rules.debugHideHud) return;
 
     // Health sign
     const signSprite = AssetManager.getImageAsset("UIHealthSign")!;
-    const signX = CameraManager.x - CameraManager.getTargetWorldWidth() / 2 + 8 / zoom;
-    const signY = CameraManager.y - CameraManager.getTargetWorldHeight() / 2 + 8 / zoom;
+    const signX = CameraManager.x - CameraManager.getTargetWorldWidth() / zoom / 2 + 8 / zoom;
+    const signY = CameraManager.y - CameraManager.getTargetWorldHeight() / zoom / 2 + 8 / zoom;
     DrawManager.queueDraw(signX, signY, signSprite, 64 / zoom, 64 / zoom, ZIndex.UI);
 
     // Health bar
     const barSprite = AssetManager.getImageAsset("UIHealthBar")!;
-    const barX = CameraManager.x - CameraManager.getTargetWorldWidth() / 2 + 8 / zoom + 64 / zoom - 6 / zoom;
-    const barY = CameraManager.y - CameraManager.getTargetWorldHeight() / 2 + 8 / zoom + 10 / 2 / zoom;
+    const barX = CameraManager.x - CameraManager.getTargetWorldWidth() / zoom / 2 + 8 / zoom + 64 / zoom - 6 / zoom;
+    const barY = CameraManager.y - CameraManager.getTargetWorldHeight() / zoom / 2 + 8 / zoom + 10 / 2 / zoom;
     DrawManager.queueDraw(barX, barY, barSprite, 144 / zoom, 32 / zoom, ZIndex.UI);
 
     // Health
@@ -176,7 +177,7 @@ export default class UIManager extends AManager {
       const health = LevelManager.player._getHealth();
       const ratio = health / maxHealth;
 
-      const maxWidth = (144 - 7) / zoom;
+      const maxWidth = 144 - 7;
       DrawManager.drawRectFilled(
         barX + 8 / zoom,
         barY + 6 / zoom,
@@ -189,7 +190,7 @@ export default class UIManager extends AManager {
     // Coins
     const coinBgSprite = AssetManager.getImageAsset("UICoinsBg")!;
     const coinBgX = signX + 60 / zoom;
-    const coinBgY = CameraManager.y - CameraManager.getTargetWorldHeight() / 2 + 8 / zoom + 72 / 2 / zoom;
+    const coinBgY = CameraManager.y - CameraManager.getTargetWorldHeight() / zoom / 2 + 8 / zoom + 72 / 2 / zoom;
     DrawManager.queueDraw(coinBgX, coinBgY, coinBgSprite, (100 * 0.75) / zoom, (32 * 0.75) / zoom, ZIndex.UI);
 
     const coinSprite = AssetManager.getImageAsset("ICoinSingle")!;
@@ -204,7 +205,7 @@ export default class UIManager extends AManager {
       coinTextX,
       coinTextY,
       "#fff",
-      20,
+      20 / zoom,
       FONT_MONO,
       "left",
       1,
@@ -248,7 +249,7 @@ export default class UIManager extends AManager {
     const avatarProps = this._getItemAvatarProps(width, shopItemSize, zoom);
     this.activeShopItem?.renderItem(avatarProps.screenPos, AssetManager, DrawManager, {
       alpha,
-      scale: avatarProps.scale,
+      scale: avatarProps.scale / zoom,
       zIndex: ZIndex.UI,
     });
 

@@ -16,19 +16,19 @@ export default class BuildModeManager extends AManager {
   private activeBlockType: BlockTypes | undefined;
   private activeGridTile: GridPosition | undefined;
   private reachableBlocks: GridPosition[] | undefined;
-  private unreachableBlocks: GridPosition[] | undefined;
+  private cursorGridPos: GridPosition | null;
 
   private readonly allAvailableBlocks: BlockTypes[] = [BlockTypes.Wood, BlockTypes.FireBarrel];
 
   constructor(gameInstance: GameInstance) {
     super(gameInstance);
-
     this.isBuildModeActive = false;
   }
 
   public _init(): void {
     this.isBuildModeActive = false;
     this.activeGridTile = undefined;
+    this.cursorGridPos = null;
   }
 
   public _destroy(): void {
@@ -63,27 +63,25 @@ export default class BuildModeManager extends AManager {
     }
 
     this.updateReachableBlocks();
+
     if (this.reachableBlocks) {
       for (const blockPos of this.reachableBlocks) {
         const worldPos = gridToWorld(blockPos);
-        this.gameInstance.MANAGERS.DrawManager.drawRectFilled(
-          worldPos.x + 1,
-          worldPos.y + 1,
-          GRID_CONFIG.TILE_SIZE - 2,
-          GRID_CONFIG.TILE_SIZE - 2,
-          "#22bb444f",
+        this.gameInstance.MANAGERS.DrawManager.drawRectOutline(
+          worldPos.x + 1 + 1 + 1,
+          worldPos.y + 1 + 1 + 1,
+          GRID_CONFIG.TILE_SIZE - 2 - 2 - 2,
+          GRID_CONFIG.TILE_SIZE - 2 - 2 - 2,
+          "#00000080",
+          1,
         );
-      }
-    }
-    if (this.unreachableBlocks) {
-      for (const blockPos of this.unreachableBlocks) {
-        const worldPos = gridToWorld(blockPos);
-        this.gameInstance.MANAGERS.DrawManager.drawRectFilled(
-          worldPos.x + 1,
-          worldPos.y + 1,
-          GRID_CONFIG.TILE_SIZE - 2,
-          GRID_CONFIG.TILE_SIZE - 2,
-          "#9922336f",
+        this.gameInstance.MANAGERS.DrawManager.drawRectOutline(
+          worldPos.x + 1 + 1,
+          worldPos.y + 1 + 1,
+          GRID_CONFIG.TILE_SIZE - 2 - 2,
+          GRID_CONFIG.TILE_SIZE - 2 - 2,
+          "#ffffff80",
+          1,
         );
       }
     }
@@ -122,7 +120,6 @@ export default class BuildModeManager extends AManager {
 
     const threshold = 2;
     const reachableBlocks: typeof this.reachableBlocks = [];
-    const unreachableBlocks: typeof this.unreachableBlocks = [];
 
     for (let x = -threshold; x <= threshold; x++) {
       for (let y = -threshold; y <= threshold; y++) {
@@ -135,19 +132,11 @@ export default class BuildModeManager extends AManager {
         const isPlayerPos = areVectorsEqual(player._getGridPosition(), currentPos);
         if (isOnCorner || isPlayerPos) continue;
 
-        const levelGrid = this.gameInstance.MANAGERS.LevelManager.levelGrid;
-        const isUnavailable = levelGrid?.[currentPos.x]?.[currentPos.y] === GridTileState.BLOCKED;
-
-        if (isInsideGrid(currentPos, GRID_CONFIG, 2) && !isUnavailable) {
-          reachableBlocks.push(currentPos);
-        } else {
-          unreachableBlocks.push(currentPos);
-        }
+        reachableBlocks.push(currentPos);
       }
     }
 
     this.reachableBlocks = reachableBlocks;
-    this.unreachableBlocks = unreachableBlocks;
 
     const gridPos = this.activeGridTile;
     if (!gridPos) return;

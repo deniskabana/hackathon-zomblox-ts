@@ -47,8 +47,8 @@ export default class InteractiveStartNight extends AEntity {
     updateBefore: (_deltaTime) => {},
 
     draw: () => {
-      const { DrawManager, LevelManager } = _game.MANAGERS;
-      if (!LevelManager.getIsDay()) return;
+      const { DrawManager, LevelManager, BuildModeManager } = _game.MANAGERS;
+      if (!LevelManager.getIsDay() || BuildModeManager.isBuildModeActive) return;
 
       this._animations?.drawActiveAnimations(this._getWorldPosition(), this._getSize() * 1.2, DrawManager, {
         zIndex: ZIndex.INTERACTIVE,
