@@ -9,8 +9,9 @@ export const DEF_ASSETS_AUDIO = {
   APlayerDie: "/audio/man-scream-121085.mp3", // https://pixabay.com/users/universfield-28281460/
   // Gun
   AGunRevolver: "/audio/gunfire-single-shot-colt-peacemaker-94951.mp3", // https://pixabay.com/users/freesound_community-46691455/
-  AGunShotgun: "/audio/shotgun-sound-effect-384451.mp3", // https://pixabay.com/users/ken_williams-32445584/
+  AGunShotgun: "/audio/freesound_community-doom-shotgun-2017-80549.mp3", // https://pixabay.com/users/freesound_community-46691455/
   AGunSMG: "/audio/22-caliber-with-ricochet-39679.mp3", // https://pixabay.com/users/freesound_community-46691455/
+  AGunSniper: "/audio/freesound_community-sniper-rifle-5989.mp3", // https://pixabay.com/users/freesound_community-46691455/
   AGunRevolverReload: "/audio/clean-revolver-reload-6889.mp3", // https://pixabay.com/users/freesound_community-46691455/
   AGunShotgunReload: "/audio/shotgun-reload-sfx-36524.mp3", // https://pixabay.com/users/freesound_community-46691455/
   AGunSMGReload: "/audio/gunreload_9-92134.mp3", // https://pixabay.com/users/freesound_community-46691455/
@@ -37,6 +38,10 @@ export const DEF_ASSETS_AUDIO = {
   AMusicBackgroundNight: "/audio/horror-scary-dark-music-413504.mp3", // https://pixabay.com/users/lnplusmusic-47631836/
   AMusicBackgroundDay: "/audio/early-morning-muse-full-version-peaceful-flute-harp-strings-371629.mp3", // https://pixabay.com/users/kaazoom-448850/
   AMusicBackgroundDead: "/audio/sad-autumn-150145.mp3", // https://pixabay.com/users/music_for_videos-26992513/
+  AMusicBackgroundBoss: "/audio/litesaturation-nu-metal-with-solo-109316.mp3", // https://pixabay.com/users/litesaturation-17654080/
+
+  APickup: "/audio/universfield-game-bonus-144751.mp3", // https://pixabay.com/users/universfield-28281460/
+  AWeaponPickup: "/audio/freesound_community-effect_notify-84408.mp3", // https://pixabay.com/users/freesound_community-46691455/
 } as const satisfies AssetDefinition;
 
 export const DEF_ASSETS_IMAGE = {
