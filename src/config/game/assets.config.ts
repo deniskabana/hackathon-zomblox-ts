@@ -42,6 +42,9 @@ export const DEF_ASSETS_AUDIO = {
 
   APickup: "/audio/universfield-game-bonus-144751.mp3", // https://pixabay.com/users/universfield-28281460/
   AWeaponPickup: "/audio/freesound_community-effect_notify-84408.mp3", // https://pixabay.com/users/freesound_community-46691455/
+  AFireTurret: "/audio/dev_guy-semi-automatic-riflepistol-shot-389472.mp3", // https://pixabay.com/users/dev_guy-47631885/
+  AUnlocked: "/audio/mrstokes302-key-videogame-sfx-mrstokes302-423629.mp3", // https://pixabay.com/users/mrstokes302-48032194/
+  ABearTrap: "/audio/rison8-dbd-bear-trap-being-disarmed-135902.mp3", // https://pixabay.com/users/rison8-31704183/
 } as const satisfies AssetDefinition;
 
 export const DEF_ASSETS_IMAGE = {
