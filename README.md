@@ -1,3 +1,13 @@
+> [!CAUTION]
+> This codebase has been long abandoned in favor of a new, multiplayer-centric codebase that is not open-source. Documentation is also outdated.
+
+This code serves as a showcase of how I started working on Zomblocks and why it was a bad idea to make my own engine. I still don't regret it.
+
+Try the **current version of Zomblocks** here: https://alpha.zomblocks.fun/
+The last public version from this codebase is here: https://beta.zomblocks.fun/
+
+---
+
 ## Zomblocks Hackathon
 
 A simple top-down shooter game made from ground-up by me as a hackathon and a challenge project. Drawing heavily from my Unity experience, implementing everything in OOP TS.
@@ -9,15 +19,6 @@ The aim for MVP after 24hrs of work:
 3. Zombies spawning during the night, flow field path finding, large amounts
 4. Endless survival and menu with proper credits
 
-### Play now!
-
-[Click here to play right now in your browser!](https://deniskabana.github.io/hackathon-zomblox-ts/)
-
-### Screenshot
-
-<div align="center">
-  <img src="screenshot.jpg" alt="Screenshot" />
-</div>
 
 ### Development
 
