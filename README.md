@@ -3,8 +3,8 @@
 
 This code serves as a showcase of how I started working on Zomblocks and why it was a bad idea to make my own engine. I still don't regret it.
 
-Try the **current version of Zomblocks** here: https://alpha.zomblocks.fun/
-The last public version from this codebase is here: https://beta.zomblocks.fun/
+- Try the **current version of Zomblocks** here: https://alpha.zomblocks.fun/
+- The last public version from this codebase is here: https://beta.zomblocks.fun/
 
 ---
 
