@@ -47,6 +47,7 @@ export const DEF_ASSETS_AUDIO = {
   ABearTrap: "/audio/rison8-dbd-bear-trap-being-disarmed-135902.mp3", // https://pixabay.com/users/rison8-31704183/
   AExplosion: "/audio/soundreality-explosion-fx-343683.mp3", // https://pixabay.com/users/soundreality-31074404/
   AAssaultRifleShot: "/audio/assault_rifle_audio_9df6700a8b.mp3", // https://pixabay.com/users/freesound_community-46691455/
+  ARocketLauncherShot: "/audio/rocket_launcher_audio_77b5e88bb9.mp3", // pixabay - unknown author
 } as const satisfies AssetDefinition;
 
 export const DEF_ASSETS_IMAGE = {
