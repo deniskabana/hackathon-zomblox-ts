@@ -45,6 +45,8 @@ export const DEF_ASSETS_AUDIO = {
   AFireTurret: "/audio/dev_guy-semi-automatic-riflepistol-shot-389472.mp3", // https://pixabay.com/users/dev_guy-47631885/
   AUnlocked: "/audio/mrstokes302-key-videogame-sfx-mrstokes302-423629.mp3", // https://pixabay.com/users/mrstokes302-48032194/
   ABearTrap: "/audio/rison8-dbd-bear-trap-being-disarmed-135902.mp3", // https://pixabay.com/users/rison8-31704183/
+  AExplosion: "/audio/soundreality-explosion-fx-343683.mp3", // https://pixabay.com/users/soundreality-31074404/
+  AAssaultRifleShot: "/audio/assault_rifle_audio_9df6700a8b.mp3", // https://pixabay.com/users/freesound_community-46691455/
 } as const satisfies AssetDefinition;
 
 export const DEF_ASSETS_IMAGE = {
